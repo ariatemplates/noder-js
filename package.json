@@ -1,0 +1,24 @@
+{
+    "author": "ariatemplates <contact@ariatemplates.com> (http://github.com/ariatemplates)",
+    "name": "noder",
+    "description": "JavaScript CommonJS loader",
+    "version": "1.0.0-SNAPSHOT",
+    "homepage": "http://github.com/ariatemplates/noder",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ariatemplates/noder.git"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "grunt": "0.3.17",
+        "grunt-beautify": "0.1.0",
+        "grunt-jasmine-node": "0.0.2",
+        "jasmine-node": "1.0.26",
+        "promise-tests": "2.0.0"
+    },
+    "scripts": {
+        "prepublish": "node node_modules/grunt/bin/grunt build",
+        "test": "node node_modules/grunt/bin/grunt build test"
+    }
+
+}
