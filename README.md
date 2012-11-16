@@ -1,5 +1,7 @@
 # Noder
 
+[![Build Status](https://secure.travis-ci.org/ariatemplates/noder.png?branch=master)](https://travis-ci.org/ariatemplates/noder)
+
 Noder is a JavaScript loader, compatible
 with the [CommonJS](http://www.commonjs.org/specs/modules/1.0/) specifications.
 
