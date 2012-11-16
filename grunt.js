@@ -35,6 +35,18 @@ module.exports = function (grunt) {
                 dest: 'dist/node/noder.min.js'
             }
         },
+        compress: {
+            browser: {
+                files: {
+                    'dist/browser/noder.min.js.gz': 'dist/browser/noder.min.js'
+                }
+            },
+            node: {
+                files: {
+                    'dist/node/noder.min.js.gz': 'dist/node/noder.min.js'
+                }
+            }
+        },
         lint: {
             sources: ['package.json', 'grunt.js', 'tasks/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
             dist: ['dist/*/noder.js']
@@ -66,7 +78,8 @@ module.exports = function (grunt) {
     grunt.loadTasks("tasks");
     grunt.loadNpmTasks('grunt-beautify');
     grunt.loadNpmTasks("grunt-jasmine-node");
-    grunt.registerTask('build', 'noder min');
+    grunt.loadNpmTasks('grunt-contrib-compress');
+    grunt.registerTask('build', 'noder min compress');
     grunt.registerTask('test', 'lint jasmine_node');
     grunt.registerTask('dev', 'beautify build lint');
     grunt.registerTask('default', 'build test');

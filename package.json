@@ -13,6 +13,7 @@
         "grunt": "0.3.17",
         "grunt-beautify": "0.1.0",
         "grunt-jasmine-node": "0.0.2",
+        "grunt-contrib-compress": "0.3.2",
         "jasmine-node": "1.0.26",
         "promise-tests": "2.0.0"
     },
