@@ -22,12 +22,13 @@ if (document.readyState == "loading") {
     var scriptTag = scripts[scripts.length - 1];
     if (scriptTag) {
         var src = scriptTag.src;
-        if (!src) {
-            // if there is no src, it cannot be the right script tag
-            scriptTag = null;
-        } else {
+        // if there is no src, it cannot be the right script tag anyway
+        if (src) {
             var exec = require('./eval.js');
-            config = exec(scriptTag.innerHTML) || config;
+            var configContent = scriptTag.innerHTML;
+            if (!/^\s*$/.test(configContent)) {
+                config = exec(configContent) || config;
+            }
 
             if (!config.main) {
                 var questionMark = src.indexOf('?');
