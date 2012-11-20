@@ -28,12 +28,8 @@ if (HttpRequestObject) {
     };
 }
 
-module.exports = function (url) {
-    var deferred = promise();
-    var xhr = newHttpRequestObject();
-
-    xhr.open('GET', url, true);
-    xhr.onreadystatechange = function () {
+var createCallback = function (url, xhr, deferred) {
+    return function () {
         if (xhr && xhr.readyState == 4) {
             var error = (xhr.status != 200);
             if (error) {
@@ -41,10 +37,18 @@ module.exports = function (url) {
             } else {
                 deferred.resolve(xhr.responseText);
             }
-            xhr = null;
-            deferred = null;
+            // clean the closure:
+            url = xhr = deferred = null;
         }
     };
+};
+
+module.exports = function (url) {
+    var deferred = promise();
+    var xhr = newHttpRequestObject();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = createCallback(url, xhr, deferred);
+    // Note that, on IE, onreadystatechange can be called during the call to send
     xhr.send(null);
     return deferred.promise();
 };
