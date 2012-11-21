@@ -14,7 +14,7 @@
  */
 
 describe('Type', function () {
-    var type = require('../../src/modules/type.js');
+    var type = require('../../../src/modules/type.js');
     it('isPlainObject', function () {
         var isPlainObject = type.isPlainObject;
         expect(isPlainObject({})).toBe(true);

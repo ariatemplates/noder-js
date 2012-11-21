@@ -15,7 +15,7 @@
 
 describe('Promises', function () {
     it('Standard promise tests suite', function () {
-        var Deferred = require('../../src/modules/promise.js');
+        var Deferred = require('../../../src/modules/promise.js');
         var runTests = require('promise-tests');
         var adapter = {
             fulfilled: function (value) {

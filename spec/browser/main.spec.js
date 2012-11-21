@@ -13,19 +13,37 @@
  * limitations under the License.
  */
 
+var global = (function () {
+    return this;
+})();
+
 describe("Main", function () {
+    var noder = global.noder || require('../../dist/node/noder.js');
+    var directory = global.window ? "/noder/spec/browser" : __dirname;
+
+    // For this test to run both in a browser and in node.js:
+    var asyncIt = function (name, fn) {
+        it(name, function () {
+            var finished = false;
+            fn(function (error) {
+                expect(error).toBeFalsy();
+                finished = true;
+            });
+            waitsFor(function () {
+                return finished;
+            });
+        });
+    };
     var fail = function (done) {
         return function (error) {
             done(error || 'Unknown error');
         };
     };
 
-    var rootModule = require('../dist/node/noder.js');
-
-    it("Simple", function (done) {
-        var newRootModule = rootModule.createContext({
+    asyncIt("Simple", function (done) {
+        var newRootModule = noder.createContext({
             packaging: {
-                baseUrl: __dirname + '/main-tests/simple/'
+                baseUrl: directory + '/main-tests/simple/'
             }
         });
         newRootModule.asyncRequire(['file1']).then(function () {
@@ -36,10 +54,10 @@ describe("Main", function () {
         }).then(done, fail(done));
     });
 
-    it("Circular dependency", function (done) {
-        var newRootModule = rootModule.createContext({
+    asyncIt("Circular dependency", function (done) {
+        var newRootModule = noder.createContext({
             packaging: {
-                baseUrl: __dirname + '/main-tests/circularDependency/'
+                baseUrl: directory + '/main-tests/circularDependency/'
             }
         });
         newRootModule.asyncRequire(['file1']).then(function () {

@@ -15,7 +15,7 @@
 
 describe('Dependencies extraction', function () {
 
-    var extractDeps = require('../../src/modules/extractDependencies.js');
+    var extractDeps = require('../../../src/modules/extractDependencies.js');
 
     var quoteRegExp = /['"]/g;
     var quoteReplacer = function (quote) {

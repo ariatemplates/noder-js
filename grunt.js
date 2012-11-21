@@ -14,6 +14,12 @@
  */
 
 module.exports = function (grunt) {
+    var pkg = require('./package.json');
+    var config = pkg.config;
+    var env = process.env;
+    // The environment variable is defined when grunt is run from npm.
+    var testBrowsersCfg = env.npm_config_test_browsers || config['test-browsers'];
+
     grunt.initConfig({
         noder: {
             browser: {
@@ -62,7 +68,15 @@ module.exports = function (grunt) {
             }
         },
         jasmine_node: {
-            forceExit: true
+            forceExit: true,
+            projectRoot: "./spec"
+        },
+        noder_testacular: {
+            integration: {
+                configFile: './spec/browser/testacular.conf.js',
+                browsers: testBrowsersCfg.split(','),
+                singleRun: true
+            }
         },
         beautify: {
             all: ['<config:lint.sources>']
@@ -80,8 +94,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-jasmine-node");
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.registerTask('build', 'noder min compress');
-    grunt.registerTask('test', 'lint jasmine_node');
+    // noder_testacular must always be the last task to run (it terminates the process)
+    grunt.registerTask('test', 'lint jasmine_node noder_testacular');
     grunt.registerTask('dev', 'beautify build lint');
     grunt.registerTask('default', 'build test');
-
 };
