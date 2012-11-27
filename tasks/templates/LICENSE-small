@@ -1,0 +1,6 @@
+/*
+ * Noder <%= pkg.version %> - <%= grunt.template.today('dd mmm yyyy') %>
+ * https://github.com/ariatemplates/noder
+ * Copyright 2009-<%= grunt.template.today('yyyy') %> Amadeus s.a.s.
+ * Licensed under the Apache License, Version 2.0.
+ */

@@ -21,23 +21,26 @@ module.exports = function (grunt) {
     var testBrowsersCfg = env.npm_config_test_browsers || config['test-browsers'];
 
     grunt.initConfig({
+        pkg: pkg,
         noder: {
             browser: {
+                banner: '<file_template:tasks/templates/LICENSE-long>',
                 env: "browser",
                 dest: 'dist/browser/noder.js'
             },
             node: {
+                banner: '<file_template:tasks/templates/LICENSE-long>',
                 env: "node",
                 dest: 'dist/node/noder.js'
             }
         },
         min: {
             browser: {
-                src: ['dist/browser/noder.js'],
+                src: ['<file_template:tasks/templates/LICENSE-small>', 'dist/browser/noder.js'],
                 dest: 'dist/browser/noder.min.js'
             },
             node: {
-                src: ['dist/node/noder.js'],
+                src: ['<file_template:tasks/templates/LICENSE-small>', 'dist/node/noder.js'],
                 dest: 'dist/node/noder.min.js'
             }
         },
