@@ -47,12 +47,16 @@ the synchronous (and simple to use) ``require`` syntax does not mean it is using
 
 ## Getting started
 
-* Download the latest release of Noder. *(A link to download it will be provided soon)*
+* Download the latest release of Noder, either minified or uncompressed:
+
+	* Minified: [noder.min.js](https://github.com/downloads/ariatemplates/noder/noder.min.js)
+	* Uncompressed: [noder.js](https://github.com/downloads/ariatemplates/noder/noder.js)
+
 
 * Add the following line in your HTML page, replacing ``firstModule`` with the name of the first module to load and execute:
 
 ```html
-<script type="noder.js?firstModule"></script>
+<script type="noder.min.js?firstModule"></script>
 ```
 
 By default, the module is looked for in the same directory as the HTML page, but it is possible to change it through configuration options.
