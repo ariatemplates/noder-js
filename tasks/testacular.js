@@ -14,20 +14,25 @@
  */
 
 module.exports = function (grunt) {
-    grunt.registerMultiTask('noder_testacular', 'Starts testacular.', function () {
-        var task = this;
+    grunt.registerMultiTask('testacular_start', 'testacular start', function () {
         var testacularServer = require('testacular').server;
-        var connect = require('connect');
-        var path = require('path');
-        task.async(); // just specify that the task is async, testacular ends the process itself
-        var webServer = connect(connect['static'](path.join(__dirname, '..'))).listen(0, function () {
-            var webServerPort = webServer.address().port;
-            var proxies = task.data.proxies;
-            if (!proxies) {
-                task.data.proxies = proxies = {};
+        var dontWait = this.data.dontWait;
+        delete this.data.dontWait;
+        testacularServer.start(this.data);
+        var done = this.async(); // just specify that the task is async, testacular ends the process itself
+        if (dontWait) {
+            setTimeout(done, 2000); // wait 2 s for Testacular to be started
+        }
+    });
+
+    grunt.registerMultiTask('testacular_run', 'testacular run', function () {
+        var testacularRunner = require('testacular').runner;
+        var done = this.async();
+        testacularRunner.run(this.data, function (exitCode) {
+            if (exitCode !== 0) {
+                grunt.warn("Error when running testacular.", exitCode);
             }
-            task.data.proxies['/noder/'] = "http://localhost:" + webServerPort + "/";
-            testacularServer.start(task.data);
+            done();
         });
     });
 };

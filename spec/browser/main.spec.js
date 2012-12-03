@@ -19,7 +19,7 @@ var global = (function () {
 
 describe("Main", function () {
     var noder = global.noder || require('../../dist/node/noder.js');
-    var directory = global.window ? "/noder/spec/browser" : __dirname;
+    var directory = global.window ? "/base/spec/browser" : __dirname;
 
     // For this test to run both in a browser and in node.js:
     var asyncIt = function (name, fn) {

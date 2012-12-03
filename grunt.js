@@ -74,12 +74,30 @@ module.exports = function (grunt) {
             forceExit: true,
             projectRoot: "./spec"
         },
-        noder_testacular: {
+        testacular_start: {
             integration: {
                 configFile: './spec/browser/testacular.conf.js',
                 browsers: testBrowsersCfg.split(','),
                 singleRun: true
+            },
+            dev: {
+                configFile: './spec/browser/testacular.conf.js',
+                browsers: testBrowsersCfg.split(','),
+                singleRun: false,
+                dontWait: true
+            },
+            coverage: {
+                configFile: './spec/browser/testacular.conf.js',
+                browsers: testBrowsersCfg.split(','),
+                singleRun: true,
+                preprocessors: {
+                    '**/dist/browser/noder.js': 'coverage'
+                },
+                reporters: ['coverage']
             }
+        },
+        testacular_run: {
+            run: {}
         },
         beautify: {
             all: ['<config:lint.sources>']
@@ -97,8 +115,10 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-jasmine-node");
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.registerTask('build', 'noder min compress');
-    // noder_testacular must always be the last task to run (it terminates the process)
-    grunt.registerTask('test', 'lint jasmine_node noder_testacular');
-    grunt.registerTask('dev', 'beautify build lint');
+    // testacular_start without dontWait must always be the last task to run (it terminates the process)
+    grunt.registerTask('test', 'lint jasmine_node testacular_start:integration');
+    grunt.registerTask('testacular', 'testacular_start:dev dev watch');
+    grunt.registerTask('dev', 'beautify build lint testacular_run');
+    grunt.registerTask('coverage', 'testacular_start:coverage');
     grunt.registerTask('default', 'build test');
 };

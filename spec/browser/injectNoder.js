@@ -1,2 +1,2 @@
 /*jshint evil:true*/
-document.write('<script src="/noder/dist/browser/noder.js"></script>');
+document.write('<script src="/base/dist/browser/noder.js"></script>');
