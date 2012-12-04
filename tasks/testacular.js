@@ -21,7 +21,7 @@ module.exports = function (grunt) {
         testacularServer.start(this.data);
         var done = this.async(); // just specify that the task is async, testacular ends the process itself
         if (dontWait) {
-            setTimeout(done, 2000); // wait 2 s for Testacular to be started
+            setTimeout(done, 5000); // wait 5 s for Testacular to be started
         }
     });
 

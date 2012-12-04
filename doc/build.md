@@ -35,20 +35,19 @@ The built version can be found in the dist directory:
  * ``dist/browser/noder.min.js`` : minified version of Noder for web browsers
  * ``dist/node/noder.js`` : uncompressed version of Noder for node.js (useful for testing purposes)
  * ``dist/node/noder.min.js`` : minified version of Noder for node.js
- 
+
 ## Running the test suite
 
-To run the test suite, you can use:
+### Configuring browsers
 
-```
-npm test
-```
+By default, when running the test commands (as described in the next 3 sections), the browsers used for testing are
+[PhantomJS](http://phantomjs.org/) and [Firefox](https://www.mozilla.org/en-US/firefox/fx/#desktop)
+(the only two browsers directly available on [Travis-ci](http://about.travis-ci.org/docs/user/gui-and-headless-browsers/)).
+As a consequence, if you do not change the default configuration, you need to have PhantomJS and Firefox installed and
+available in the [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29) before running test commands.
 
-This command will first execute the build, then launch the test suite in node.js, and then run tests in PhantomJS and
-Firefox with [testacular](http://vojtajina.github.com/testacular/). You need to have PhantomJS and Firefox installed
-and available in the path for this to succeed.
-
-If you want to change the browsers used for testing, you can use ``npm config``, for example:
+If you want to change the browsers used for testing, you can use ``npm config``. For example, if you only want to test
+on Chrome and Safari, you can use:
 
 ```
 npm config set test-browsers "Chrome,Safari"
@@ -57,3 +56,43 @@ npm config set test-browsers "Chrome,Safari"
 Check in the [testacular project](https://github.com/vojtajina/testacular/wiki/Browsers) the list of
 supported browsers to automatically run the test suite.
 
+### Running the test suite manually
+
+To run the test suite, you can use:
+
+```
+npm test
+```
+
+This command:
+* executes the build
+* checks ``.js`` and ``.json`` files with [JSHint](http://www.jshint.com/)
+* runs the test suite in node.js
+* runs tests with [testacular](http://vojtajina.github.com/testacular/) in the browsers configured in the
+previous section.
+
+### Running the test suite automatically
+
+When writing code, it is useful to be notified as soon as a regression is introduced.
+
+```
+npm run-script testacular
+```
+
+When running the above command, the configured browsers are started and then ``grunt`` enters in a waiting mode during
+which it watches for any file changed on the file system in the directory of ``noder``. When a file is changed:
+* ``.js`` and ``.json`` files are reformatted
+* the build is executed
+* ``.js`` and ``.json`` files are checked with [JSHint](http://www.jshint.com/)
+* tests are run with [testacular](http://vojtajina.github.com/testacular/) in the configured browsers.
+
+### Code coverage
+
+To get the code coverage report, you can use the following command:
+
+```
+npm run-script coverage
+```
+
+This executes tests with [testacular](http://vojtajina.github.com/testacular/) in the configured browsers and creates
+a report for each browser in the ``coverage`` directory.

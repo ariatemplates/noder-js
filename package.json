@@ -21,7 +21,7 @@
     "scripts": {
         "prepublish": "node node_modules/grunt/bin/grunt build",
         "test": "node node_modules/grunt/bin/grunt build test",
-        "testacular": "node node_modules/grunt/bin/grunt testacular",
+        "testacular": "node node_modules/grunt/bin/grunt testacular --force",
         "coverage": "node node_modules/grunt/bin/grunt coverage"
     },
     "config": {
