@@ -118,6 +118,7 @@ var Context = function (config) {
     rootModule.loaded = true;
     rootModule.define = define;
     rootModule.asyncRequire = rootModule.require('asyncRequire').create(rootModule);
+    rootModule.execute = bind(this.execute, this);
     this.rootModule = rootModule;
 
     var globalVarName = config.varName;
