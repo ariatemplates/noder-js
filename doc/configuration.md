@@ -9,7 +9,7 @@ It will be the configuration of the default context.
 For example:
 
 ```html
-<script type="noder.js">
+<script type="text/javascript" src="noder.js">
 {
 	// put the configuration of the default context here
 }
