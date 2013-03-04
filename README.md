@@ -14,7 +14,7 @@ This allows to easily import dependencies with ``var myModule = require("myModul
 * Modules can be loaded on demand (both in packaged and unpackaged mode).
 * It is tested on Firefox (latest), Chrome (latest), Internet Explorer 7 (and later) and PhantomJS. It is very likely to be compatible with other browsers as well.
 * Even if it is intended to be run on web browsers, a node.js version of Noder is also available.
-* It has many configuration options (check the [documentation](https://github.com/ariatemplates/noder/blob/master/doc/index.md)).
+* It has many configuration options (check the [documentation](doc/index.md)).
 
 ## Why using Noder ?
 
@@ -62,4 +62,4 @@ the synchronous (and simple to use) ``require`` syntax does not mean it is using
 By default, the module is looked for in the same directory as the HTML page, but it is possible to change it through configuration options.
 When the page is loaded, ``firstModule.js`` will automatically be loaded and executed.
 
-* Noder has many more features. Please check the [documentation](https://github.com/ariatemplates/noder/blob/master/doc/index.md).
+* Noder has many more features. Please check the [documentation](doc/index.md).
