@@ -18,7 +18,8 @@ var requireRegExp = /^require\s*\(\s*$/;
 var endOfLineRegExp = /[\r\n]/;
 var quoteRegExp = /^['"]$/;
 var operatorRegExp = /^[!%&\(*+,\-\/:;<=>?\[\^]$/;
-var lastNonSpaceCharRegExp = /\S\s*$/;
+var firstNonSpaceCharRegExp = /^\s*(\S)/;
+var lastNonSpaceCharRegExp = /(\S)\s*$/;
 
 var isEscaped = function (string) {
     var escaped = false;
@@ -33,9 +34,8 @@ var isEscaped = function (string) {
 var getLastNonSpaceChar = function (array, i) {
     for (; i >= 0; i--) {
         var curItem = array[i];
-        var index = curItem.search(lastNonSpaceCharRegExp);
-        if (index > -1) {
-            return curItem.charAt(index);
+        if (lastNonSpaceCharRegExp.test(curItem)) {
+            return RegExp.$1;
         }
     }
     return "";
@@ -86,11 +86,14 @@ var findEndOfStarComment = function (array, beginIndex) {
     if (array[beginIndex] == "/*") {
         i++;
     }
+    var curItem = array[i - 1];
     for (var l = array.length; i < l; i++) {
-        var prevItem = array[i - 1];
-        if (prevItem.charAt(prevItem.length - 1) == '*' && array[i].charAt(0) == '/') {
-            array.splice(beginIndex, i + 1 - beginIndex);
-            return beginIndex - 1;
+        var prevItem = curItem;
+        curItem = array[i];
+        if (prevItem.charAt(prevItem.length - 1) == '*' && curItem.charAt(0) == '/') {
+            array.splice(beginIndex, i - beginIndex);
+            array[beginIndex] = curItem.substring(1);
+            return beginIndex;
         }
     }
     return i;
@@ -100,6 +103,18 @@ module.exports = function (source) {
     var ids = [];
     var i = 0;
     var array = source.split(splitRegExp);
+/*
+     * inRequireState variable:
+     * 0 : outside of any useful require
+     * 1 : just reached require
+     * 2 : looking for the string
+     * 3 : just reached the string
+     * 4 : looking for closing parenthesis
+     */
+    var inRequireState = -1;
+    var inRequireBeginString;
+    var inRequireEndString;
+
     for (var l = array.length; i < l && i >= 0; i++) {
         var curItem = array[i];
         var firstChar = curItem.charAt(0);
@@ -115,16 +130,35 @@ module.exports = function (source) {
                 i = findEndOfStringOrRegExp(array, i);
             }
         } else if (quoteRegExp.test(firstChar)) {
+            inRequireBeginString = i;
             i = findEndOfStringOrRegExp(array, i);
+            if (inRequireState == 2) {
+                inRequireState = 3;
+                inRequireEndString = i;
+            }
         } else if (firstChar == "r") {
-            if (requireRegExp.test(curItem) && i + 2 < l && checkRequireScope(array, i)) {
-                var newI = i + 1;
-                if (quoteRegExp.test(array[newI].charAt(0))) {
-                    i = findEndOfStringOrRegExp(array, newI);
-                    ids.push(getStringContent(array, newI, i));
+            if (requireRegExp.test(curItem) && checkRequireScope(array, i)) {
+                inRequireState = 1;
+            }
+        }
+        if (inRequireState > 0) {
+            if (inRequireState == 1) {
+                inRequireState = 2;
+            } else {
+                curItem = array[i];
+                if (inRequireState == 3) {
+                    curItem = curItem.substring(1);
+                    inRequireState = 4;
+                }
+                if (firstNonSpaceCharRegExp.test(curItem)) {
+                    if (inRequireState == 4 && RegExp.$1 == ")") {
+                        ids.push(getStringContent(array, inRequireBeginString, inRequireEndString));
+                    }
+                    inRequireState = 0;
                 }
             }
         }
     }
+    // Here, array.join('') should exactly contain the source but without comments.
     return ids;
 };

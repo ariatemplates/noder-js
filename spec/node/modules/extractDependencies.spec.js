@@ -51,6 +51,11 @@ describe('Dependencies extraction', function () {
         expectDeps('var arequire = require("asyncRequire"); arequire(["myAsyncDep"]).then(function(){var myAsyncDep = arequire("myAsyncDep"); /*...*/ });', ["asyncRequire"]);
         expectDeps('var requireasync = require("asyncRequire"); requireasync(["myAsyncDep"]).then(function(){var myAsyncDep = requireasync("myAsyncDep"); /*...*/ });', ["asyncRequire"]);
         expectDeps('var other = something(); var ignoreMe = other.require("ignoreMe");', []);
+        expectDeps('var other = something(); var ignoreMe = other . /* comment in the middle */ require("ignoreMe");', []);
+        expectDeps('var other = something(); var ignoreMe = other /* comment in the middle */ . require("ignoreMe");', []);
+        expectDeps('var other = something(); var ignoreMe = other . /*/ comment in the middle /*/ require("ignoreMe");', []);
+        expectDeps('var other = something(); var ignoreMe = other /*/ comment in the middle /*/ . require("ignoreMe");', []);
+        expectDeps('var other = something(); var ignoreMe = other . // comment in the middle \n require("ignoreMe");', []);
     });
 
     it('Quotes', function () {
@@ -76,5 +81,22 @@ describe('Dependencies extraction', function () {
     it('Quotes and comments', function () {
         expectDeps('var e = "/* ", g = require("trueRequire"), f = " */"; ', ["trueRequire"]);
         expectDeps('var e = "// ", g = require("trueRequire"); ', ["trueRequire"]);
+    });
+
+    it('Expressions in require', function () {
+        expectDeps('var expressionRequire = require(/* here is a comment */ "trueRequire");', ["trueRequire"]);
+        expectDeps('var expressionRequire = require(// here is a comment \n "trueRequire");', ["trueRequire"]);
+        expectDeps('var expressionRequire = require("trueRequire" /* here is a comment */);', ["trueRequire"]);
+        expectDeps('var expressionRequire = require("trueRequire" // here is a comment \n);', ["trueRequire"]);
+        expectDeps('var expressionRequire = require(/* a comment */ "trueRequire" /* another comment */);', ["trueRequire"]);
+        expectDeps('var expressionRequire = require(// a comment \n "trueRequire" // another comment \n);', ["trueRequire"]);
+        expectDeps('var expressionRequire = require(/* several */ /* comments */ "trueRequire" /* several */ /* comments */);', ["trueRequire"]);
+        expectDeps('var expressionRequire = require(// several \n // comments \n "trueRequire" // several \n // comments \n);', ["trueRequire"]);
+        expectDeps('var expressionRequire = require(// several \n /* comments */ "trueRequire" /* several */ // comments \n);', ["trueRequire"]);
+        expectDeps('var expressionRequire = require("firstExpression" + "otherExpression");', []);
+        expectDeps('var expressionRequire = require("firstExpression" + 1);', []);
+        expectDeps('var expressionRequire = require(require("innerRequire").value);', ["innerRequire"]);
+        expectDeps('var expressionRequire = require(1 + "firstExpression");', []);
+        expectDeps('var expressionRequire = require("dynamicRequire" /* here is a comment */ + 1);', []);
     });
 });
