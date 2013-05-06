@@ -15,26 +15,27 @@
 
 describe('Type', function () {
     var type = require('../../../src/modules/type.js');
+    var expect = require("chai").expect;
     it('isPlainObject', function () {
         var isPlainObject = type.isPlainObject;
-        expect(isPlainObject({})).toBe(true);
+        expect(isPlainObject({})).to.equal(true);
         expect(isPlainObject({
             value: 1
-        })).toBe(true);
-        expect(isPlainObject([])).toBe(false);
-        expect(isPlainObject(Array(1))).toBe(false);
-        expect(isPlainObject(new Array(1))).toBe(false);
-        expect(isPlainObject([{}])).toBe(false);
-        expect(isPlainObject("hello")).toBe(false);
-        expect(isPlainObject(String("hello"))).toBe(false);
+        })).to.equal(true);
+        expect(isPlainObject([])).to.equal(false);
+        expect(isPlainObject(Array(1))).to.equal(false);
+        expect(isPlainObject(new Array(1))).to.equal(false);
+        expect(isPlainObject([{}])).to.equal(false);
+        expect(isPlainObject("hello")).to.equal(false);
+        expect(isPlainObject(String("hello"))).to.equal(false);
         var StringCopy = String;
-        expect(isPlainObject(new StringCopy("hello"))).toBe(false);
-        expect(isPlainObject(5)).toBe(false);
-        expect(isPlainObject(Number(5))).toBe(false);
+        expect(isPlainObject(new StringCopy("hello"))).to.equal(false);
+        expect(isPlainObject(5)).to.equal(false);
+        expect(isPlainObject(Number(5))).to.equal(false);
         var NumberCopy = Number;
-        expect(isPlainObject(new NumberCopy(5))).toBe(false);
-        expect(isPlainObject(/myRegexp/)).toBe(false);
-        expect(isPlainObject( /*undefined*/ )).toBe(false);
-        expect(isPlainObject(NaN)).toBe(false);
+        expect(isPlainObject(new NumberCopy(5))).to.equal(false);
+        expect(isPlainObject(/myRegexp/)).to.equal(false);
+        expect(isPlainObject( /*undefined*/ )).to.equal(false);
+        expect(isPlainObject(NaN)).to.equal(false);
     });
 });

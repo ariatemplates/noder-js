@@ -16,7 +16,6 @@
 module.exports = function (grunt) {
     var path = require('path');
     var fileUtils = grunt.file;
-    var gruntTask = grunt.task;
     var log = grunt.log;
 
     // This regexp only matches calls to require for local modules (starting with './' or '../' or 'noder/')
@@ -29,7 +28,7 @@ module.exports = function (grunt) {
     var src = path.join(__dirname, '../src/');
     var envConfig = {
         "node": {
-            header: "/*jshint undef:true*/\n/*global module:true require:true process:true global:true*/\nmodule.exports = (function(){\n'use strict';\n",
+            header: "/*jshint undef:true, node:true*/\nmodule.exports = (function(){\n'use strict';\n",
             footer: "\n})()",
             modules: [path.join(src, 'modules/**/*.js'), path.join(src, 'node-modules/**/*.js')]
         },
@@ -41,6 +40,12 @@ module.exports = function (grunt) {
     };
     var internalModules = path.join(src, 'internalModules.js');
 
+    var readFileStripBanner = function (path) {
+        var content = grunt.file.read(path);
+        content = content.replace(/^\s*\/\*[\s\S]*?\*\/\s*/, '');
+        return content;
+    };
+
     grunt.registerMultiTask("noder", "Build Noder with the specified parameters.", function () {
         var data = this.data;
         var envCfg = envConfig[data.env || "browser"];
@@ -48,9 +53,11 @@ module.exports = function (grunt) {
             log.error("Invalid value for the env parameter: " + data.env);
             return;
         }
-        var modules = fileUtils.expandFiles(envCfg.modules.concat(data.modules || []));
+        var modules = fileUtils.expand({
+            filter: "isFile"
+        }, envCfg.modules.concat(data.modules || []));
         var mainModule = getModuleName(data.main || "main");
-        var banner = data.banner ? gruntTask.directive(data.banner) : "";
+        var banner = grunt.config.process(data.banner);
         var configFile = data.configFile;
         if (configFile) {
             configFile = fileUtils.read(configFile);
@@ -95,7 +102,7 @@ module.exports = function (grunt) {
         var includeModule = function (module) {
             var moduleName = module.name;
             log.debug("Including module " + module.path);
-            var fileContent = gruntTask.helper("file_strip_banner", module.path);
+            var fileContent = readFileStripBanner(module.path);
             fileContent = fileContent.replace(requireRegexp, requireReplacer);
             output.push('internalDefine(', module.number, ' /* ', moduleName, ' */, function (module) {\n\n', fileContent, '\n\n});\n\n');
         };
@@ -114,7 +121,7 @@ module.exports = function (grunt) {
         var composeFile = function () {
             output.push(banner);
             output.push(envCfg.header);
-            output.push(gruntTask.helper("file_strip_banner", internalModules));
+            output.push(readFileStripBanner(internalModules));
             getModuleNumber(mainModule);
             while (toBeIncluded.length) {
                 includeModule(toBeIncluded.shift());

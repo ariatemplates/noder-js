@@ -14,7 +14,7 @@
  */
 
 basePath = '../..';
-files = [JASMINE, JASMINE_ADAPTER, 'spec/browser/injectNoder.js', 'spec/browser/*.spec.js',
+files = [MOCHA, MOCHA_ADAPTER, require.resolve('chai/chai.js'), 'spec/browser/injectNoder.js', 'spec/browser/*.spec.js',
 {
     pattern: '**/*.js',
     included: false

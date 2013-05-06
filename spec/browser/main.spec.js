@@ -20,27 +20,15 @@ var global = (function () {
 describe("Main", function () {
     var noder = global.noder || require('../../dist/node/noder.js');
     var directory = global.window ? "/base/spec/browser" : __dirname;
+    var expect = global.chai ? global.chai.expect : require("chai").expect;
 
-    // For this test to run both in a browser and in node.js:
-    var asyncIt = function (name, fn) {
-        it(name, function () {
-            var finished = false;
-            fn(function (error) {
-                expect(error).toBeFalsy();
-                finished = true;
-            });
-            waitsFor(function () {
-                return finished;
-            });
-        });
-    };
     var fail = function (done) {
         return function (error) {
             done(error || 'Unknown error');
         };
     };
 
-    asyncIt("Simple", function (done) {
+    it("Simple", function (done) {
         var newRootModule = noder.createContext({
             packaging: {
                 baseUrl: directory + '/main-tests/simple/'
@@ -48,13 +36,13 @@ describe("Main", function () {
         });
         newRootModule.asyncRequire(['file1']).then(function () {
             var file1 = newRootModule.asyncRequire('file1');
-            expect(file1.test1()).toEqual('simple-ok1');
-            expect(file1.test2()).toEqual('simple-ok2');
-            expect(file1.test3()).toEqual('simple-ok3');
+            expect(file1.test1()).to.equal('simple-ok1');
+            expect(file1.test2()).to.equal('simple-ok2');
+            expect(file1.test3()).to.equal('simple-ok3');
         }).then(done, fail(done));
     });
 
-    asyncIt("Circular dependency", function (done) {
+    it("Circular dependency", function (done) {
         var newRootModule = noder.createContext({
             packaging: {
                 baseUrl: directory + '/main-tests/circularDependency/'
@@ -62,12 +50,12 @@ describe("Main", function () {
         });
         newRootModule.asyncRequire(['file1']).then(function () {
             var file1 = newRootModule.asyncRequire('file1');
-            expect(file1.test1()).toEqual('ok1');
-            expect(file1.test2()).toEqual('ok2');
+            expect(file1.test1()).to.equal('ok1');
+            expect(file1.test2()).to.equal('ok2');
 
             var file2 = newRootModule.asyncRequire('file2');
-            expect(file2.test1()).toEqual('ok1');
-            expect(file2.test2()).toEqual('ok2');
+            expect(file2.test1()).to.equal('ok1');
+            expect(file2.test2()).to.equal('ok2');
         }).then(done, fail(done));
     });
 });

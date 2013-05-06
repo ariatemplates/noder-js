@@ -155,7 +155,7 @@ contextProto.preloadModule = function (module, parent) {
     } else {
         module.require.main = module;
     }
-    return module.preloading = self.loadDefinition(module).then(function () {
+    module.preloading = self.loadDefinition(module).then(function () {
         return self.preloadModules(module, module.definition.dependencies);
     }).then(function () {
         module.preloaded = true;
@@ -165,6 +165,7 @@ contextProto.preloadModule = function (module, parent) {
         module = null;
         self = null;
     });
+    return module.preloading;
 };
 
 contextProto.loadDefinition = function (module) {

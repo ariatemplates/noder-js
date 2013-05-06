@@ -13,42 +13,31 @@
  * limitations under the License.
  */
 
-describe('Promises', function () {
-    it('Standard promise tests suite', function () {
-        var Deferred = require('../../../src/modules/promise.js');
-        var runTests = require('promise-tests');
-        var adapter = {
-            fulfilled: function (value) {
-                var deferred = Deferred();
-                deferred.resolve(value);
-                return deferred.promise();
-            },
+describe("Promises/A+ Tests", function () {
+    var Deferred = require('../../../src/modules/promise.js');
 
-            rejected: function (reason) {
-                var deferred = Deferred();
-                deferred.reject(reason);
-                return deferred.promise();
-            },
+    require("promises-aplus-tests").mocha({
+        fulfilled: function (value) {
+            var deferred = Deferred();
+            deferred.resolve(value);
+            return deferred.promise();
+        },
 
-            pending: function () {
-                var deferred = Deferred();
+        rejected: function (reason) {
+            var deferred = Deferred();
+            deferred.reject(reason);
+            return deferred.promise();
+        },
 
-                return {
-                    promise: deferred.promise(),
-                    fulfill: deferred.resolve,
-                    reject: deferred.reject
-                };
-            }
-        };
-        var finished = false;
-        waitsFor(function () {
-            return finished;
-        }, null, 80000);
+        pending: function () {
+            var deferred = Deferred();
 
-        runTests(adapter, ['promises-a', 'always-async', 'resolution-races', 'returning-a-promise'], function (failed) {
-            expect(failed).toBe(0);
-            finished = true;
-        });
-
+            return {
+                promise: deferred.promise(),
+                fulfill: deferred.resolve,
+                reject: deferred.reject
+            };
+        }
     });
+
 });
