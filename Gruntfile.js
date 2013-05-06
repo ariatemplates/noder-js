@@ -106,19 +106,13 @@ module.exports = function (grunt) {
         testacular_run : {
             run : {}
         },
-        beautify : {
-            all : '<%= jshint.sources %>'
-        },
-        beautifier : {
-            options : {
-                indentSize : 4,
-                indentChar : ' '
-            }
+        jsbeautifier : {
+            files : '<%= jshint.sources %>'
         }
     });
 
     grunt.loadTasks("tasks");
-    grunt.loadNpmTasks('grunt-beautify');
+    grunt.loadNpmTasks('grunt-jsbeautifier');
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks("grunt-contrib-jshint");
@@ -126,7 +120,7 @@ module.exports = function (grunt) {
     // testacular_start without dontWait must always be the last task to run (it terminates the process)
     grunt.registerTask('test', ['jshint', 'mocha', 'testacular_start:integration']);
     grunt.registerTask('testacular', ['testacular_start:dev', 'dev', 'watch']);
-    grunt.registerTask('dev', ['beautify', 'build', 'jshint', 'testacular_run']);
+    grunt.registerTask('dev', ['jsbeautifier', 'build', 'jshint', 'testacular_run']);
     grunt.registerTask('coverage', 'testacular_start:coverage');
     grunt.registerTask('default', ['build', 'test']);
 };
