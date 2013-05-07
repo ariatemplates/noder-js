@@ -15,7 +15,7 @@
 
 var exec = require('../node-modules/eval.js');
 
-module.exports = function (jsCode, filename) {
+module.exports = function(jsCode, filename) {
     var code = ['(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n', jsCode, '\n\n})'];
     return exec(code.join(''), filename);
 };

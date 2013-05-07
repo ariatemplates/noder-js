@@ -21,7 +21,7 @@ var findInMap = require('./findInMap.js');
 var split = require('./path.js').split;
 var emptyObject = {};
 
-var Packaging = function (config, define) {
+var Packaging = function(config, define) {
     config = config || emptyObject;
     this.config = config;
     this.define = define;
@@ -34,7 +34,7 @@ var Packaging = function (config, define) {
 
 var packagingProto = Packaging.prototype = {};
 
-packagingProto.loadModule = function (moduleName) {
+packagingProto.loadModule = function(moduleName) {
     var packageName;
     var packagesMap = this.config.packagesMap;
     if (packagesMap) {
@@ -48,27 +48,27 @@ packagingProto.loadModule = function (moduleName) {
     }
 };
 
-packagingProto.loadUnpackaged = function (moduleName) {
+packagingProto.loadUnpackaged = function(moduleName) {
     var url = (this.config.baseUrl || "") + moduleName;
     var define = this.define;
-    return loadFile(url).then(function (jsCode) {
+    return loadFile(url).then(function(jsCode) {
         var dependencies = extractDependencies(jsCode);
         var body = moduleFunction(jsCode, url);
         define(moduleName, dependencies, body);
-    }).always(function () {
+    }).always(function() {
         define = null;
     });
 };
 
-packagingProto.loadPackaged = function (packageName) {
+packagingProto.loadPackaged = function(packageName) {
     var self = this;
     var url = (self.config.baseUrl || "") + packageName;
     var res = self.currentLoads[url];
     if (!res) {
-        self.currentLoads[url] = res = loadFile(url).then(function (jsCode) {
+        self.currentLoads[url] = res = loadFile(url).then(function(jsCode) {
             var body = packageFunction(jsCode, url);
             body(self.define);
-        }).always(function () {
+        }).always(function() {
             delete self.currentLoads[url];
             self = null;
         });

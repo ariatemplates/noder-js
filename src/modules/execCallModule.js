@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-module.exports = function (context, mainModule) {
+module.exports = function(context, mainModule) {
     var startMainMethodParams = mainModule.indexOf('(');
     if (startMainMethodParams > -1) {
         var startMainMethodName = mainModule.lastIndexOf('/', startMainMethodParams);

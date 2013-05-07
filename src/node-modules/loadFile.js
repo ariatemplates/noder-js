@@ -16,9 +16,9 @@
 var fs = require('fs');
 var promise = require('../modules/promise.js');
 
-module.exports = function (url) {
+module.exports = function(url) {
     var deferred = promise();
-    fs.readFile(url, 'utf-8', function (err, data) {
+    fs.readFile(url, 'utf-8', function(err, data) {
         if (err) {
             deferred.reject(err);
         } else {

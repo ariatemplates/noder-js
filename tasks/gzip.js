@@ -14,13 +14,13 @@
  */
 
 // grunt-contrib-compress has compression level issues. That's why we use gzip-js here.
-module.exports = function (grunt) {
+module.exports = function(grunt) {
     var gzip = require('gzip-js');
 
-    grunt.registerMultiTask('gzip', 'Gzips files.', function () {
+    grunt.registerMultiTask('gzip', 'Gzips files.', function() {
         var options = this.options();
 
-        this.files.forEach(function (file) {
+        this.files.forEach(function(file) {
             var src = file.src;
             if (src.length !== 1) {
                 grunt.log.warn('There should be a single source file for destination ' + file.dest + '. Found: ' + src.join());

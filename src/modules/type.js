@@ -14,19 +14,18 @@
  */
 
 var toString = Object.prototype.toString;
-var isString = function (str) {
+var isString = function(str) {
     return (typeof str === "string") || toString.call(str) === '[object String]';
 };
-var isArray = Array.isArray ||
-function (obj) {
-    return toString.call(obj) === '[object Array]';
-};
+var isArray = Array.isArray || function(obj) {
+        return toString.call(obj) === '[object Array]';
+    };
 
-var isFunction = function (fn) {
+var isFunction = function(fn) {
     return (typeof fn == "function");
 };
 
-var isPlainObject = function (obj) {
+var isPlainObject = function(obj) {
     return obj ? toString.call(obj) === '[object Object]' : false;
 };
 

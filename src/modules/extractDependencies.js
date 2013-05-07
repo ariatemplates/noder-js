@@ -21,7 +21,7 @@ var operatorRegExp = /^[!%&\(*+,\-\/:;<=>?\[\^]$/;
 var firstNonSpaceCharRegExp = /^\s*(\S)/;
 var lastNonSpaceCharRegExp = /(\S)\s*$/;
 
-var isEscaped = function (string) {
+var isEscaped = function(string) {
     var escaped = false;
     var index = string.length - 1;
     while (index >= 0 && string.charAt(index) == '\\') {
@@ -31,7 +31,7 @@ var isEscaped = function (string) {
     return escaped;
 };
 
-var getLastNonSpaceChar = function (array, i) {
+var getLastNonSpaceChar = function(array, i) {
     for (; i >= 0; i--) {
         var curItem = array[i];
         if (lastNonSpaceCharRegExp.test(curItem)) {
@@ -41,15 +41,15 @@ var getLastNonSpaceChar = function (array, i) {
     return "";
 };
 
-var checkRequireScope = function (array, i) {
+var checkRequireScope = function(array, i) {
     return i === 0 || getLastNonSpaceChar(array, i - 1) != ".";
 };
 
-var isRegExp = function (array, i) {
+var isRegExp = function(array, i) {
     return i === 0 || operatorRegExp.test(getLastNonSpaceChar(array, i - 1));
 };
 
-var findEndOfStringOrRegExp = function (array, i) {
+var findEndOfStringOrRegExp = function(array, i) {
     var expectedEnd = array[i].charAt(0);
     i++;
     for (var l = array.length; i < l; i++) {
@@ -63,12 +63,12 @@ var findEndOfStringOrRegExp = function (array, i) {
     throw new Error("Unterminated string or regexp.");
 };
 
-var getStringContent = function (array, begin, end) {
+var getStringContent = function(array, begin, end) {
     // The string is supposed not to contain any special things such as: \n \r \t \' \"
     return array.slice(begin, end).join('').substring(1);
 };
 
-var findEndOfSlashComment = function (array, beginIndex) {
+var findEndOfSlashComment = function(array, beginIndex) {
     for (var i = beginIndex + 1, l = array.length; i < l; i++) {
         var curItem = array[i];
         var index = curItem.search(endOfLineRegExp);
@@ -81,7 +81,7 @@ var findEndOfSlashComment = function (array, beginIndex) {
     return i;
 };
 
-var findEndOfStarComment = function (array, beginIndex) {
+var findEndOfStarComment = function(array, beginIndex) {
     var i = beginIndex + 1;
     if (array[beginIndex] == "/*") {
         i++;
@@ -99,11 +99,11 @@ var findEndOfStarComment = function (array, beginIndex) {
     return i;
 };
 
-module.exports = function (source) {
+module.exports = function(source) {
     var ids = [];
     var i = 0;
     var array = source.split(splitRegExp);
-/*
+    /*
      * inRequireState variable:
      * 0 : outside of any useful require
      * 1 : just reached require

@@ -18,18 +18,18 @@ var HttpRequestObject = global.XMLHttpRequest;
 var newHttpRequestObject;
 
 if (HttpRequestObject) {
-    newHttpRequestObject = function () {
+    newHttpRequestObject = function() {
         return new HttpRequestObject();
     };
 } else {
     HttpRequestObject = global.ActiveXObject;
-    newHttpRequestObject = function () {
+    newHttpRequestObject = function() {
         return new HttpRequestObject("Microsoft.XMLHTTP");
     };
 }
 
-var createCallback = function (url, xhr, deferred) {
-    return function () {
+var createCallback = function(url, xhr, deferred) {
+    return function() {
         if (xhr && xhr.readyState == 4) {
             var error = (xhr.status != 200);
             if (error) {
@@ -43,7 +43,7 @@ var createCallback = function (url, xhr, deferred) {
     };
 };
 
-module.exports = function (url) {
+module.exports = function(url) {
     var deferred = promise();
     var xhr = newHttpRequestObject();
     xhr.open('GET', url, true);

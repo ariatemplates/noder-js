@@ -13,28 +13,28 @@
  * limitations under the License.
  */
 
-var global = (function () {
+var global = (function() {
     return this;
 })();
 
-describe("Main", function () {
+describe("Main", function() {
     var noder = global.noder || require('../../dist/node/noder.js');
     var directory = global.window ? "/base/spec/browser" : __dirname;
     var expect = global.chai ? global.chai.expect : require("chai").expect;
 
-    var fail = function (done) {
-        return function (error) {
+    var fail = function(done) {
+        return function(error) {
             done(error || 'Unknown error');
         };
     };
 
-    it("Simple", function (done) {
+    it("Simple", function(done) {
         var newRootModule = noder.createContext({
             packaging: {
                 baseUrl: directory + '/main-tests/simple/'
             }
         });
-        newRootModule.asyncRequire(['file1']).then(function () {
+        newRootModule.asyncRequire(['file1']).then(function() {
             var file1 = newRootModule.asyncRequire('file1');
             expect(file1.test1()).to.equal('simple-ok1');
             expect(file1.test2()).to.equal('simple-ok2');
@@ -42,13 +42,13 @@ describe("Main", function () {
         }).then(done, fail(done));
     });
 
-    it("Circular dependency", function (done) {
+    it("Circular dependency", function(done) {
         var newRootModule = noder.createContext({
             packaging: {
                 baseUrl: directory + '/main-tests/circularDependency/'
             }
         });
-        newRootModule.asyncRequire(['file1']).then(function () {
+        newRootModule.asyncRequire(['file1']).then(function() {
             var file1 = newRootModule.asyncRequire('file1');
             expect(file1.test1()).to.equal('ok1');
             expect(file1.test2()).to.equal('ok2');

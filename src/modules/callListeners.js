@@ -15,9 +15,9 @@
 
 var nextTick = require("../node-modules/nextTick.js");
 
-module.exports = function (listeners, result) {
+module.exports = function(listeners, result) {
     if (listeners && listeners.length) {
-        nextTick(function () {
+        nextTick(function() {
             for (var i = 0, l = listeners.length; i < l; i++) {
                 var curItem = listeners[i];
                 curItem.apply(null, result);

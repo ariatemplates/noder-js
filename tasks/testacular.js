@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-module.exports = function (grunt) {
-    grunt.registerMultiTask('testacular_start', 'testacular start', function () {
+module.exports = function(grunt) {
+    grunt.registerMultiTask('testacular_start', 'testacular start', function() {
         var testacularServer = require('testacular').server;
         var dontWait = this.data.dontWait;
         delete this.data.dontWait;
@@ -25,10 +25,10 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerMultiTask('testacular_run', 'testacular run', function () {
+    grunt.registerMultiTask('testacular_run', 'testacular run', function() {
         var testacularRunner = require('testacular').runner;
         var done = this.async();
-        testacularRunner.run(this.data, function (exitCode) {
+        testacularRunner.run(this.data, function(exitCode) {
             if (exitCode !== 0) {
                 grunt.warn("Error when running testacular.", exitCode);
             }

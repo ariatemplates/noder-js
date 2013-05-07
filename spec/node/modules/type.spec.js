@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-describe('Type', function () {
+describe('Type', function() {
     var type = require('../../../src/modules/type.js');
     var expect = require("chai").expect;
-    it('isPlainObject', function () {
+    it('isPlainObject', function() {
         var isPlainObject = type.isPlainObject;
         expect(isPlainObject({})).to.equal(true);
         expect(isPlainObject({

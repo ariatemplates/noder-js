@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-module.exports = function (dst, src) {
+module.exports = function(dst, src) {
     for (var key in src) {
         if (src.hasOwnProperty(key)) {
             dst[key] = src[key];

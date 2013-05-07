@@ -14,7 +14,7 @@
  */
 
 module.exports = {
-    test2: function () {
+    test2: function() {
         return "simple-ok2";
     },
     test3: require('./file3.js')

@@ -18,7 +18,7 @@ var undef;
 var type = require('./type.js');
 var isPlainObject = type.isPlainObject;
 
-var extractProperty = function (array, property, startIndex, endIndex) {
+var extractProperty = function(array, property, startIndex, endIndex) {
     var res = [];
     var index = 0;
     for (var i = startIndex; i < endIndex; i++) {
@@ -39,7 +39,7 @@ var extractProperty = function (array, property, startIndex, endIndex) {
     return res;
 };
 
-var merge = function (objects) {
+var merge = function(objects) {
     var l = objects.length;
     if (l === 0) {
         return undef;

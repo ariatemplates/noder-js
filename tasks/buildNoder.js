@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
     var path = require('path');
     var fileUtils = grunt.file;
     var log = grunt.log;
@@ -21,7 +21,7 @@ module.exports = function (grunt) {
     // This regexp only matches calls to require for local modules (starting with './' or '../' or 'noder/')
     var requireRegexp = /(^|[^\s.])\s*\brequire\s*\(\s*["']((\.\.?|noder)\/[^"']+)["']\s*\)|(\/\*[\s\S]*?\*\/)|((?:[^\\]|^)\/\/.*?([\n\r]|$))/g;
 
-    var getModuleName = function (modulePath) {
+    var getModuleName = function(modulePath) {
         return path.basename(modulePath, '.js');
     };
 
@@ -40,13 +40,13 @@ module.exports = function (grunt) {
     };
     var internalModules = path.join(src, 'internalModules.js');
 
-    var readFileStripBanner = function (path) {
+    var readFileStripBanner = function(path) {
         var content = grunt.file.read(path);
         content = content.replace(/^\s*\/\*[\s\S]*?\*\/\s*/, '');
         return content;
     };
 
-    grunt.registerMultiTask("noder", "Build Noder with the specified parameters.", function () {
+    grunt.registerMultiTask("noder", "Build Noder with the specified parameters.", function() {
         var data = this.data;
         var envCfg = envConfig[data.env || "browser"];
         if (!envCfg) {
@@ -78,7 +78,7 @@ module.exports = function (grunt) {
         var toBeIncluded = [];
 
         var lastModuleNumber = 0;
-        var getModuleNumber = function (moduleName) {
+        var getModuleNumber = function(moduleName) {
             var module = moduleDefinitions[moduleName];
             if (!module) {
                 throw new Error("Missing module " + moduleName);
@@ -91,7 +91,7 @@ module.exports = function (grunt) {
             return module.number;
         };
 
-        var requireReplacer = function (match, before, dependency) {
+        var requireReplacer = function(match, before, dependency) {
             if (arguments[4] || arguments[5] /* comments */ ) {
                 return match;
             }
@@ -99,7 +99,7 @@ module.exports = function (grunt) {
             return [before, ' internalRequire(', getModuleNumber(moduleName), ' /* ', moduleName, ' */)'].join('');
         };
 
-        var includeModule = function (module) {
+        var includeModule = function(module) {
             var moduleName = module.name;
             log.debug("Including module " + module.path);
             var fileContent = readFileStripBanner(module.path);
@@ -107,7 +107,7 @@ module.exports = function (grunt) {
             output.push('internalDefine(', module.number, ' /* ', moduleName, ' */, function (module) {\n\n', fileContent, '\n\n});\n\n');
         };
 
-        var checkUnusedModules = function () {
+        var checkUnusedModules = function() {
             for (var moduleName in moduleDefinitions) {
                 if (moduleDefinitions.hasOwnProperty(moduleName)) {
                     var curModule = moduleDefinitions[moduleName];
@@ -118,7 +118,7 @@ module.exports = function (grunt) {
             }
         };
 
-        var composeFile = function () {
+        var composeFile = function() {
             output.push(banner);
             output.push(envCfg.header);
             output.push(readFileStripBanner(internalModules));

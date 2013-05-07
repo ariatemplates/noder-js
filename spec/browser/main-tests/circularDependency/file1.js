@@ -15,9 +15,9 @@
 
 var file2 = require('./file2.js');
 
-exports.test1 = function () {
+exports.test1 = function() {
     return "ok1";
 };
-exports.test2 = function () {
+exports.test2 = function() {
     return file2.test2();
 };

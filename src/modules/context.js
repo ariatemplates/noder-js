@@ -23,14 +23,14 @@ var execScripts = require('../node-modules/execScripts.js');
 var isArray = require('./type.js').isArray;
 var dirname = require('./path.js').dirname;
 
-var bind = function (fn, scope) {
-    return function () {
+var bind = function(fn, scope) {
+    return function() {
         return fn.apply(scope, arguments);
     };
 };
 
-var bind1 = function (fn, scope, paramBind) {
-    return function (param) {
+var bind1 = function(fn, scope, paramBind) {
+    return function(param) {
         return fn.call(scope, paramBind, param);
     };
 };
@@ -61,11 +61,11 @@ moduleProto.loaded = false;
 
 module.exports = Module;
 
-var createAsyncRequire = function (context) {
-    return function (module) {
+var createAsyncRequire = function(context) {
+    return function(module) {
         module.exports = {
-            create: function (module) {
-                return function (id) {
+            create: function(module) {
+                return function(id) {
                     return context.asyncRequire(module, id);
                 };
             }
@@ -73,7 +73,7 @@ var createAsyncRequire = function (context) {
     };
 };
 
-var start = function (context) {
+var start = function(context) {
     var config = context.config;
     var actions = promise.done;
 
@@ -82,27 +82,26 @@ var start = function (context) {
     }
     var scriptsType = config.scriptsType;
     if (scriptsType) {
-        actions = actions.then(function () {
+        actions = actions.then(function() {
             return execScripts(context, scriptsType);
         });
     }
 
     var main = config.main;
-    actions = actions.then(main ?
-    function () {
+    actions = actions.then(main ? function() {
         return execCallModule(context, main);
     } : promise.empty /* if there is no main module, an empty parameter should be passed to onstart */ );
 
     actions = actions.then(config.onstart);
 
-    return actions.always(function () {
+    return actions.always(function() {
         context = null;
         config = null;
         actions = null;
     });
 };
 
-var Context = function (config) {
+var Context = function(config) {
     this.cache = {};
     var define = bind(this.define, this);
     this.define = define; // allow using define without the scope
@@ -132,7 +131,7 @@ var contextProto = Context.prototype = {};
 
 // Preloading a module means making it ready to be executed (loading its definition and preloading its
 // dependencies)
-contextProto.preloadModule = function (module, parent) {
+contextProto.preloadModule = function(module, parent) {
     if (module.preloaded) {
         return promise.done;
     }
@@ -155,12 +154,12 @@ contextProto.preloadModule = function (module, parent) {
     } else {
         module.require.main = module;
     }
-    module.preloading = self.loadDefinition(module).then(function () {
+    module.preloading = self.loadDefinition(module).then(function() {
         return self.preloadModules(module, module.definition.dependencies);
-    }).then(function () {
+    }).then(function() {
         module.preloaded = true;
         module.preloading = false;
-    }).always(function () {
+    }).always(function() {
         // clean up
         module = null;
         self = null;
@@ -168,7 +167,7 @@ contextProto.preloadModule = function (module, parent) {
     return module.preloading;
 };
 
-contextProto.loadDefinition = function (module) {
+contextProto.loadDefinition = function(module) {
     if (module.definition) {
         return promise.done;
     }
@@ -176,13 +175,13 @@ contextProto.loadDefinition = function (module) {
     if (!res) {
         // store the promise so that it can be resolved when the define method is called:
         module.loadingDefinition = res = promise();
-        this.packaging.loadModule(module.filename).then(function () {
+        this.packaging.loadModule(module.filename).then(function() {
             if (res) {
                 // if reaching this, and if res is still pending, then it means the module was not found where expected
                 res.reject(new Error("Module " + module.filename + " was not found in expected package."));
             }
         }, res.reject);
-        res.done(function () {
+        res.done(function() {
             res = null;
             module.loadingDefinition = false;
         });
@@ -190,7 +189,7 @@ contextProto.loadDefinition = function (module) {
     return res;
 };
 
-contextProto.preloadModules = function (module, modules) {
+contextProto.preloadModules = function(module, modules) {
     var promises = [];
     for (var i = 0, l = modules.length; i < l; i++) {
         promises.push(this.preloadModule(this.getModule(this.resolve(module, modules[i])), module));
@@ -198,7 +197,7 @@ contextProto.preloadModules = function (module, modules) {
     return promise.when(promises);
 };
 
-contextProto.executePreloadedModule = function (module) {
+contextProto.executePreloadedModule = function(module) {
     if (module.loaded || module.executing) { /* this.executing is true only in the case of a circular dependency */
         return module.exports;
     }
@@ -217,7 +216,7 @@ contextProto.executePreloadedModule = function (module) {
     }
 };
 
-contextProto.require = function (module, id) {
+contextProto.require = function(module, id) {
     var filename = this.resolve(module, id);
     var newModule = this.cache[filename];
     if (newModule) {
@@ -226,11 +225,11 @@ contextProto.require = function (module, id) {
     throw new Error(['Module ', id, ' (', filename, ') is not loaded.'].join(''));
 };
 
-contextProto.resolve = function (module, id) {
+contextProto.resolve = function(module, id) {
     return this.resolver.resolve(module.filename, id);
 };
 
-contextProto.getModule = function (moduleFilename) {
+contextProto.getModule = function(moduleFilename) {
     if (!moduleFilename) {
         // anonymous module
         return new Module(this);
@@ -242,11 +241,11 @@ contextProto.getModule = function (moduleFilename) {
     return res;
 };
 
-contextProto.define = function (moduleFilename, dependencies, body) {
+contextProto.define = function(moduleFilename, dependencies, body) {
     this.defineModule(this.getModule(moduleFilename), dependencies, body);
 };
 
-contextProto.defineModule = function (module, dependencies, body) {
+contextProto.defineModule = function(module, dependencies, body) {
     if (!module.definition) {
         // do not override an existing definition
         var definition = {
@@ -270,23 +269,23 @@ contextProto.defineModule = function (module, dependencies, body) {
     return module;
 };
 
-contextProto.executeModule = function (module) {
+contextProto.executeModule = function(module) {
     var self = this;
-    return self.preloadModule(module).then(function () {
+    return self.preloadModule(module).then(function() {
         return self.executePreloadedModule(module);
-    }).always(function () {
+    }).always(function() {
         self = null;
         module = null;
     });
 };
 
-contextProto.execute = function (code, moduleFilename) {
+contextProto.execute = function(code, moduleFilename) {
     var module = this.getModule(moduleFilename);
     this.defineModule(module, extractDependencies(code), moduleFunction(code));
     return this.executeModule(module);
 };
 
-contextProto.asyncRequire = function (module, id) {
+contextProto.asyncRequire = function(module, id) {
     if (isArray(id)) {
         return this.preloadModules(module, id);
     } else {

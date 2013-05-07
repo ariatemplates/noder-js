@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-module.exports = function (grunt) {
-    grunt.registerMultiTask('mocha', 'Run mocha tests', function () {
+module.exports = function(grunt) {
+    grunt.registerMultiTask('mocha', 'Run mocha tests', function() {
         var spawn = require('child_process').spawn;
 
         var files = this.filesSrc;
@@ -39,7 +39,7 @@ module.exports = function (grunt) {
         var proc = spawn(process.argv[0], args, {
             stdio: 'inherit'
         });
-        proc.on('exit', function (exitCode) {
+        proc.on('exit', function(exitCode) {
             if (exitCode !== 0) {
                 grunt.warn("Some tests failed. Exit code from mocha: " + exitCode);
             }

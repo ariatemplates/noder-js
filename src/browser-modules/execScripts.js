@@ -16,8 +16,8 @@
 var promise = require('../modules/promise.js');
 var domReady = require('./domReady.js');
 
-module.exports = function (context, scriptType) {
-    return domReady().then(function () {
+module.exports = function(context, scriptType) {
+    return domReady().then(function() {
         var scripts = global.document.getElementsByTagName('script');
         var promises = [];
         for (var i = 0, l = scripts.length; i < l; i++) {

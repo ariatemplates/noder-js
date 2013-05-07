@@ -21,8 +21,8 @@ var concat = Array.prototype.concat;
 
 var PENDING_STATE = "pending";
 
-var propagateResults = function (callback, deferred) {
-    return function () {
+var propagateResults = function(callback, deferred) {
+    return function() {
         try {
             // the try...catch here is essential for a correct promises implementation
             // see: https://gist.github.com/3889970
@@ -41,18 +41,18 @@ var propagateResults = function (callback, deferred) {
     };
 };
 
-var endListener = function (error) {
+var endListener = function(error) {
     throw error;
 };
 
-var createPromise = function (fn) {
+var createPromise = function(fn) {
     var deferred = {};
     var state = PENDING_STATE;
     var result = null;
     var listeners = {};
 
-    var listenersMethods = function (newState) {
-        var addCb = function () {
+    var listenersMethods = function(newState) {
+        var addCb = function() {
             var curListeners;
             if (state === PENDING_STATE) {
                 curListeners = listeners[newState] || [];
@@ -63,7 +63,7 @@ var createPromise = function (fn) {
             }
             return this;
         };
-        var fire = function () {
+        var fire = function() {
             if (state !== PENDING_STATE) {
                 return;
             }
@@ -79,28 +79,28 @@ var createPromise = function (fn) {
     var fail = listenersMethods("rejected");
 
     var promise = {
-        state: function () {
+        state: function() {
             return state;
         },
-        isPending: function () {
+        isPending: function() {
             return state == PENDING_STATE;
         },
-        always: function () {
+        always: function() {
             deferred.done.apply(deferred, arguments).fail.apply(deferred, arguments);
             return this;
         },
         done: done[0 /*addCb*/ ],
         fail: fail[0 /*addCb*/ ],
-        then: function (done, fail) {
+        then: function(done, fail) {
             var res = createPromise();
             deferred.done(isFunction(done) ? propagateResults(done, res) : res.resolve);
             deferred.fail(isFunction(fail) ? propagateResults(fail, res) : res.reject);
             return res.promise();
         },
-        promise: function (obj) {
+        promise: function(obj) {
             return obj ? extend(obj, promise) : promise;
         },
-        end: function () {
+        end: function() {
             deferred.fail(endListener);
         }
     };
@@ -119,15 +119,15 @@ done.resolve();
 
 createPromise.done = done;
 
-createPromise.empty = function () {};
+createPromise.empty = function() {};
 
-createPromise.noop = function () {
+createPromise.noop = function() {
     return done;
 };
 
-var countDown = function (state, index) {
+var countDown = function(state, index) {
     state.counter++;
-    return function () {
+    return function() {
         if (!state) {
             // already called with this index
             return;
@@ -147,7 +147,7 @@ var countDown = function (state, index) {
     };
 };
 
-createPromise.when = function () {
+createPromise.when = function() {
     var array = concat.apply([], arguments);
     var promise = createPromise(),
         state, reject;

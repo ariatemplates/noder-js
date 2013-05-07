@@ -13,6 +13,6 @@
  * limitations under the License.
  */
 
-module.exports = function () {
+module.exports = function() {
     return "simple-ok3";
 };

@@ -15,7 +15,7 @@
 
 var file2 = require('./lib/file2.js');
 module.exports = {
-    test1: function () {
+    test1: function() {
         return "simple-ok1";
     },
     test2: file2.test2,

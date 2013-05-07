@@ -16,22 +16,22 @@
 var Context = require("./context.js");
 var merge = require("./merge.js");
 
-var ContextBuilder = function (config) {
+var ContextBuilder = function(config) {
     this._cfg = config;
 };
 
 var contextBuilderProto = ContextBuilder.prototype = {};
 
-contextBuilderProto.config = function (config) {
+contextBuilderProto.config = function(config) {
     return new ContextBuilder(merge([config, this._cfg]));
 };
 
-var createContext = function (config) {
+var createContext = function(config) {
     var res = new ContextBuilder(config);
     return config ? res.create() : res;
 };
 
-contextBuilderProto.create = function () {
+contextBuilderProto.create = function() {
     var context = new Context(this._cfg);
     var rootModule = context.rootModule;
     rootModule.createContext = createContext;

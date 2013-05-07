@@ -15,7 +15,7 @@
 
 var appendSourceUrl = true;
 
-module.exports = function (code, fileName) {
+module.exports = function(code, fileName) {
     var res = {};
     // Using the 'arguments[1].res = ...' trick because IE does not let eval return a function
     if (fileName && appendSourceUrl) {

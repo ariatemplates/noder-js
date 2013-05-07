@@ -20,7 +20,7 @@ var split = path.split;
 var merge = require('./merge.js');
 var emptyObject = {};
 
-var addExtension = function (pathArray) {
+var addExtension = function(pathArray) {
     var index = pathArray.length - 1;
     var lastItem = pathArray[index];
     if (lastItem.indexOf('.') == -1) {
@@ -28,7 +28,7 @@ var addExtension = function (pathArray) {
     }
 };
 
-var normalize = function (pathArray) {
+var normalize = function(pathArray) {
     for (var i = 0, l = pathArray.length; i < l; i++) {
         var currentPart = pathArray[i];
         if (!currentPart.length || currentPart == '.') {
@@ -44,7 +44,7 @@ var normalize = function (pathArray) {
     return pathArray;
 };
 
-var applyChange = function (terms, item, index) {
+var applyChange = function(terms, item, index) {
     var itemParts = split(item);
     if (!itemParts[0].length) {
         // item starts with /, replaces the whole terms
@@ -63,7 +63,7 @@ var applyChange = function (terms, item, index) {
  * @param {Array} terms Note that this array is changed by this function.
  * @return {Boolean}
  */
-var applyModuleMap = function (map, terms) {
+var applyModuleMap = function(map, terms) {
     for (var i = 0, l = terms.length; i < l; i++) {
         var curTerm = terms[i];
         map = map[curTerm];
@@ -79,7 +79,7 @@ var applyModuleMap = function (map, terms) {
     return true;
 };
 
-var multipleApplyModuleMap = function (map, terms) {
+var multipleApplyModuleMap = function(map, terms) {
     var allValues = {};
     // curValue can never be equal to ".", as it is always assigned after normalizing
     var lastValue = ".";
@@ -102,13 +102,13 @@ var multipleApplyModuleMap = function (map, terms) {
     }
 };
 
-var Resolver = function (config) {
+var Resolver = function(config) {
     this.config = config || emptyObject;
     this.cache = {};
 };
 var resolverProto = Resolver.prototype = {};
 
-resolverProto.resolve = function (callerModule, calledModule) {
+resolverProto.resolve = function(callerModule, calledModule) {
     // Compute the configuration to apply to the caller module:
     var callerModuleSplit = split(callerModule);
     var profiles = findInMap(this.config.activations || emptyObject, callerModuleSplit, "");
@@ -126,7 +126,7 @@ resolverProto.resolve = function (callerModule, calledModule) {
     return res.join('/');
 };
 
-resolverProto.computeMap = function (profilesKey) {
+resolverProto.computeMap = function(profilesKey) {
     var cache = this.cache;
     var res = cache[profilesKey];
     if (!res) {

@@ -15,13 +15,13 @@
 var internalRequire;
 var internalDefine;
 
-(function () {
+(function() {
     // This function defines a very small and simple internal module system for the loader itself.
     // It does not support circular dependencies and supposes all the modules are defined from the beginning.
     var modulesDef = {};
     var modules = {};
 
-    internalRequire = function (moduleIndex) {
+    internalRequire = function(moduleIndex) {
         var res = modules[moduleIndex];
         if (!res) {
             res = modulesDef[moduleIndex];
@@ -38,7 +38,7 @@ var internalDefine;
         }
         return res;
     };
-    internalDefine = function (moduleIndex, moduleDef) {
+    internalDefine = function(moduleIndex, moduleDef) {
         modulesDef[moduleIndex] = moduleDef;
     };
 })();

@@ -15,7 +15,7 @@
 
 var exec = require('../node-modules/eval.js');
 
-module.exports = function (jsCode, filename) {
+module.exports = function(jsCode, filename) {
     var code = ['(function(define){\n', jsCode, '\n})'];
     return exec(code.join(''), filename);
 };

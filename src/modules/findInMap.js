@@ -15,7 +15,7 @@
 
 var isPlainObject = require('./type.js').isPlainObject;
 
-module.exports = function (map, terms, defaultValue) {
+module.exports = function(map, terms, defaultValue) {
     if (!map) {
         return defaultValue;
     }

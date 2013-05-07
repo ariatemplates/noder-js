@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-describe("Promises/A+ Tests", function () {
+describe("Promises/A+ Tests", function() {
     var Deferred = require('../../../src/modules/promise.js');
 
     require("promises-aplus-tests").mocha({
-        fulfilled: function (value) {
+        fulfilled: function(value) {
             var deferred = Deferred();
             deferred.resolve(value);
             return deferred.promise();
         },
 
-        rejected: function (reason) {
+        rejected: function(reason) {
             var deferred = Deferred();
             deferred.reject(reason);
             return deferred.promise();
         },
 
-        pending: function () {
+        pending: function() {
             var deferred = Deferred();
 
             return {

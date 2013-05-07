@@ -15,7 +15,7 @@
 
 var promise = require('../modules/promise.js');
 var domReadyPromise;
-var createDomReadyPromise = function () {
+var createDomReadyPromise = function() {
     var document = global.document;
     if (document && document.readyState === "complete") {
         // in this simple case, avoid creating a new promise, just use promise.done
@@ -26,7 +26,7 @@ var createDomReadyPromise = function () {
         // this may happen, for example, in a web worker
         res.reject(new Error("No document."));
     } else {
-        var callback = function () {
+        var callback = function() {
             if (res) {
                 res.resolve(); // resolve with no parameter
             }
@@ -35,7 +35,7 @@ var createDomReadyPromise = function () {
             document.addEventListener("DOMContentLoaded", callback);
             // Fallback in case the browser does not support DOMContentLoaded:
             global.addEventListener("load", callback);
-            res.always(function () {
+            res.always(function() {
                 // clean the closure and listeners
                 document.removeEventListener("DOMContentLoaded", callback);
                 global.removeEventListener("load", callback);
@@ -46,7 +46,7 @@ var createDomReadyPromise = function () {
         } else if (document.attachEvent) {
             // Fallback to the onload event on IE:
             global.attachEvent("onload", callback);
-            res.always(function () {
+            res.always(function() {
                 // clean the closure and listeners
                 global.detachEvent("onload", callback);
                 document = null;
@@ -58,7 +58,7 @@ var createDomReadyPromise = function () {
     return res.promise();
 };
 
-module.exports = function () {
+module.exports = function() {
     if (!domReadyPromise) {
         domReadyPromise = createDomReadyPromise();
     }

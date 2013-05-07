@@ -15,7 +15,7 @@
 
 var pathSplitRegExp = /\//;
 
-var split = function (name) {
+var split = function(name) {
     if (!name.length) {
         return [];
     } else {
@@ -23,7 +23,7 @@ var split = function (name) {
     }
 };
 
-var dirname = function (name) {
+var dirname = function(name) {
     var array = split(name);
     array.pop();
     return array.join('/');

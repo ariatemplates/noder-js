@@ -14,6 +14,6 @@
  */
 
 var setTimeout = global.setTimeout;
-module.exports = function (fn) {
+module.exports = function(fn) {
     setTimeout(fn, 0);
 };
