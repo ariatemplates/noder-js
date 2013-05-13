@@ -22,6 +22,13 @@ var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
 var isArray = require('./type.js').isArray;
 var dirname = require('./path.js').dirname;
+var noderPropertiesKey = "_noder";
+
+var PROPERTY_DEFINITION = 0;
+var PROPERTY_DEPENDENCIES = 1;
+var PROPERTY_EXECUTING = 2;
+var PROPERTY_PRELOADING = 3;
+var PROPERTY_LOADING_DEFINITION = 4;
 
 var bind = function(fn, scope) {
     return function() {
@@ -35,13 +42,14 @@ var bind1 = function(fn, scope, paramBind) {
     };
 };
 
-function Module(context, filename) {
+var Module = function(context, filename) {
     if (filename) {
         this.dirname = dirname(filename);
     } else {
         filename = '.';
         this.dirname = filename;
     }
+    this[noderPropertiesKey] = {};
     this.filename = filename;
     this.id = filename;
     this.require = bind1(context.require, context, this);
@@ -49,17 +57,18 @@ function Module(context, filename) {
     this.require.cache = context.cache;
     this.parent = null;
     this.children = [];
-}
+    this.preloaded = false;
+    this.loaded = false;
+};
 
-var moduleProto = Module.prototype = {};
-moduleProto.preloading = false;
-moduleProto.preloaded = false;
-moduleProto.loadingDefinition = false;
-moduleProto.definition = null;
-moduleProto.executing = false;
-moduleProto.loaded = false;
+var getModuleProperty = function(module, property) {
+    return module[noderPropertiesKey][property];
+};
 
-module.exports = Module;
+var setModuleProperty = function(module, property, value) {
+    module[noderPropertiesKey][property] = value;
+    return value;
+};
 
 var createAsyncRequire = function(context) {
     return function(module) {
@@ -135,7 +144,8 @@ contextProto.preloadModule = function(module, parent) {
     if (module.preloaded) {
         return promise.done;
     }
-    if (module.preloading) {
+    var preloading = getModuleProperty(module, PROPERTY_PRELOADING);
+    if (preloading) {
         // If we get here, it may be because of a circular dependency
         // check it here:
         while (parent) {
@@ -144,7 +154,7 @@ contextProto.preloadModule = function(module, parent) {
             }
             parent = parent.parent;
         }
-        return module.preloading;
+        return preloading;
     }
     var self = this;
     if (parent && parent.id != '.') {
@@ -154,27 +164,26 @@ contextProto.preloadModule = function(module, parent) {
     } else {
         module.require.main = module;
     }
-    module.preloading = self.loadDefinition(module).then(function() {
-        return self.preloadModules(module, module.definition.dependencies);
+    return setModuleProperty(module, PROPERTY_PRELOADING, self.loadDefinition(module).then(function() {
+        return self.preloadModules(module, getModuleProperty(module, PROPERTY_DEPENDENCIES));
     }).then(function() {
         module.preloaded = true;
-        module.preloading = false;
+        setModuleProperty(module, PROPERTY_PRELOADING, false);
     }).always(function() {
         // clean up
         module = null;
         self = null;
-    });
-    return module.preloading;
+    }));
 };
 
 contextProto.loadDefinition = function(module) {
-    if (module.definition) {
+    if (getModuleProperty(module, PROPERTY_DEFINITION)) {
         return promise.done;
     }
-    var res = module.loadingDefinition;
+    var res = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
     if (!res) {
         // store the promise so that it can be resolved when the define method is called:
-        module.loadingDefinition = res = promise();
+        res = setModuleProperty(module, PROPERTY_LOADING_DEFINITION, promise());
         this.packaging.loadModule(module.filename).then(function() {
             if (res) {
                 // if reaching this, and if res is still pending, then it means the module was not found where expected
@@ -183,7 +192,7 @@ contextProto.loadDefinition = function(module) {
         }, res.reject);
         res.done(function() {
             res = null;
-            module.loadingDefinition = false;
+            setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
         });
     }
     return res;
@@ -198,7 +207,7 @@ contextProto.preloadModules = function(module, modules) {
 };
 
 contextProto.executePreloadedModule = function(module) {
-    if (module.loaded || module.executing) { /* this.executing is true only in the case of a circular dependency */
+    if (module.loaded || getModuleProperty(module, PROPERTY_EXECUTING)) { /* this.executing is true only in the case of a circular dependency */
         return module.exports;
     }
     if (!module.preloaded) {
@@ -206,13 +215,13 @@ contextProto.executePreloadedModule = function(module) {
     }
     var exports = {};
     module.exports = exports;
-    module.executing = true;
+    setModuleProperty(module, PROPERTY_EXECUTING, true);
     try {
-        module.definition.body.call(exports, module, global);
+        getModuleProperty(module, PROPERTY_DEFINITION).call(exports, module, global);
         module.loaded = true;
         return module.exports;
     } finally {
-        module.executing = false;
+        setModuleProperty(module, PROPERTY_EXECUTING, false);
     }
 };
 
@@ -246,23 +255,20 @@ contextProto.define = function(moduleFilename, dependencies, body) {
 };
 
 contextProto.defineModule = function(module, dependencies, body) {
-    if (!module.definition) {
+    if (!getModuleProperty(module, PROPERTY_DEFINITION)) {
         // do not override an existing definition
-        var definition = {
-            dependencies: dependencies,
-            body: body
-        };
-        module.definition = definition;
+        setModuleProperty(module, PROPERTY_DEFINITION, body);
+        setModuleProperty(module, PROPERTY_DEPENDENCIES, dependencies);
         if (!dependencies.length) {
             module.preloaded = true;
         }
-        var loadingDefinition = module.loadingDefinition;
+        var loadingDefinition = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
         if (loadingDefinition) {
             if (loadingDefinition.isPending()) {
                 loadingDefinition.resolve();
             } else {
                 // there was probably an error previously when loading this module
-                module.loadingDefinition = false;
+                setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
             }
         }
     }
