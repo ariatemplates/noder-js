@@ -22,9 +22,9 @@ module.exports = function(context, mainModule) {
         }
         var methodNameAndArgs = mainModule.substring(startMainMethodName + 1);
         mainModule = mainModule.substring(0, startMainMethodName);
-        return context.execute(['module.exports = require("', mainModule, '");\nmodule.exports.', methodNameAndArgs].join(''));
+        return context.jsModuleExecute(['module.exports = require("', mainModule, '");\nmodule.exports.', methodNameAndArgs].join(''));
     } else {
         mainModule = context.rootModule.require.resolve(mainModule);
-        return context.executeModule(context.getModule(mainModule));
+        return context.moduleExecute(context.getModule(mainModule));
     }
 };

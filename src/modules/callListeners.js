@@ -14,13 +14,18 @@
  */
 
 var nextTick = require("../node-modules/nextTick.js");
+var uncaughtError = require("./uncaughtError.js");
 
 module.exports = function(listeners, result) {
     if (listeners && listeners.length) {
         nextTick(function() {
             for (var i = 0, l = listeners.length; i < l; i++) {
                 var curItem = listeners[i];
-                curItem.apply(null, result);
+                try {
+                    curItem.apply(null, result);
+                } catch (e) {
+                    uncaughtError(e);
+                }
             }
             listeners = null;
             result = null;

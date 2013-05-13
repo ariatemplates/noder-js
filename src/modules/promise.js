@@ -16,6 +16,7 @@
 var extend = require("./extend.js");
 var isFunction = require("./type.js").isFunction;
 var callListeners = require("./callListeners.js");
+var uncaughtError = require("./uncaughtError.js");
 
 var concat = Array.prototype.concat;
 
@@ -39,10 +40,6 @@ var propagateResults = function(callback, deferred) {
             deferred = null;
         }
     };
-};
-
-var endListener = function(error) {
-    throw error;
 };
 
 var createPromise = function(fn) {
@@ -101,7 +98,7 @@ var createPromise = function(fn) {
             return obj ? extend(obj, promise) : promise;
         },
         end: function() {
-            deferred.fail(endListener);
+            return deferred.then(createPromise.empty, uncaughtError);
         }
     };
     deferred.resolve = done[1 /*fire*/ ];

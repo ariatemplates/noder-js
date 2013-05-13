@@ -16,7 +16,7 @@
 var promise = require("./promise.js");
 var Packaging = require('./packaging.js');
 var extractDependencies = require('./extractDependencies.js');
-var moduleFunction = require('./moduleFunction.js');
+var exec = require('../node-modules/eval.js');
 var execCallModule = require('./execCallModule.js');
 var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
@@ -86,7 +86,7 @@ var start = function(context) {
     var config = context.config;
     var actions = promise.done;
 
-    if (!config.hasOwnProperty('scriptsType')) {
+    if (!("scriptsType" in config)) {
         config.scriptsType = config.varName;
     }
     var scriptsType = config.scriptsType;
@@ -110,6 +110,11 @@ var start = function(context) {
     });
 };
 
+var setMethod = function(context, name, Cstr) {
+    var obj = new Cstr(context);
+    context[name] = bind(obj[name], obj);
+};
+
 var Context = function(config) {
     this.cache = {};
     var define = bind(this.define, this);
@@ -118,14 +123,14 @@ var Context = function(config) {
 
     config = config || {};
     this.config = config;
-    this.resolver = new Resolver(config.resolver);
-    this.packaging = new Packaging(config.packaging, this.define);
+    setMethod(this, "resolve", Resolver);
+    setMethod(this, "loadFile", Packaging);
 
     var rootModule = new Module(this);
     rootModule.preloaded = true;
     rootModule.loaded = true;
     rootModule.define = define;
-    rootModule.asyncRequire = rootModule.require('asyncRequire').create(rootModule);
+    rootModule.asyncRequire = bind1(this.asyncRequire, this, rootModule);
     rootModule.execute = bind(this.execute, this);
     this.rootModule = rootModule;
 
@@ -184,15 +189,10 @@ contextProto.loadDefinition = function(module) {
     if (!res) {
         // store the promise so that it can be resolved when the define method is called:
         res = setModuleProperty(module, PROPERTY_LOADING_DEFINITION, promise());
-        this.packaging.loadModule(module.filename).then(function() {
-            if (res) {
-                // if reaching this, and if res is still pending, then it means the module was not found where expected
-                res.reject(new Error("Module " + module.filename + " was not found in expected package."));
-            }
-        }, res.reject);
-        res.done(function() {
+        this.loadFile(module.filename).always(function(error) {
+            // if reaching this, and if res is still pending, then it means the module was not found where expected
+            res.reject(error || new Error("Module " + module.filename + " was not found in expected package."));
             res = null;
-            setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
         });
     }
     return res;
@@ -234,10 +234,6 @@ contextProto.require = function(module, id) {
     throw new Error(['Module ', id, ' (', filename, ') is not loaded.'].join(''));
 };
 
-contextProto.resolve = function(module, id) {
-    return this.resolver.resolve(module.filename, id);
-};
-
 contextProto.getModule = function(moduleFilename) {
     if (!moduleFilename) {
         // anonymous module
@@ -259,17 +255,10 @@ contextProto.defineModule = function(module, dependencies, body) {
         // do not override an existing definition
         setModuleProperty(module, PROPERTY_DEFINITION, body);
         setModuleProperty(module, PROPERTY_DEPENDENCIES, dependencies);
-        if (!dependencies.length) {
-            module.preloaded = true;
-        }
         var loadingDefinition = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
         if (loadingDefinition) {
-            if (loadingDefinition.isPending()) {
-                loadingDefinition.resolve();
-            } else {
-                // there was probably an error previously when loading this module
-                setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
-            }
+            setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
+            loadingDefinition.resolve();
         }
     }
     return module;
@@ -285,18 +274,42 @@ contextProto.executeModule = function(module) {
     });
 };
 
-contextProto.execute = function(code, moduleFilename) {
-    var module = this.getModule(moduleFilename);
-    this.defineModule(module, extractDependencies(code), moduleFunction(code));
-    return this.executeModule(module);
-};
-
 contextProto.asyncRequire = function(module, id) {
     if (isArray(id)) {
         return this.preloadModules(module, id);
     } else {
         return this.require(module, id);
     }
+};
+
+contextProto.jsModuleDefine = function(jsCode, moduleFilename, url) {
+    var dependencies = extractDependencies(jsCode);
+    var body = this.jsModuleEval(jsCode, url || moduleFilename);
+    return this.defineModule(this.getModule(moduleFilename), dependencies, body);
+};
+
+contextProto.execute = function(jsCode, moduleFilename, url) {
+    return this.executeModule(this.jsModuleDefine(jsCode, moduleFilename, url));
+};
+
+contextProto.jsModuleEval = function(jsCode, url) {
+    var code = ['(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n', jsCode, '\n\n})'];
+    return this.jsEval(code.join(''), url);
+};
+
+contextProto.jsEval = function(jsCode, url) {
+    try {
+        return exec(jsCode, url);
+    } catch (error) {
+        this.jsEvalError(jsCode, url, error);
+    }
+};
+
+contextProto.jsEvalError = function(jsCode, url, error) {
+    var newError = new Error((error.message || "error") + " in " + url);
+    newError.cause = error;
+    newError.fileName = url;
+    throw newError;
 };
 
 contextProto.Context = Context;

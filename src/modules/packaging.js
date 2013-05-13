@@ -14,27 +14,24 @@
  */
 
 var loadFile = require('../node-modules/loadFile.js');
-var extractDependencies = require('./extractDependencies.js');
-var moduleFunction = require('./moduleFunction.js');
-var packageFunction = require('./packageFunction.js');
 var findInMap = require('./findInMap.js');
 var split = require('./path.js').split;
 var emptyObject = {};
 
-var Packaging = function(config, define) {
-    config = config || emptyObject;
+var Packaging = function(context) {
+    var config = context.config.packaging || emptyObject;
     this.config = config;
-    this.define = define;
+    this.context = context;
     this.currentLoads = {};
     var bootstrap = config.bootstrap;
     if (bootstrap) {
-        bootstrap(define);
+        bootstrap(context.define);
     }
 };
 
 var packagingProto = Packaging.prototype = {};
 
-packagingProto.loadModule = function(moduleName) {
+packagingProto.loadFile = function(moduleName) {
     var packageName;
     var packagesMap = this.config.packagesMap;
     if (packagesMap) {
@@ -50,13 +47,11 @@ packagingProto.loadModule = function(moduleName) {
 
 packagingProto.loadUnpackaged = function(moduleName) {
     var url = (this.config.baseUrl || "") + moduleName;
-    var define = this.define;
+    var context = this.context;
     return loadFile(url).then(function(jsCode) {
-        var dependencies = extractDependencies(jsCode);
-        var body = moduleFunction(jsCode, url);
-        define(moduleName, dependencies, body);
+        context.jsModuleDefine(jsCode, moduleName, url);
     }).always(function() {
-        define = null;
+        context = null;
     });
 };
 
@@ -66,8 +61,8 @@ packagingProto.loadPackaged = function(packageName) {
     var res = self.currentLoads[url];
     if (!res) {
         self.currentLoads[url] = res = loadFile(url).then(function(jsCode) {
-            var body = packageFunction(jsCode, url);
-            body(self.define);
+            var body = self.jsPackageEval(jsCode, url);
+            body(self.context.define);
         }).always(function() {
             delete self.currentLoads[url];
             self = null;
@@ -75,4 +70,10 @@ packagingProto.loadPackaged = function(packageName) {
     }
     return res;
 };
+
+packagingProto.jsPackageEval = function(jsCode, filename) {
+    var code = ['(function(define){\n', jsCode, '\n})'];
+    return this.context.jsEval(code.join(''), filename);
+};
+
 module.exports = Packaging;

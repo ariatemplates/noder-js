@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-var exec = require('../node-modules/eval.js');
+var nextTick = require("../node-modules/nextTick.js");
 
-module.exports = function(jsCode, filename) {
-    var code = ['(function(define){\n', jsCode, '\n})'];
-    return exec(code.join(''), filename);
+module.exports = function(e) {
+    nextTick(function() {
+        throw e;
+    });
 };

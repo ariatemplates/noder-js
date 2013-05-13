@@ -14,19 +14,39 @@
  */
 
 var promise = require('../modules/promise.js');
+var uncaughtError = require("../modules/uncaughtError.js");
 var domReady = require('./domReady.js');
+
+var createModuleExecuteFunction = function(context, module) {
+    return function() {
+        // calling .end() here allows to go on with the execution of script tags
+        // even if one has an execution error, and makes sure the error is reported
+        // on the console of the browser
+        return context.executeModule(module).end();
+    };
+};
 
 module.exports = function(context, scriptType) {
     return domReady().then(function() {
         var scripts = global.document.getElementsByTagName('script');
-        var promises = [];
-        for (var i = 0, l = scripts.length; i < l; i++) {
+        var executePromise = promise.done;
+        var i, l;
+        for (i = 0, l = scripts.length; i < l; i++) {
             var curScript = scripts[i];
             if (curScript.type === scriptType) {
                 var filename = curScript.getAttribute('data-filename');
-                promises.push(context.execute(curScript.innerHTML, filename));
+                // the try ... catch here allows to go on with the execution of script tags
+                // even if one has a syntax error
+                try {
+                    // all scripts are defined before any is executed
+                    // so that it is possible to require one script tag from another (in any order)
+                    var curModule = context.jsModuleDefine(curScript.innerHTML, filename);
+                    executePromise = executePromise.then(createModuleExecuteFunction(context, curModule));
+                } catch (error) {
+                    uncaughtError(error);
+                }
             }
         }
-        return promise.when(promises);
-    });
+        return executePromise;
+    }).end();
 };

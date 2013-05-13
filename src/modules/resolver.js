@@ -100,17 +100,16 @@ var multipleApplyModuleMap = function(map, terms) {
     }
 };
 
-var Resolver = function(config) {
-    this.config = config || emptyObject;
+var Resolver = function(context) {
+    this.config = context.config.resolver || emptyObject;
     this.cache = {};
 };
 var resolverProto = Resolver.prototype = {};
 
 resolverProto.resolve = function(callerModule, calledModule) {
     // Compute the configuration to apply to the caller module:
-    var callerModuleSplit = split(callerModule);
+    var callerModuleSplit = split(callerModule.filename);
     var moduleMap = this.config['default'] || emptyObject;
-
     var res = split(calledModule);
     var firstPart = res[0];
     if (firstPart === '.' || firstPart === '..') {
