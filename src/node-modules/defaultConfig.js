@@ -13,4 +13,4 @@
  * limitations under the License.
  */
 
-module.exports = require('../modules/contextBuilder.js');
+module.exports = {};

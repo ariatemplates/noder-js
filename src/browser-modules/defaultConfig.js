@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-var scriptConfig = require('./scriptConfig.js');
-module.exports = require('../modules/contextBuilder.js').config({
-    varName: 'noder'
-}).config(scriptConfig);
+var config = require('./scriptConfig.js');
+if (!("varName" in config)) {
+    config.varName = "noder";
+}
+module.exports = config;

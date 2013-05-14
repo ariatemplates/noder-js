@@ -73,32 +73,6 @@ Noder supports the following configuration options:
       }
       // require.resolve("otherLib") will return "otherLib.js"
       // require.resolve("otherLib/myFile") will return "otherLib/myFile.js"
-    },
-    "profiles": {
-      // Profiles allow different resolver configurations to be applied to different modules.
-      "q0.6" : {
-        "q": "q-0.6.js" // in this profile, require.resolve("q") will return "q-0.6.js"
-      },
-      "q0.8" : {
-        "q": "q-0.8.js" // in this profile, require.resolve("q") will return "q-0.8.js"
-      },
-      "underscore1.2" : {
-        // It is possible to override a parameter from the default configuration.
-        // In this profile, require.resolve("underscore") will return "underscore-1.2/index.js":
-        "underscore" : "underscore-1.2",
-        "underscore-1.2": {}
-      }
-    },
-    "activations": {
-      // This section specifies when profiles are enabled.
-      "a" : "q0.8", // from module "a", (or anything inside, e.g. "a/b.js" or "a/d/e.js"),
-      // profile q0.8 will be enabled
-      "b" : {
-        "*" : "q0.6", // from module "b", with the exception of "b/c" and "b/d",
-        // profile q0.6 will be enabled
-        "c" : "underscore1.2", // from module "b/c", profile underscore1.2 will be enabled
-        "d" : "q0.6,underscore1.2" // from module "b/d", profiles q0.6 and underscore1.2 will be enabled
-      }
     }
   },
 

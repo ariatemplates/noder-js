@@ -15,9 +15,7 @@
 
 var path = require('./path.js');
 var isString = require('./type.js').isString;
-var findInMap = require('./findInMap.js');
 var split = path.split;
-var merge = require('./merge.js');
 var emptyObject = {};
 
 var addExtension = function(pathArray) {
@@ -111,8 +109,7 @@ var resolverProto = Resolver.prototype = {};
 resolverProto.resolve = function(callerModule, calledModule) {
     // Compute the configuration to apply to the caller module:
     var callerModuleSplit = split(callerModule);
-    var profiles = findInMap(this.config.activations || emptyObject, callerModuleSplit, "");
-    var moduleMap = this.computeMap(profiles);
+    var moduleMap = this.config['default'] || emptyObject;
 
     var res = split(calledModule);
     var firstPart = res[0];
@@ -124,26 +121,6 @@ resolverProto.resolve = function(callerModule, calledModule) {
     multipleApplyModuleMap(moduleMap, res);
     addExtension(res);
     return res.join('/');
-};
-
-resolverProto.computeMap = function(profilesKey) {
-    var cache = this.cache;
-    var res = cache[profilesKey];
-    if (!res) {
-        var config = this.config;
-        var profiles = config.profiles;
-        var profilesObjects = [];
-        if (profilesKey.length) {
-            var profilesArray = profilesKey.split(',');
-            for (var i = 0, l = profilesArray.length; i < l; i++) {
-                profilesObjects[i] = profiles[profilesArray[i]];
-            }
-        }
-        profilesObjects.push(config['default'] || emptyObject);
-        res = merge(profilesObjects);
-        cache[profilesKey] = res;
-    }
-    return res;
 };
 
 module.exports = Resolver;

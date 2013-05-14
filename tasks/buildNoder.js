@@ -29,12 +29,12 @@ module.exports = function(grunt) {
     var envConfig = {
         "node": {
             header: "/*jshint undef:true, node:true*/\nmodule.exports = (function(){\n'use strict';\n",
-            footer: "\n})()",
+            footer: "\n})();",
             modules: [path.join(src, 'modules/**/*.js'), path.join(src, 'node-modules/**/*.js')]
         },
         "browser": {
             header: "/*jshint undef:true*/\n(function(global,callEval){\n'use strict';\n",
-            footer: "\n})((function(){return this;})(),function(c){\n/*jshint evil:true */\neval(c);\n})",
+            footer: "\n})((function(){return this;})(),function(c){\n/*jshint evil:true */\neval(c);\n});",
             modules: [path.join(src, 'modules/**/*.js'), path.join(src, 'browser-modules/**/*.js')]
         }
     };
@@ -58,10 +58,6 @@ module.exports = function(grunt) {
         }, envCfg.modules.concat(data.modules || []));
         var mainModule = getModuleName(data.main || "main");
         var banner = grunt.config.process(data.banner);
-        var configFile = data.configFile;
-        if (configFile) {
-            configFile = fileUtils.read(configFile);
-        }
         var moduleDefinitions = {};
         var output = [];
         for (var i = 0, l = modules.length; i < l; i++) {
@@ -128,12 +124,6 @@ module.exports = function(grunt) {
             }
             output.push("return internalRequire(", getModuleNumber(mainModule), ");");
             output.push(envCfg.footer);
-            if (configFile) {
-                output.push('.config(');
-                output.push(configFile);
-                output.push(')');
-            }
-            output.push('.create();');
         };
         try {
             composeFile();
