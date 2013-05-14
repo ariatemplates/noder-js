@@ -110,26 +110,21 @@ var start = function(context) {
     });
 };
 
-var setMethod = function(context, name, Cstr) {
-    var obj = new Cstr(context);
+var setExtPoint = function(context, name, defConstructor) {
+    var Cstr = context.extPoints[name] || defConstructor;
+    var obj = new Cstr(context, defConstructor);
     context[name] = bind(obj[name], obj);
 };
 
 var Context = function(config) {
-    this.cache = {};
-    var define = bind(this.define, this);
-    this.define = define; // allow using define without the scope
-    define("asyncRequire.js", [], createAsyncRequire(this));
-
     config = config || {};
     this.config = config;
-    setMethod(this, "moduleResolve", Resolver);
-    setMethod(this, "loadFile", Packaging);
+    this.cache = {};
 
     var rootModule = new Module(this);
     rootModule.preloaded = true;
     rootModule.loaded = true;
-    rootModule.define = define;
+    rootModule.define = this.define = bind(this.define, this);
     rootModule.asyncRequire = bind1(this.moduleAsyncRequire, this, rootModule);
     rootModule.execute = bind(this.jsModuleExecute, this);
     this.rootModule = rootModule;
@@ -138,6 +133,12 @@ var Context = function(config) {
     if (globalVarName) {
         global[globalVarName] = rootModule;
     }
+
+    this.extPoints = config.extPoints || {};
+    setExtPoint(this, "moduleResolve", Resolver);
+    setExtPoint(this, "loadFile", Packaging);
+
+    this.define("asyncRequire.js", [], createAsyncRequire(this));
     start(this).end();
 };
 
