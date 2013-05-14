@@ -114,7 +114,7 @@ var createPromise = function(fn) {
 var done = createPromise();
 done.resolve();
 
-createPromise.done = done;
+createPromise.done = done.promise();
 
 createPromise.empty = function() {};
 
