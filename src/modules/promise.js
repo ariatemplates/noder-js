@@ -42,7 +42,7 @@ var propagateResults = function(callback, deferred) {
     };
 };
 
-var createPromise = function(fn) {
+var createPromise = function() {
     var deferred = {};
     var state = PENDING_STATE;
     var result = null;
@@ -105,9 +105,6 @@ var createPromise = function(fn) {
     deferred.reject = fail[1 /*fire*/ ];
     promise.promise(deferred);
 
-    if (fn) {
-        fn.call(deferred, deferred);
-    }
     return deferred;
 };
 
