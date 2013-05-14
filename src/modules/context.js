@@ -179,6 +179,7 @@ contextProto.modulePreload = function(module, parent) {
         // clean up
         module = null;
         self = null;
+        parent = null;
     }));
 };
 
