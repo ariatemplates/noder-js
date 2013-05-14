@@ -24,7 +24,7 @@ module.exports = function(context, mainModule) {
         mainModule = mainModule.substring(0, startMainMethodName);
         return context.jsModuleExecute(['module.exports = require("', mainModule, '");\nmodule.exports.', methodNameAndArgs].join(''));
     } else {
-        mainModule = context.rootModule.require.resolve(mainModule);
+        mainModule = context.moduleResolve(context.rootModule, mainModule);
         return context.moduleExecute(context.getModule(mainModule));
     }
 };

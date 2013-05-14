@@ -106,7 +106,7 @@ var Resolver = function(context) {
 };
 var resolverProto = Resolver.prototype = {};
 
-resolverProto.resolve = function(callerModule, calledModule) {
+resolverProto.moduleResolve = function(callerModule, calledModule) {
     // Compute the configuration to apply to the caller module:
     var callerModuleSplit = split(callerModule.filename);
     var moduleMap = this.config['default'] || emptyObject;

@@ -22,7 +22,7 @@ var createModuleExecuteFunction = function(context, module) {
         // calling .end() here allows to go on with the execution of script tags
         // even if one has an execution error, and makes sure the error is reported
         // on the console of the browser
-        return context.executeModule(module).end();
+        return context.moduleExecute(module).end();
     };
 };
 

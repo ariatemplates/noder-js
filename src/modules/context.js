@@ -52,8 +52,8 @@ var Module = function(context, filename) {
     this[noderPropertiesKey] = {};
     this.filename = filename;
     this.id = filename;
-    this.require = bind1(context.require, context, this);
-    this.require.resolve = bind1(context.resolve, context, this);
+    this.require = bind1(context.moduleRequire, context, this);
+    this.require.resolve = bind1(context.moduleResolve, context, this);
     this.require.cache = context.cache;
     this.parent = null;
     this.children = [];
@@ -75,7 +75,7 @@ var createAsyncRequire = function(context) {
         module.exports = {
             create: function(module) {
                 return function(id) {
-                    return context.asyncRequire(module, id);
+                    return context.moduleAsyncRequire(module, id);
                 };
             }
         };
@@ -123,15 +123,15 @@ var Context = function(config) {
 
     config = config || {};
     this.config = config;
-    setMethod(this, "resolve", Resolver);
+    setMethod(this, "moduleResolve", Resolver);
     setMethod(this, "loadFile", Packaging);
 
     var rootModule = new Module(this);
     rootModule.preloaded = true;
     rootModule.loaded = true;
     rootModule.define = define;
-    rootModule.asyncRequire = bind1(this.asyncRequire, this, rootModule);
-    rootModule.execute = bind(this.execute, this);
+    rootModule.asyncRequire = bind1(this.moduleAsyncRequire, this, rootModule);
+    rootModule.execute = bind(this.jsModuleExecute, this);
     this.rootModule = rootModule;
 
     var globalVarName = config.varName;
@@ -145,7 +145,7 @@ var contextProto = Context.prototype = {};
 
 // Preloading a module means making it ready to be executed (loading its definition and preloading its
 // dependencies)
-contextProto.preloadModule = function(module, parent) {
+contextProto.modulePreload = function(module, parent) {
     if (module.preloaded) {
         return promise.done;
     }
@@ -169,8 +169,8 @@ contextProto.preloadModule = function(module, parent) {
     } else {
         module.require.main = module;
     }
-    return setModuleProperty(module, PROPERTY_PRELOADING, self.loadDefinition(module).then(function() {
-        return self.preloadModules(module, getModuleProperty(module, PROPERTY_DEPENDENCIES));
+    return setModuleProperty(module, PROPERTY_PRELOADING, self.moduleLoadDefinition(module).then(function() {
+        return self.modulePreloadDependencies(module, getModuleProperty(module, PROPERTY_DEPENDENCIES));
     }).then(function() {
         module.preloaded = true;
         setModuleProperty(module, PROPERTY_PRELOADING, false);
@@ -181,7 +181,7 @@ contextProto.preloadModule = function(module, parent) {
     }));
 };
 
-contextProto.loadDefinition = function(module) {
+contextProto.moduleLoadDefinition = function(module) {
     if (getModuleProperty(module, PROPERTY_DEFINITION)) {
         return promise.done;
     }
@@ -198,15 +198,15 @@ contextProto.loadDefinition = function(module) {
     return res;
 };
 
-contextProto.preloadModules = function(module, modules) {
+contextProto.modulePreloadDependencies = function(module, modules) {
     var promises = [];
     for (var i = 0, l = modules.length; i < l; i++) {
-        promises.push(this.preloadModule(this.getModule(this.resolve(module, modules[i])), module));
+        promises.push(this.modulePreload(this.getModule(this.moduleResolve(module, modules[i])), module));
     }
     return promise.when(promises);
 };
 
-contextProto.executePreloadedModule = function(module) {
+contextProto.moduleExecuteSync = function(module) {
     if (module.loaded || getModuleProperty(module, PROPERTY_EXECUTING)) { /* this.executing is true only in the case of a circular dependency */
         return module.exports;
     }
@@ -225,11 +225,11 @@ contextProto.executePreloadedModule = function(module) {
     }
 };
 
-contextProto.require = function(module, id) {
-    var filename = this.resolve(module, id);
+contextProto.moduleRequire = function(module, id) {
+    var filename = this.moduleResolve(module, id);
     var newModule = this.cache[filename];
     if (newModule) {
-        return this.executePreloadedModule(newModule);
+        return this.moduleExecuteSync(newModule);
     }
     throw new Error(['Module ', id, ' (', filename, ') is not loaded.'].join(''));
 };
@@ -247,10 +247,10 @@ contextProto.getModule = function(moduleFilename) {
 };
 
 contextProto.define = function(moduleFilename, dependencies, body) {
-    this.defineModule(this.getModule(moduleFilename), dependencies, body);
+    this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
 };
 
-contextProto.defineModule = function(module, dependencies, body) {
+contextProto.moduleDefine = function(module, dependencies, body) {
     if (!getModuleProperty(module, PROPERTY_DEFINITION)) {
         // do not override an existing definition
         setModuleProperty(module, PROPERTY_DEFINITION, body);
@@ -264,32 +264,32 @@ contextProto.defineModule = function(module, dependencies, body) {
     return module;
 };
 
-contextProto.executeModule = function(module) {
+contextProto.moduleExecute = function(module) {
     var self = this;
-    return self.preloadModule(module).then(function() {
-        return self.executePreloadedModule(module);
+    return self.modulePreload(module).then(function() {
+        return self.moduleExecuteSync(module);
     }).always(function() {
         self = null;
         module = null;
     });
 };
 
-contextProto.asyncRequire = function(module, id) {
+contextProto.moduleAsyncRequire = function(module, id) {
     if (isArray(id)) {
-        return this.preloadModules(module, id);
+        return this.modulePreloadDependencies(module, id);
     } else {
-        return this.require(module, id);
+        return this.moduleRequire(module, id);
     }
 };
 
 contextProto.jsModuleDefine = function(jsCode, moduleFilename, url) {
     var dependencies = extractDependencies(jsCode);
     var body = this.jsModuleEval(jsCode, url || moduleFilename);
-    return this.defineModule(this.getModule(moduleFilename), dependencies, body);
+    return this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
 };
 
-contextProto.execute = function(jsCode, moduleFilename, url) {
-    return this.executeModule(this.jsModuleDefine(jsCode, moduleFilename, url));
+contextProto.jsModuleExecute = function(jsCode, moduleFilename, url) {
+    return this.moduleExecute(this.jsModuleDefine(jsCode, moduleFilename, url));
 };
 
 contextProto.jsModuleEval = function(jsCode, url) {
