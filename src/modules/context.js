@@ -20,7 +20,10 @@ var exec = require('../node-modules/eval.js');
 var execCallModule = require('./execCallModule.js');
 var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
-var isArray = require('./type.js').isArray;
+var typeUtils = require('./type.js');
+var isArray = typeUtils.isArray;
+var isString = typeUtils.isString;
+var isFunction = typeUtils.isFunction;
 var dirname = require('./path.js').dirname;
 var noderPropertiesKey = "_noder";
 
@@ -110,10 +113,49 @@ var start = function(context) {
     });
 };
 
-var setExtPoint = function(context, name, defConstructor) {
-    var Cstr = context.extPoints[name] || defConstructor;
-    var obj = new Cstr(context, defConstructor);
-    context[name] = bind(obj[name], obj);
+var createExtPointWrapper = function(context, name, Cstr, defHandler) {
+    var current = defHandler || promise.empty;
+    if (isFunction(Cstr)) {
+        var obj = new Cstr(context, current);
+        return bind(obj[name], obj);
+    }
+    return current;
+};
+
+var createLazyExtPointWrapper = function(context, name, moduleName, defHandler, callsList) {
+    var initDefHandler = defHandler;
+    var loadFct = function() {
+        loadFct = null;
+        return execCallModule(context, moduleName).then(function(module) {
+            context[name] = defHandler = createExtPointWrapper(context, name, module, defHandler);
+        }).always(function() {
+            var list = callsList;
+            callsList = null;
+            if (list && initDefHandler != defHandler) {
+                for (var i = 0, l = list.length; i < l; i++) {
+                    var deferred = promise();
+                    deferred.then(defHandler).end();
+                    deferred.resolve.apply(null, list[i]);
+                }
+            }
+            initDefHandler = null;
+        });
+    };
+    return function() {
+        if (loadFct) {
+            promise.done.then(loadFct).end();
+        }
+        if (callsList) {
+            callsList.push(arguments);
+        }
+        return defHandler.apply(this, arguments);
+    };
+};
+
+var setExtPoint = function(context, name, Cstr, defValue, callsList) {
+    var handler = createExtPointWrapper(context, name, Cstr, context[name]);
+    var extPointCfg = context.extPoints[name] || defValue;
+    context[name] = (isString(extPointCfg) ? createLazyExtPointWrapper : createExtPointWrapper)(context, name, extPointCfg, handler, callsList);
 };
 
 var Context = function(config) {
@@ -137,6 +179,7 @@ var Context = function(config) {
     this.extPoints = config.extPoints || {};
     setExtPoint(this, "moduleResolve", Resolver);
     setExtPoint(this, "loadFile", Packaging);
+    setExtPoint(this, "jsEvalError", null, "jsEvalError/jsEvalError", []);
 
     this.define("asyncRequire.js", [], createAsyncRequire(this));
     start(this).end();

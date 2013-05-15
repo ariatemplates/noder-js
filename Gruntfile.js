@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
     var pkg = require('./package.json');
     var config = pkg.config;
     var env = process.env;
@@ -22,92 +22,122 @@ module.exports = function (grunt) {
 
     var licenseLong = grunt.file.read('tasks/templates/LICENSE-long');
     var licenseSmall = grunt.file.read('tasks/templates/LICENSE-small');
+    var accornPath = require.resolve('acorn/acorn.js');
 
     grunt.initConfig({
-        pkg : pkg,
-        noder : {
-            browser : {
-                banner : licenseLong,
-                env : "browser",
-                dest : 'dist/browser/noder.js'
+        pkg: pkg,
+        clean: ['dist'],
+        noder: {
+            browser: {
+                banner: licenseLong,
+                env: "browser",
+                dest: 'dist/browser/noder.js'
             },
-            node : {
-                banner : licenseLong,
-                env : "node",
-                dest : 'dist/node/noder.js'
+            node: {
+                banner: licenseLong,
+                env: "node",
+                dest: 'dist/node/noder.js'
             }
         },
-        uglify : {
-            options : {
-                banner : licenseSmall
+        copy: {
+            browser: {
+                files: [{
+                        src: [accornPath],
+                        dest: 'dist/browser/jsEvalError/acorn.js'
+                    }, {
+                        expand: true,
+                        cwd: 'src/plugins/',
+                        src: ['**'],
+                        dest: 'dist/browser/',
+                        filter: 'isFile'
+                    }
+                ]
             },
-            browser : {
-                src : ['dist/browser/noder.js'],
-                dest : 'dist/browser/noder.min.js'
-            },
-            node : {
-                src : ['dist/node/noder.js'],
-                dest : 'dist/node/noder.min.js'
+            node: {
+                files: [{
+                        src: [accornPath],
+                        dest: 'dist/node/jsEvalError/acorn.js'
+                    }, {
+                        expand: true,
+                        cwd: 'src/plugins/',
+                        src: ['**'],
+                        dest: 'dist/node/',
+                        filter: 'isFile'
+                    }
+                ]
             }
         },
-        gzip : {
-            browser : {
-                files : {
-                    'dist/browser/noder.min.js.gz' : 'dist/browser/noder.min.js'
+        uglify: {
+            options: {
+                banner: licenseSmall
+            },
+            browser: {
+                src: ['dist/browser/noder.js'],
+                dest: 'dist/browser/noder.min.js'
+            },
+            node: {
+                src: ['dist/node/noder.js'],
+                dest: 'dist/node/noder.min.js'
+            }
+        },
+        gzip: {
+            browser: {
+                files: {
+                    'dist/browser/noder.min.js.gz': 'dist/browser/noder.min.js'
                 }
             },
-            node : {
-                files : {
-                    'dist/node/noder.min.js.gz' : 'dist/node/noder.min.js'
+            node: {
+                files: {
+                    'dist/node/noder.min.js.gz': 'dist/node/noder.min.js'
                 }
             }
         },
-        jshint : {
-            sources : ['package.json', 'grunt.js', 'tasks/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
-            dist : ['dist/*/noder.js'],
-            options : {
-                debug : true,
-                unused : true
+        jshint: {
+            sources: ['package.json', 'Gruntfile.js', 'tasks/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
+            dist: ['dist/*/noder.js'],
+            options: {
+                debug: true,
+                unused: true
             }
         },
-        mocha : {
-            src : 'spec/**/*.spec.js',
-            options : {
-                ui : 'tdd',
-                reporter : "spec"
+        mocha: {
+            src: 'spec/**/*.spec.js',
+            options: {
+                ui: 'tdd',
+                reporter: "spec"
             }
         },
-        watch : {
-            files : '<%= jshint.sources %>',
-            tasks : ['dev']
+        watch: {
+            files: '<%= jshint.sources %>',
+            tasks: ['dev']
         },
-        testacular_start : {
-            integration : {
-                configFile : './spec/browser/testacular.conf.js',
-                browsers : testBrowsersCfg.split(','),
-                singleRun : true
+        testacular_start: {
+            integration: {
+                configFile: './spec/browser/testacular.conf.js',
+                browsers: testBrowsersCfg.split(','),
+                singleRun: true
             },
-            dev : {
-                configFile : './spec/browser/testacular.conf.js',
-                browsers : testBrowsersCfg.split(','),
-                singleRun : false,
-                dontWait : true
+            dev: {
+                configFile: './spec/browser/testacular.conf.js',
+                browsers: testBrowsersCfg.split(','),
+                singleRun: false,
+                dontWait: true
             },
-            coverage : {
-                configFile : './spec/browser/testacular.conf.js',
-                browsers : testBrowsersCfg.split(','),
-                singleRun : true,
-                preprocessors : {
-                    '**/dist/browser/noder.js' : 'coverage'
+            coverage: {
+                configFile: './spec/browser/testacular.conf.js',
+                browsers: testBrowsersCfg.split(','),
+                singleRun: true,
+                preprocessors: {
+                    '**/dist/browser/noder.js': 'coverage'
                 },
-                reporters : ['coverage']
+                reporters: ['coverage']
             }
         },
-        testacular_run : {
-            run : {}
+        testacular_run: {
+            run: {}
         },
-        jsbeautifier : {
-            files : '<%= jshint.sources %>'
+        jsbeautifier: {
+            files: '<%= jshint.sources %>'
         }
     });
 
@@ -116,7 +146,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks("grunt-contrib-jshint");
-    grunt.registerTask('build', ['noder', 'uglify', 'gzip']);
+    grunt.loadNpmTasks("grunt-contrib-copy");
+    grunt.loadNpmTasks("grunt-contrib-clean");
+    grunt.registerTask('build', ['clean', 'noder', 'copy', 'uglify', 'gzip']);
     // testacular_start without dontWait must always be the last task to run (it terminates the process)
     grunt.registerTask('test', ['jshint', 'mocha', 'testacular_start:integration']);
     grunt.registerTask('testacular', ['testacular_start:dev', 'dev', 'watch']);
