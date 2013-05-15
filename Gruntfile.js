@@ -142,6 +142,7 @@ module.exports = function(grunt) {
     });
 
     grunt.loadTasks("tasks");
+    grunt.loadTasks("tasks/internal");
     grunt.loadNpmTasks('grunt-jsbeautifier');
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks('grunt-contrib-watch');
