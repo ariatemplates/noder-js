@@ -15,7 +15,6 @@
 
 var promise = require("./promise.js");
 var Packaging = require('./packaging.js');
-var extractDependencies = require('./extractDependencies.js');
 var exec = require('../node-modules/eval.js');
 var execCallModule = require('./execCallModule.js');
 var Resolver = require('./resolver.js');
@@ -180,6 +179,7 @@ var Context = function(config) {
     setExtPoint(this, "moduleResolve", Resolver);
     setExtPoint(this, "loadFile", Packaging);
     setExtPoint(this, "jsEvalError", null, "jsEvalError/jsEvalError", []);
+    setExtPoint(this, "jsModuleExtractDependencies");
 
     this.define("asyncRequire.js", [], createAsyncRequire(this));
     start(this).end();
@@ -327,8 +327,10 @@ contextProto.moduleAsyncRequire = function(module, id) {
     }
 };
 
+contextProto.jsModuleExtractDependencies = require('./extractDependencies.js');
+
 contextProto.jsModuleDefine = function(jsCode, moduleFilename, url) {
-    var dependencies = extractDependencies(jsCode);
+    var dependencies = this.jsModuleExtractDependencies(jsCode);
     var body = this.jsModuleEval(jsCode, url || moduleFilename);
     return this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
 };
