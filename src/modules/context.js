@@ -20,10 +20,7 @@ var execCallModule = require('./execCallModule.js');
 var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
 var typeUtils = require('./type.js');
-var isArray = typeUtils.isArray;
 var noderError = require('./noderError.js');
-//var isString = typeUtils.isString;
-//var isFunction = typeUtils.isFunction;
 var dirname = require('./path.js').dirname;
 var noderPropertiesKey = "_noder";
 
@@ -71,18 +68,6 @@ var getModuleProperty = function(module, property) {
 var setModuleProperty = function(module, property, value) {
     module[noderPropertiesKey][property] = value;
     return value;
-};
-
-var createAsyncRequire = function(context) {
-    return function(module) {
-        module.exports = {
-            create: function(module) {
-                return function(id) {
-                    return context.moduleAsyncRequire(module, id);
-                };
-            }
-        };
-    };
 };
 
 var start = function(context) {
@@ -135,7 +120,6 @@ var Context = function(config) {
         global[globalVarName] = rootModule;
     }
 
-    this.define("asyncRequire.js", [], createAsyncRequire(this));
     start(this).end();
 };
 
@@ -188,11 +172,16 @@ contextProto.moduleLoadDefinition = function(module) {
     if (!res) {
         // store the promise so that it can be resolved when the define method is called:
         res = setModuleProperty(module, PROPERTY_LOADING_DEFINITION, promise());
-        this.loader.moduleLoad(module).always(function(error) {
-            // if reaching this, and if res is still pending, then it means the module was not found where expected
-            res.reject(noderError("moduleLoadDefinition", [module], error));
-            res = null;
-        });
+        var filename = module.filename;
+        if (this.builtinModules.hasOwnProperty(filename)) {
+            this.moduleDefine(module, [], this.builtinModules[filename](this));
+        } else {
+            this.loader.moduleLoad(module).always(function(error) {
+                // if reaching this, and if res is still pending, then it means the module was not found where expected
+                res.reject(noderError("moduleLoadDefinition", [module], error));
+                res = null;
+            });
+        }
     }
     return res;
 };
@@ -276,7 +265,7 @@ contextProto.moduleExecute = function(module) {
 };
 
 contextProto.moduleAsyncRequire = function(module, id) {
-    if (isArray(id)) {
+    if (typeUtils.isArray(id)) {
         return this.modulePreloadDependencies(module, id);
     } else {
         return this.moduleRequire(module, id);
@@ -308,10 +297,33 @@ contextProto.jsEval = function(jsCode, url, lineDiff) {
     }
 };
 
+contextProto.builtinModules = {
+    "asyncRequire.js": function(context) {
+        return function(module) {
+            module.exports = {
+                create: function(module) {
+                    return function(id) {
+                        return context.moduleAsyncRequire(module, id);
+                    };
+                }
+            };
+        };
+    }
+};
+
 contextProto.Context = Context;
 
 Context.createContext = function(cfg) {
     return (new Context(cfg)).rootModule;
+};
+
+Context.expose = function(name, exports) {
+    var body = function(module) {
+        module.exports = exports;
+    };
+    contextProto.builtinModules[name] = function() {
+        return body;
+    };
 };
 
 module.exports = Context;
