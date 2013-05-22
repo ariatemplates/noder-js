@@ -14,7 +14,7 @@
  */
 
 var promise = require("./promise.js");
-var Packaging = require('./packaging.js');
+var Loader = require('./loader.js');
 var exec = require('../node-modules/eval.js');
 var execCallModule = require('./execCallModule.js');
 var Resolver = require('./resolver.js');
@@ -177,7 +177,7 @@ var Context = function(config) {
 
     this.extPoints = config.extPoints || {};
     setExtPoint(this, "moduleResolve", Resolver);
-    setExtPoint(this, "loadFile", Packaging);
+    setExtPoint(this, "moduleLoad", Loader);
     setExtPoint(this, "jsEvalError", null, "jsEvalError/jsEvalError", []);
     setExtPoint(this, "jsModuleExtractDependencies");
 
@@ -234,7 +234,7 @@ contextProto.moduleLoadDefinition = function(module) {
     if (!res) {
         // store the promise so that it can be resolved when the define method is called:
         res = setModuleProperty(module, PROPERTY_LOADING_DEFINITION, promise());
-        this.loadFile(module.filename).always(function(error) {
+        this.moduleLoad(module).always(function(error) {
             // if reaching this, and if res is still pending, then it means the module was not found where expected
             res.reject(error || new Error("Module " + module.filename + " was not found in expected package."));
             res = null;

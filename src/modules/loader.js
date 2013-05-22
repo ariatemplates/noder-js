@@ -18,7 +18,7 @@ var findInMap = require('./findInMap.js');
 var split = require('./path.js').split;
 var emptyObject = {};
 
-var Packaging = function(context) {
+var Loader = function(context) {
     var config = context.config.packaging || emptyObject;
     this.config = config;
     this.context = context;
@@ -29,9 +29,10 @@ var Packaging = function(context) {
     }
 };
 
-var packagingProto = Packaging.prototype = {};
+var loaderProto = Loader.prototype = {};
 
-packagingProto.loadFile = function(moduleName) {
+loaderProto.moduleLoad = function(module) {
+    var moduleName = module.filename;
     var packageName;
     var packagesMap = this.config.packagesMap;
     if (packagesMap) {
@@ -45,7 +46,7 @@ packagingProto.loadFile = function(moduleName) {
     }
 };
 
-packagingProto.loadUnpackaged = function(moduleName) {
+loaderProto.loadUnpackaged = function(moduleName) {
     var url = (this.config.baseUrl || "") + moduleName;
     var context = this.context;
     return loadFile(url).then(function(jsCode) {
@@ -55,7 +56,7 @@ packagingProto.loadUnpackaged = function(moduleName) {
     });
 };
 
-packagingProto.loadPackaged = function(packageName) {
+loaderProto.loadPackaged = function(packageName) {
     var self = this;
     var url = (self.config.baseUrl || "") + packageName;
     var res = self.currentLoads[url];
@@ -71,9 +72,9 @@ packagingProto.loadPackaged = function(packageName) {
     return res;
 };
 
-packagingProto.jsPackageEval = function(jsCode, filename) {
+loaderProto.jsPackageEval = function(jsCode, filename) {
     var code = ['(function(define){\n', jsCode, '\n})'];
     return this.context.jsEval(code.join(''), filename);
 };
 
-module.exports = Packaging;
+module.exports = Loader;
