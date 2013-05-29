@@ -63,21 +63,28 @@ module.exports = function(grunt) {
         for (var i = 0, l = modules.length; i < l; i++) {
             var modulePath = modules[i];
             var moduleName = getModuleName(modulePath);
-            if (moduleDefinitions[moduleName]) {
-                log.writeln('Overriding ' + moduleDefinitions[moduleName].path + ' with ' + modulePath);
-            }
+            var parent = moduleDefinitions[moduleName];
             moduleDefinitions[moduleName] = {
+                parent: parent,
                 path: modulePath,
                 name: moduleName
             };
+            if (parent) {
+                log.writeln('Overriding ' + parent.path + ' with ' + modulePath);
+            }
         }
         var toBeIncluded = [];
 
         var lastModuleNumber = 0;
-        var getModuleNumber = function(moduleName) {
-            var module = moduleDefinitions[moduleName];
+        var getModuleNumber = function(moduleName, containerModule) {
+            var module;
+            if (containerModule && moduleName == containerModule.name) {
+                module = containerModule.parent;
+            } else {
+                module = moduleDefinitions[moduleName];
+            }
             if (!module) {
-                throw new Error("Missing module " + moduleName);
+                throw new Error("Missing module " + moduleName + (containerModule ? " (required from " + containerModule.name + ")" : ""));
             }
             if (!module.number) {
                 lastModuleNumber++;
@@ -87,19 +94,18 @@ module.exports = function(grunt) {
             return module.number;
         };
 
-        var requireReplacer = function(match, before, dependency) {
-            if (arguments[4] || arguments[5] /* comments */ ) {
-                return match;
-            }
-            var moduleName = path.basename(dependency, '.js');
-            return [before, ' internalRequire(', getModuleNumber(moduleName), ' /* ', moduleName, ' */)'].join('');
-        };
-
         var includeModule = function(module) {
             var moduleName = module.name;
             log.debug("Including module " + module.path);
             var fileContent = readFileStripBanner(module.path);
-            fileContent = fileContent.replace(requireRegexp, requireReplacer);
+            fileContent = fileContent.replace(requireRegexp, function(match, before, dependency) {
+                if (arguments[4] || arguments[5] /* comments */ ) {
+                    return match;
+                }
+                var moduleName = path.basename(dependency, '.js');
+                var moduleNumber = getModuleNumber(moduleName, module);
+                return [before, ' internalRequire(', moduleNumber, ' /* ', moduleName, ' */)'].join('');
+            });
             output.push('internalDefine(', module.number, ' /* ', moduleName, ' */, function (module) {\n\n', fileContent, '\n\n});\n\n');
         };
 
