@@ -61,6 +61,7 @@ var Module = function(context, filename) {
     this.children = [];
     this.preloaded = false;
     this.loaded = false;
+    this.exports = {};
 };
 
 var getModuleProperty = function(module, property) {
@@ -258,8 +259,7 @@ contextProto.moduleExecuteSync = function(module) {
     if (!module.preloaded) {
         throw new Error('A module must be preloaded before executing it.');
     }
-    var exports = {};
-    module.exports = exports;
+    var exports = module.exports;
     setModuleProperty(module, PROPERTY_EXECUTING, true);
     try {
         getModuleProperty(module, PROPERTY_DEFINITION).call(exports, module, global);
