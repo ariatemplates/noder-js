@@ -14,6 +14,7 @@
  */
 
 var promise = require("../modules/promise.js");
+var noderError = require("../modules/noderError.js");
 var HttpRequestObject = global.XMLHttpRequest;
 var newHttpRequestObject;
 
@@ -33,7 +34,7 @@ var createCallback = function(url, xhr, deferred) {
         if (xhr && xhr.readyState == 4) {
             var error = (xhr.status != 200);
             if (error) {
-                deferred.reject(new Error(['Error while fetching ', url, '\n', xhr.status, ' ', xhr.statusText].join('')));
+                deferred.reject(noderError('XMLHttpRequest', [url, xhr]));
             } else {
                 deferred.resolve(xhr.responseText);
             }

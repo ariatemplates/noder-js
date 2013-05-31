@@ -43,7 +43,7 @@ module.exports = function(grunt) {
             browser: {
                 files: [{
                         src: [accornPath],
-                        dest: 'dist/browser/jsEvalError/acorn.js'
+                        dest: 'dist/browser/noderError/acorn.js'
                     }, {
                         expand: true,
                         cwd: 'src/plugins/',
@@ -56,7 +56,7 @@ module.exports = function(grunt) {
             node: {
                 files: [{
                         src: [accornPath],
-                        dest: 'dist/node/jsEvalError/acorn.js'
+                        dest: 'dist/node/noderError/acorn.js'
                     }, {
                         expand: true,
                         cwd: 'src/plugins/',

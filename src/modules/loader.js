@@ -15,12 +15,14 @@
 
 var loadFile = require('../node-modules/loadFile.js');
 var findInMap = require('./findInMap.js');
+var defaultBaseUrl = require('../node-modules/defaultBaseUrl.js');
 var split = require('./path.js').split;
 var emptyObject = {};
 
 var Loader = function(context) {
     var config = context.config.packaging || emptyObject;
     this.config = config;
+    this.baseUrl = ("baseUrl" in config) ? config.baseUrl : defaultBaseUrl();
     this.context = context;
     this.currentLoads = {};
     var bootstrap = config.bootstrap;
@@ -47,7 +49,7 @@ loaderProto.moduleLoad = function(module) {
 };
 
 loaderProto.loadUnpackaged = function(moduleName) {
-    var url = (this.config.baseUrl || "") + moduleName;
+    var url = this.baseUrl + moduleName;
     var context = this.context;
     return loadFile(url).then(function(jsCode) {
         context.jsModuleDefine(jsCode, moduleName, url);
@@ -58,7 +60,7 @@ loaderProto.loadUnpackaged = function(moduleName) {
 
 loaderProto.loadPackaged = function(packageName) {
     var self = this;
-    var url = (self.config.baseUrl || "") + packageName;
+    var url = self.baseUrl + packageName;
     var res = self.currentLoads[url];
     if (!res) {
         self.currentLoads[url] = res = loadFile(url).then(function(jsCode) {
@@ -72,9 +74,9 @@ loaderProto.loadPackaged = function(packageName) {
     return res;
 };
 
-loaderProto.jsPackageEval = function(jsCode, filename) {
+loaderProto.jsPackageEval = function(jsCode, url) {
     var code = ['(function(define){\n', jsCode, '\n})'];
-    return this.context.jsEval(code.join(''), filename);
+    return this.context.jsEval(code.join(''), url, 1 /* we are adding 1 line compared to url */ );
 };
 
 module.exports = Loader;

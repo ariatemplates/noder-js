@@ -13,21 +13,7 @@
  * limitations under the License.
  */
 
-var split = function(name) {
-    if (!name.length) {
-        return [];
-    } else {
-        return name.split("/");
-    }
-};
-
-var dirname = function(name) {
-    var array = split(name);
-    array.pop();
-    return array.join('/');
-};
-
-module.exports = {
-    split: split,
-    dirname: dirname
+module.exports = function() {
+    var src = require('./scriptTag.js').src;
+    return src ? require('./path.js').dirname(src.replace(/\?.*$/, '')) + "/" : "";
 };

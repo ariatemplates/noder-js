@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+var noderError = require('./noderError.js');
 var path = require('./path.js');
 var isString = require('./type.js').isString;
 var split = path.split;
@@ -85,10 +86,10 @@ var multipleApplyModuleMap = function(map, terms) {
     var curValue = terms.join('/');
     while (curValue !== lastValue) {
         if (terms[0] == '..') {
-            throw new Error('Trying to go upper than the root of modules.');
+            throw noderError('resolverRoot', [terms]);
         }
         if (allValues[curValue]) {
-            throw new Error('Infinite loop in configuration.');
+            throw noderError('resolverLoop', [terms]);
         } else {
             allValues[curValue] = lastValue;
         }

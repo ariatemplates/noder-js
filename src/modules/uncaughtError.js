@@ -17,6 +17,9 @@ var nextTick = require("../node-modules/nextTick.js");
 
 module.exports = function(e) {
     nextTick(function() {
+        if (e.logDetails) {
+            e.logDetails();
+        }
         throw e;
     });
 };

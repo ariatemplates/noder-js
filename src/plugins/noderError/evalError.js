@@ -45,9 +45,7 @@ function formatError(err, input) {
     };
 }
 
-var ErrorHandler = function() {};
-
-ErrorHandler.prototype.jsEvalError = function(sourceCode, url, error) {
+module.exports = function(out, sourceCode, url, lineDiff) {
     try {
         acorn.parse(sourceCode, {
             ecmaVersion: 3,
@@ -57,10 +55,11 @@ ErrorHandler.prototype.jsEvalError = function(sourceCode, url, error) {
         });
     } catch (ex) {
         var errorInfo = formatError(ex, sourceCode);
-        throw new Error(errorInfo.description + " in " + url + ":\n" + errorInfo.lineInfoTxt);
+        if (lineDiff) {
+            errorInfo.line -= lineDiff;
+        }
+        out.push(errorInfo.description, " in '", url, "' (line ", errorInfo.line, ", column ", errorInfo.column, "): \n", errorInfo.lineInfoTxt);
+        return true;
     }
-    throw error;
+    return false;
 };
-
-
-module.exports = ErrorHandler;

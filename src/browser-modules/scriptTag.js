@@ -13,21 +13,16 @@
  * limitations under the License.
  */
 
-var split = function(name) {
-    if (!name.length) {
-        return [];
-    } else {
-        return name.split("/");
+var document = global.document;
+var scriptTag;
+// When not in the loading mode, it is not reliable to use the last script to find the configuration
+if (document.readyState == "loading") {
+    var scripts = document.getElementsByTagName('script');
+    scriptTag = scripts[scripts.length - 1];
+    if (scriptTag && !scriptTag.src) {
+        // without src it cannot be the right script tag
+        scriptTag = null;
     }
-};
+}
 
-var dirname = function(name) {
-    var array = split(name);
-    array.pop();
-    return array.join('/');
-};
-
-module.exports = {
-    split: split,
-    dirname: dirname
-};
+module.exports = scriptTag || {}; // must not be null

@@ -13,30 +13,18 @@
  * limitations under the License.
  */
 
-var document = global.document;
+var scriptTag = require('./scriptTag.js');
 var config = {};
-
-// When not in the loading mode, it is not reliable to use the last script to find the configuration
-if (document.readyState == "loading") {
-    var scripts = document.getElementsByTagName('script');
-    var scriptTag = scripts[scripts.length - 1];
-    if (scriptTag) {
-        var src = scriptTag.src;
-        // if there is no src, it cannot be the right script tag anyway
-        if (src) {
-            var exec = require('./eval.js');
-            var configContent = scriptTag.innerHTML;
-            if (!/^\s*$/.test(configContent)) {
-                config = exec(configContent) || config;
-            }
-
-            if (!config.main) {
-                var questionMark = src.indexOf('?');
-                if (questionMark > -1) {
-                    config.main = decodeURIComponent(src.substring(questionMark + 1));
-                }
-            }
-        }
+var configContent = scriptTag.innerHTML;
+if (!/^\s*$/.test(configContent || "")) {
+    var exec = require('./eval.js');
+    config = exec(configContent) || config;
+}
+var src = scriptTag.src;
+if (!config.main && src) {
+    var questionMark = src.indexOf('?');
+    if (questionMark > -1) {
+        config.main = decodeURIComponent(src.substring(questionMark + 1));
     }
 }
 

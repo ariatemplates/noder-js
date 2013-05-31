@@ -16,11 +16,4 @@
 var Context = require('./context.js');
 var defaultConfig = require('../node-modules/defaultConfig.js');
 
-var createContext = function(cfg) {
-    var context = new Context(cfg);
-    var rootModule = context.rootModule;
-    rootModule.createContext = createContext;
-    return rootModule;
-};
-
-module.exports = createContext(defaultConfig);
+module.exports = Context.createContext(defaultConfig);

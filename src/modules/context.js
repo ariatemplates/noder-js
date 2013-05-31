@@ -21,8 +21,9 @@ var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
 var typeUtils = require('./type.js');
 var isArray = typeUtils.isArray;
-var isString = typeUtils.isString;
-var isFunction = typeUtils.isFunction;
+var noderError = require('./noderError.js');
+//var isString = typeUtils.isString;
+//var isFunction = typeUtils.isFunction;
 var dirname = require('./path.js').dirname;
 var noderPropertiesKey = "_noder";
 
@@ -48,8 +49,7 @@ var Module = function(context, filename) {
     if (filename) {
         this.dirname = dirname(filename);
     } else {
-        filename = '.';
-        this.dirname = filename;
+        this.dirname = filename = '.';
     }
     this[noderPropertiesKey] = {};
     this.filename = filename;
@@ -113,55 +113,13 @@ var start = function(context) {
     });
 };
 
-var createExtPointWrapper = function(context, name, Cstr, defHandler) {
-    var current = defHandler || promise.empty;
-    if (isFunction(Cstr)) {
-        var obj = new Cstr(context, current);
-        return bind(obj[name], obj);
-    }
-    return current;
-};
-
-var createLazyExtPointWrapper = function(context, name, moduleName, defHandler, callsList) {
-    var initDefHandler = defHandler;
-    var loadFct = function() {
-        loadFct = null;
-        return execCallModule(context, moduleName).then(function(module) {
-            context[name] = defHandler = createExtPointWrapper(context, name, module, defHandler);
-        }).always(function() {
-            var list = callsList;
-            callsList = null;
-            if (list && initDefHandler != defHandler) {
-                for (var i = 0, l = list.length; i < l; i++) {
-                    var deferred = promise();
-                    deferred.then(defHandler).end();
-                    deferred.resolve.apply(null, list[i]);
-                }
-            }
-            initDefHandler = null;
-        });
-    };
-    return function() {
-        if (loadFct) {
-            promise.done.then(loadFct).end();
-        }
-        if (callsList) {
-            callsList.push(arguments);
-        }
-        return defHandler.apply(this, arguments);
-    };
-};
-
-var setExtPoint = function(context, name, Cstr, defValue, callsList) {
-    var handler = createExtPointWrapper(context, name, Cstr, context[name]);
-    var extPointCfg = context.extPoints[name] || defValue;
-    context[name] = (isString(extPointCfg) ? createLazyExtPointWrapper : createExtPointWrapper)(context, name, extPointCfg, handler, callsList);
-};
-
 var Context = function(config) {
     config = config || {};
     this.config = config;
     this.cache = {};
+
+    this.resolver = new Resolver(this);
+    this.loader = new Loader(this);
 
     var rootModule = new Module(this);
     rootModule.preloaded = true;
@@ -169,18 +127,13 @@ var Context = function(config) {
     rootModule.define = this.define = bind(this.define, this);
     rootModule.asyncRequire = bind1(this.moduleAsyncRequire, this, rootModule);
     rootModule.execute = bind(this.jsModuleExecute, this);
+    rootModule.createContext = Context.createContext;
     this.rootModule = rootModule;
 
     var globalVarName = config.varName;
     if (globalVarName) {
         global[globalVarName] = rootModule;
     }
-
-    this.extPoints = config.extPoints || {};
-    setExtPoint(this, "moduleResolve", Resolver);
-    setExtPoint(this, "moduleLoad", Loader);
-    setExtPoint(this, "jsEvalError", null, "jsEvalError/jsEvalError", []);
-    setExtPoint(this, "jsModuleExtractDependencies");
 
     this.define("asyncRequire.js", [], createAsyncRequire(this));
     start(this).end();
@@ -235,9 +188,9 @@ contextProto.moduleLoadDefinition = function(module) {
     if (!res) {
         // store the promise so that it can be resolved when the define method is called:
         res = setModuleProperty(module, PROPERTY_LOADING_DEFINITION, promise());
-        this.moduleLoad(module).always(function(error) {
+        this.loader.moduleLoad(module).always(function(error) {
             // if reaching this, and if res is still pending, then it means the module was not found where expected
-            res.reject(error || new Error("Module " + module.filename + " was not found in expected package."));
+            res.reject(noderError("moduleLoadDefinition", [module], error));
             res = null;
         });
     }
@@ -249,7 +202,9 @@ contextProto.modulePreloadDependencies = function(module, modules) {
     for (var i = 0, l = modules.length; i < l; i++) {
         promises.push(this.modulePreload(this.getModule(this.moduleResolve(module, modules[i])), module));
     }
-    return promise.when(promises);
+    return promise.when(promises).then(null, function(error) {
+        throw noderError("modulePreloadDependencies", [module], error);
+    });
 };
 
 contextProto.moduleExecuteSync = function(module) {
@@ -257,12 +212,14 @@ contextProto.moduleExecuteSync = function(module) {
         return module.exports;
     }
     if (!module.preloaded) {
-        throw new Error('A module must be preloaded before executing it.');
+        throw noderError("notPreloaded", [module]);
     }
     var exports = module.exports;
     setModuleProperty(module, PROPERTY_EXECUTING, true);
     try {
         getModuleProperty(module, PROPERTY_DEFINITION).call(exports, module, global);
+        setModuleProperty(module, PROPERTY_DEFINITION, null);
+        setModuleProperty(module, PROPERTY_DEPENDENCIES, null);
         module.loaded = true;
         return module.exports;
     } finally {
@@ -270,13 +227,12 @@ contextProto.moduleExecuteSync = function(module) {
     }
 };
 
+contextProto.moduleResolve = function(module, id) {
+    return this.resolver.moduleResolve(module, id);
+};
+
 contextProto.moduleRequire = function(module, id) {
-    var filename = this.moduleResolve(module, id);
-    var newModule = this.cache[filename];
-    if (newModule) {
-        return this.moduleExecuteSync(newModule);
-    }
-    throw new Error(['Module ', id, ' (', filename, ') is not loaded.'].join(''));
+    return this.moduleExecuteSync(this.getModule(this.moduleResolve(module, id)));
 };
 
 contextProto.getModule = function(moduleFilename) {
@@ -329,9 +285,9 @@ contextProto.moduleAsyncRequire = function(module, id) {
 
 contextProto.jsModuleExtractDependencies = require('./extractDependencies.js');
 
-contextProto.jsModuleDefine = function(jsCode, moduleFilename, url) {
+contextProto.jsModuleDefine = function(jsCode, moduleFilename, url, lineDiff) {
     var dependencies = this.jsModuleExtractDependencies(jsCode);
-    var body = this.jsModuleEval(jsCode, url || moduleFilename);
+    var body = this.jsModuleEval(jsCode, url || moduleFilename, lineDiff);
     return this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
 };
 
@@ -339,26 +295,23 @@ contextProto.jsModuleExecute = function(jsCode, moduleFilename, url) {
     return this.moduleExecute(this.jsModuleDefine(jsCode, moduleFilename, url));
 };
 
-contextProto.jsModuleEval = function(jsCode, url) {
+contextProto.jsModuleEval = function(jsCode, url, lineDiff) {
     var code = ['(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n', jsCode, '\n\n})'];
-    return this.jsEval(code.join(''), url);
+    return this.jsEval(code.join(''), url, (lineDiff || 0) + 3 /* we are adding 3 lines compared to url */ );
 };
 
-contextProto.jsEval = function(jsCode, url) {
+contextProto.jsEval = function(jsCode, url, lineDiff) {
     try {
         return exec(jsCode, url);
     } catch (error) {
-        this.jsEvalError(jsCode, url, error);
+        throw noderError("jsEval", [jsCode, url, lineDiff], error);
     }
 };
 
-contextProto.jsEvalError = function(jsCode, url, error) {
-    var newError = new Error((error.message || "error") + " in " + url);
-    newError.cause = error;
-    newError.fileName = url;
-    throw newError;
-};
-
 contextProto.Context = Context;
+
+Context.createContext = function(cfg) {
+    return (new Context(cfg)).rootModule;
+};
 
 module.exports = Context;
