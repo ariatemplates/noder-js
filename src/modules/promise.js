@@ -121,13 +121,13 @@ createPromise.noop = function() {
 
 var countDown = function(state, index) {
     state.counter++;
-    return function() {
+    return function(result) {
         if (!state) {
             // already called with this index
             return;
         }
         var array = state.array;
-        array[index] = arguments;
+        array[index] = result;
         state.counter--;
         if (!state.counter) {
             var promise = state.promise;
