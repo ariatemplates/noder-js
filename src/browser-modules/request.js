@@ -36,7 +36,7 @@ var createCallback = function(url, xhr, deferred) {
             if (error) {
                 deferred.reject(noderError('XMLHttpRequest', [url, xhr]));
             } else {
-                deferred.resolve(xhr.responseText);
+                deferred.resolve(xhr.responseText, xhr);
             }
             // clean the closure:
             url = xhr = deferred = null;
@@ -44,12 +44,19 @@ var createCallback = function(url, xhr, deferred) {
     };
 };
 
-module.exports = function(url) {
+module.exports = function(url, options) {
+    options = options || {};
     var deferred = promise();
     var xhr = newHttpRequestObject();
-    xhr.open('GET', url, true);
+    var headers = options.headers || {};
+    for (var key in headers) {
+        if (headers.hasOwnProperty(key)) {
+            xhr.setRequestHeader(key, headers[key]);
+        }
+    }
+    xhr.open(options.method || 'GET', url, true);
     xhr.onreadystatechange = createCallback(url, xhr, deferred);
     // Note that, on IE, onreadystatechange can be called during the call to send
-    xhr.send(null);
+    xhr.send(options.data);
     return deferred.promise();
 };

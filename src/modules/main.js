@@ -20,6 +20,6 @@ Context.expose('noder-js/promise.js', require('./promise.js'));
 Context.expose('noder-js/context.js', require('./context.js'));
 Context.expose('noder-js/extractDependencies.js', require('./extractDependencies.js'));
 Context.expose('noder-js/eval.js', require('./node-modules/eval.js'));
-Context.expose('noder-js/loadFile.js', require('../node-modules/loadFile.js'));
+Context.expose('noder-js/request.js', require('../node-modules/request.js'));
 
 module.exports = Context.createContext(defaultConfig);
