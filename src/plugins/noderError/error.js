@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var asyncRequire = require('asyncRequire').create(module);
+var asyncRequire = require('noder-js/asyncRequire').create(module);
 var evalError;
 
 var errorsList = {

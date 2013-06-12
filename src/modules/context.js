@@ -292,7 +292,7 @@ contextProto.execModuleCall = function(moduleFilename) {
 };
 
 contextProto.builtinModules = {
-    "asyncRequire.js": function(context) {
+    "noder-js/asyncRequire.js": function(context) {
         return function(module) {
             module.exports = {
                 create: function(module) {

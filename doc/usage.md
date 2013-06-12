@@ -87,12 +87,12 @@ noder.asyncRequire(['lib/myMainModule']).then(function(){
 });
 ```
 
-* From a module, it is better to use ``require('asyncRequire')`` as shown in the following sample.
+* From a module, it is better to use ``require('noder-js/asyncRequire')`` as shown in the following sample.
 In that case, the path of the current module is taken into account when resolving the module name (as when using
 the synchronous ``require`` method).
 
 ```js
-var asyncRequire = require('asyncRequire').create(module); // Create an asyncRequire function for this module.
+var asyncRequire = require('noder-js/asyncRequire').create(module); // Create an asyncRequire function for this module.
 
 // When an array is used as a parameter of the asyncRequire function, it preloads the corresponding modules
 // and returns a promise.
