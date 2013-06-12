@@ -19,7 +19,7 @@ module.exports = function(grunt) {
     var log = grunt.log;
 
     // This regexp only matches calls to require for local modules (starting with './' or '../' or 'noder/')
-    var requireRegexp = /(^|[^\s.])\s*\brequire\s*\(\s*["']((\.\.?|noder)\/[^"']+)["']\s*\)|(\/\*[\s\S]*?\*\/)|((?:[^\\]|^)\/\/.*?([\n\r]|$))/g;
+    var requireRegexp = /(^|[^\s.])\s*\brequire\s*\(\s*["']((\.\.?|noder-js)\/[^"']+)["']\s*\)|(\/\*[\s\S]*?\*\/)|((?:[^\\]|^)\/\/.*?([\n\r]|$))/g;
 
     var getModuleName = function(modulePath) {
         return path.basename(modulePath, '.js');
