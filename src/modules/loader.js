@@ -14,6 +14,7 @@
  */
 
 var request = require('../node-modules/request.js');
+var jsEval = require('./jsEval.js');
 var findInMap = require('./findInMap.js');
 var defaultBaseUrl = require('../node-modules/defaultBaseUrl.js');
 var split = require('./path.js').split;
@@ -76,7 +77,7 @@ loaderProto.loadPackaged = function(packageName) {
 
 loaderProto.jsPackageEval = function(jsCode, url) {
     var code = ['(function(define){\n', jsCode, '\n})'];
-    return this.context.jsEval(code.join(''), url, 1 /* we are adding 1 line compared to url */ );
+    return jsEval(code.join(''), url, 1 /* we are adding 1 line compared to url */ );
 };
 
 module.exports = Loader;

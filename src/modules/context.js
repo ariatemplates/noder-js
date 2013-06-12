@@ -15,12 +15,12 @@
 
 var promise = require("./promise.js");
 var Loader = require('./loader.js');
-var exec = require('../node-modules/eval.js');
 var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
 var typeUtils = require('./type.js');
 var noderError = require('./noderError.js');
 var dirname = require('./path.js').dirname;
+var jsEval = require('./jsEval.js');
 var findRequires = require('./findRequires.js');
 var noderPropertiesKey = "_noder";
 
@@ -284,16 +284,9 @@ contextProto.jsModuleExecute = function(jsCode, moduleFilename, url) {
 
 contextProto.jsModuleEval = function(jsCode, url, lineDiff) {
     var code = ['(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n', jsCode, '\n\n})'];
-    return this.jsEval(code.join(''), url, (lineDiff || 0) + 3 /* we are adding 3 lines compared to url */ );
+    return jsEval(code.join(''), url, (lineDiff || 0) + 3 /* we are adding 3 lines compared to url */ );
 };
 
-contextProto.jsEval = function(jsCode, url, lineDiff) {
-    try {
-        return exec(jsCode, url);
-    } catch (error) {
-        throw noderError("jsEval", [jsCode, url, lineDiff], error);
-    }
-};
 contextProto.execModuleCall = function(moduleFilename) {
     return this.moduleExecute(this.getModule(this.moduleResolve(this.rootModule, moduleFilename)));
 };
