@@ -21,6 +21,7 @@ var execScripts = require('../node-modules/execScripts.js');
 var typeUtils = require('./type.js');
 var noderError = require('./noderError.js');
 var dirname = require('./path.js').dirname;
+var findRequires = require('./findRequires.js');
 var noderPropertiesKey = "_noder";
 
 var PROPERTY_DEFINITION = 0;
@@ -271,10 +272,8 @@ contextProto.moduleAsyncRequire = function(module, id) {
     }
 };
 
-contextProto.jsModuleExtractDependencies = require('./extractDependencies.js');
-
 contextProto.jsModuleDefine = function(jsCode, moduleFilename, url, lineDiff) {
-    var dependencies = this.jsModuleExtractDependencies(jsCode);
+    var dependencies = findRequires(jsCode);
     var body = this.jsModuleEval(jsCode, url || moduleFilename, lineDiff);
     return this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
 };

@@ -18,7 +18,7 @@ var defaultConfig = require('../node-modules/defaultConfig.js');
 
 Context.expose('noder-js/promise.js', require('./promise.js'));
 Context.expose('noder-js/context.js', require('./context.js'));
-Context.expose('noder-js/extractDependencies.js', require('./extractDependencies.js'));
+Context.expose('noder-js/findRequires.js', require('./findRequires.js'));
 Context.expose('noder-js/eval.js', require('./node-modules/eval.js'));
 Context.expose('noder-js/request.js', require('../node-modules/request.js'));
 
