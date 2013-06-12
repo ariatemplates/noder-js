@@ -180,7 +180,9 @@ contextProto.moduleLoadDefinition = function(module) {
         } else {
             this.loader.moduleLoad(module).always(function(error) {
                 // if reaching this, and if res is still pending, then it means the module was not found where expected
-                res.reject(noderError("moduleLoadDefinition", [module], error));
+                if (res.isPending()) {
+                    res.reject(noderError("moduleLoadDefinition", [module], error));
+                }
                 res = null;
             });
         }
