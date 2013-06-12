@@ -16,7 +16,6 @@
 var promise = require("./promise.js");
 var Loader = require('./loader.js');
 var exec = require('../node-modules/eval.js');
-var execCallModule = require('./execCallModule.js');
 var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
 var typeUtils = require('./type.js');
@@ -86,7 +85,7 @@ var start = function(context) {
 
     var main = config.main;
     actions = actions.then(main ? function() {
-        return execCallModule(context, main);
+        return context.execModuleCall(main);
     } : promise.empty /* if there is no main module, an empty parameter should be passed to onstart */ );
 
     actions = actions.then(config.onstart);
@@ -295,6 +294,9 @@ contextProto.jsEval = function(jsCode, url, lineDiff) {
     } catch (error) {
         throw noderError("jsEval", [jsCode, url, lineDiff], error);
     }
+};
+contextProto.execModuleCall = function(moduleFilename) {
+    return this.moduleExecute(this.getModule(this.moduleResolve(this.rootModule, moduleFilename)));
 };
 
 contextProto.builtinModules = {

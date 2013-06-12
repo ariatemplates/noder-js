@@ -43,13 +43,13 @@ Noder supports the following configuration options:
   // The default is to use the same value as varName.
   // If it contains an empty string, Noder does not look for scripts to execute as modules.
 
-  main: "lib/myMainModule", // Main module to load when starting (with an optional method to call).
+  main: "lib/myMainModule", // Main module to load when starting
   // If this parameter is defined in the configuration object of the default context,
   // it overrides the value defined after the question mark in the Noder script tag.
   // A module loaded this way is considered the main module, available through require.main.
 
   onstart : function (mainModule) {
-    // Function to be executed when the main module has been loaded (and the optional method called).
+    // Function to be executed when the main module has been loaded.
     // The reference to the exported object is given as a parameter.
   },
 

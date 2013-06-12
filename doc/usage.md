@@ -41,21 +41,6 @@ It is also possible to both load Noder and a specific module with a single line:
 A module loaded this way is considered the main module, available through ``require.main`` (as it is done in Node.js), so
 a module can check if it is the main module with: ``module === require.main``.
 
-It is also possible to specify a function name to be called on the object exported by the module (by default, the module
-is only loaded and executed, but no specific function is called):
-
-```html
-<!-- The following script tag loads Noder, then loads lib/myMainModule, and executes its main() function -->
-<script type="text/javascript" src="noder.js?lib/myMainModule/main()"></script>
-```
-
-It is also possible to pass static arguments:
-
-```html
-<!-- The following script tag loads Noder, then loads lib/myMainModule, and executes its start function with the provided parameters -->
-<script type="text/javascript" src="noder.js?lib/myMainModule/start('myParam1',document.getElementById('myItem'))"></script>
-```
-
 A configuration object can be specified inside the script tag to change the behavior of Noder
 (check the [configuration options](configuration.md) for more details about available parameters):
 
