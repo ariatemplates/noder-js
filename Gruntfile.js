@@ -93,7 +93,7 @@ module.exports = function(grunt) {
             }
         },
         jshint: {
-            sources: ['package.json', 'Gruntfile.js', 'tasks/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
+            sources: ['package.json', '*.js', 'tasks/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
             dist: ['dist/*/noder.js'],
             options: {
                 debug: true,

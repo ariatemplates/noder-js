@@ -15,7 +15,7 @@
 
 describe('Dependencies extraction', function() {
     var expect = require("chai").expect;
-    var extractDeps = require('../../../src/modules/findRequires.js');
+    var extractDeps = require('../../../findRequires.js');
 
     var quoteRegExp = /['"]/g;
     var quoteReplacer = function(quote) {

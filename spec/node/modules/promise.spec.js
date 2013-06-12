@@ -14,7 +14,7 @@
  */
 
 describe("Promises/A+ Tests", function() {
-    var Deferred = require('../../../src/modules/promise.js');
+    var Deferred = require('../../../promise.js');
 
     require("promises-aplus-tests").mocha({
         fulfilled: function(value) {
