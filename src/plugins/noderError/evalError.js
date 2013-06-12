@@ -58,7 +58,7 @@ module.exports = function(out, sourceCode, url, lineDiff) {
         if (lineDiff) {
             errorInfo.line -= lineDiff;
         }
-        out.push(errorInfo.description, " in '", url, "' (line ", errorInfo.line, ", column ", errorInfo.column, "): \n", errorInfo.lineInfoTxt);
+        out.unshift(errorInfo.description, " in '", url, "' (line ", errorInfo.line, ", column ", errorInfo.column, "): \n", errorInfo.lineInfoTxt, "\n");
         return true;
     }
     return false;

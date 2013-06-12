@@ -18,18 +18,20 @@ var evalError;
 
 var errorsList = {
     "XMLHttpRequest": function(out, url, xhr) {
-        out.push("failed to download from url '", url, "': ", xhr.status, " ", xhr.statusText);
+        out.unshift("failed to download '", url, "': ", xhr.status, " ", xhr.statusText, "\n");
     },
     "moduleLoadDefinition": function(out, module) {
-        out.push("failed to load module '", module.filename, "':\n");
-        return appendErrorInfo(this.cause, out);
+        out.unshift("failed to load definition of module '", module.filename, "'\n");
+        return unshiftErrorInfo(this.cause, out);
     },
-    "modulePreloadDependencies": function(out, module) {
-        out.push("failed to preload a dependency of '", module.filename, "':\n");
-        return appendErrorInfo(this.cause, out);
+    "modulePreload": function(out, module) {
+        if (module.filename != '.') {
+            out.unshift("failed to preload '", module.filename, "'\n");
+        }
+        return unshiftErrorInfo(this.cause, out);
     },
     "notPreloaded": function(module) {
-        out.push("cannot execute module '", module.filename, "' as it is not preloaded.");
+        out.unshift("cannot execute module '", module.filename, "' as it is not preloaded.\n");
     },
     "jsEval": function(out, jsCode, url, lineDiff) {
         var next = function() {
@@ -38,8 +40,8 @@ var errorsList = {
             }
             var syntaxError = evalError(out, jsCode, url, lineDiff);
             if (!syntaxError) {
-                out.push("error while evaluating '" + url + "':\n");
-                return appendErrorInfo(this.cause, out);
+                out.unshift("error while evaluating '" + url + "'\n");
+                return unshiftErrorInfo(this.cause, out);
             }
         };
         if (evalError) {
@@ -49,14 +51,14 @@ var errorsList = {
         }
     },
     "resolverRoot": function(out, path) {
-        out.push("trying to go upper than the root of modules when resolving '", path.join('/'), "'");
+        out.unshift("trying to go upper than the root of modules when resolving '", path.join('/'), "'\n");
     },
     "resolverLoop": function(out, path) {
-        out.push("inifinite loop when resolving '", path.join('/'), "'");
+        out.unshift("inifinite loop when resolving '", path.join('/'), "'\n");
     }
 };
 
-var appendErrorInfo = function(error, out) {
+var unshiftErrorInfo = function(error, out) {
     if (error && error.name == "NoderError") {
         var code = error.code;
         var handler = errorsList[code];
@@ -71,13 +73,14 @@ var appendErrorInfo = function(error, out) {
 
 module.exports = function(async) {
     var self = this;
-    var out = ["Noder error #" + self.id + ": "];
-    var promise = appendErrorInfo(self, out);
+    var out = [];
+    var promise = unshiftErrorInfo(self, out);
     var next = function() {
+        out.unshift("NoderError: ");
         var message = out.join('');
         self.message = self.description = message;
         if (async) {
-            console.error("Details about " + message);
+            console.error("Details about NoderError #" + self.id + ":\n" + message);
         }
     };
     if (promise) {

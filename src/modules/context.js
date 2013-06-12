@@ -156,6 +156,8 @@ contextProto.modulePreload = function(module, parent) {
     }).then(function() {
         module.preloaded = true;
         setModuleProperty(module, PROPERTY_PRELOADING, false);
+    }, function(error) {
+        throw noderError("modulePreload", [module], error);
     }).always(function() {
         // clean up
         module = null;
@@ -191,9 +193,7 @@ contextProto.modulePreloadDependencies = function(module, modules) {
     for (var i = 0, l = modules.length; i < l; i++) {
         promises.push(this.modulePreload(this.getModule(this.moduleResolve(module, modules[i])), module));
     }
-    return promise.when(promises).then(null, function(error) {
-        throw noderError("modulePreloadDependencies", [module], error);
-    });
+    return promise.when(promises);
 };
 
 contextProto.moduleExecuteSync = function(module) {
