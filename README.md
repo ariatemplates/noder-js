@@ -7,13 +7,20 @@
 ## Features
 
 Noder is a JavaScript loader for web browsers with the following features:
+
 * It is compatible with [CommonJS Modules/1.0 specifications](http://www.commonjs.org/specs/modules/1.0/) and mostly compatible with the [node.js](http://nodejs.org) module system.
 This allows to easily import dependencies with ``var myModule = require("myModule");``
+
 * It is (and will stay) small: &lt; 5kB minified and gzipped.
+
 * It supports both packaged and unpackaged modules.
+
 * Modules can be loaded on demand (both in packaged and unpackaged mode).
+
 * It is tested on Firefox (latest), Chrome (latest), Internet Explorer 7 (and later) and PhantomJS. It is very likely to be compatible with other browsers as well.
+
 * Even if it is intended to be run on web browsers, a node.js version of Noder is also available.
+
 * It has many configuration options (check the [documentation](doc/index.md)).
 
 ## Why using Noder ?
