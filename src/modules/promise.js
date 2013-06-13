@@ -15,7 +15,7 @@
 
 var extend = require("./extend.js");
 var isFunction = require("./type.js").isFunction;
-var callListeners = require("./callListeners.js");
+var nextTickApply = require("./asyncCall.js").nextTickApply;
 var uncaughtError = require("./uncaughtError.js");
 
 var concat = Array.prototype.concat;
@@ -56,7 +56,7 @@ var createPromise = function() {
                 listeners[newState] = concat.apply(curListeners, arguments);
             } else if (state === newState) {
                 curListeners = concat.apply([], arguments);
-                callListeners(curListeners, result);
+                nextTickApply(curListeners, result);
             }
             return this;
         };
@@ -68,7 +68,7 @@ var createPromise = function() {
             state = newState;
             var myListeners = listeners[newState];
             listeners = null;
-            callListeners(myListeners, result);
+            nextTickApply(myListeners, result);
         };
         return [addCb, fire];
     };
