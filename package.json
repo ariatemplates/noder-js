@@ -2,7 +2,7 @@
     "author": "ariatemplates <contact@ariatemplates.com> (http://github.com/ariatemplates)",
     "name": "noder-js",
     "description": "JavaScript CommonJS loader",
-    "version": "1.0.0-rc0",
+    "version": "1.0.0-rc1",
     "homepage": "http://github.com/ariatemplates/noder",
     "repository": {
         "type": "git",
