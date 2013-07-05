@@ -14,15 +14,18 @@
  */
 
 var document = global.document;
-var scriptTag;
-// When not in the loading mode, it is not reliable to use the last script to find the configuration
-if (document.readyState == "loading") {
-    var scripts = document.getElementsByTagName('script');
-    scriptTag = scripts[scripts.length - 1];
-    if (scriptTag && !scriptTag.src) {
-        // without src it cannot be the right script tag
-        scriptTag = null;
-    }
-}
 
-module.exports = scriptTag || {}; // must not be null
+var getLastScript = function() {
+    // When not in the "loading" mode, it is not reliable to use the last script to find the configuration
+    // IE is using the "interactive" mode instead of "loading".
+    if (document.readyState == "loading" || document.readyState == "interactive") {
+        var scripts = document.getElementsByTagName('script');
+        var scriptTag = scripts[scripts.length - 1];
+        if (scriptTag && scriptTag.src) {
+            // without src it cannot be the right script tag
+            return scriptTag;
+        }
+    }
+};
+
+module.exports = document.currentScript || getLastScript() || {}; // must not be null
