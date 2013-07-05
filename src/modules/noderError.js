@@ -29,7 +29,12 @@ var handlerPromise;
 var getHandler = function() {
     if (!handlerPromise) {
         var Context = require('./context');
-        var loadingContext = new Context();
+        var scriptBaseUrl = require('../node-modules/scriptBaseUrl');
+        var loadingContext = new Context({
+            packaging: {
+                baseUrl: scriptBaseUrl()
+            }
+        });
         handlerPromise = loadingContext.moduleExecute(loadingContext.getModule("noderError/error.js")).then(function(
             receivedHandler) {
             // changes the logDetails function for next time

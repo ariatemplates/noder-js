@@ -14,5 +14,5 @@
  */
 
 module.exports = function() {
-    return "";
+    return __dirname;
 };

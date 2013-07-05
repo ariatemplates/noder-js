@@ -67,7 +67,7 @@ the synchronous (and simple to use) ``require`` syntax does not mean it is using
 <script type="noder.min.js?firstModule"></script>
 ```
 
-By default, the module is looked for in the same directory as ``noder.min.js``, but it is possible to change it through configuration options.
+By default, the module is looked for in the same directory as the HTML page, but it is possible to change it through configuration options.
 When the page is loaded, ``firstModule.js`` will automatically be loaded and executed.
 
 * Noder has many more features. Please check the [documentation](doc/index.md).

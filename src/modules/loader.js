@@ -16,14 +16,13 @@
 var request = require('../node-modules/request.js');
 var jsEval = require('./jsEval.js');
 var findInMap = require('./findInMap.js');
-var defaultBaseUrl = require('../node-modules/defaultBaseUrl.js');
 var split = require('./path.js').split;
 var emptyObject = {};
 
 var Loader = function(context) {
     var config = context.config.packaging || emptyObject;
     this.config = config;
-    this.baseUrl = ("baseUrl" in config) ? config.baseUrl : defaultBaseUrl();
+    this.baseUrl = config.baseUrl || "";
     this.context = context;
     this.currentLoads = {};
     var bootstrap = config.bootstrap;
