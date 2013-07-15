@@ -29,6 +29,7 @@ var PROPERTY_DEPENDENCIES = 1;
 var PROPERTY_EXECUTING = 2;
 var PROPERTY_PRELOADING = 3;
 var PROPERTY_LOADING_DEFINITION = 4;
+var PROPERTY_PRELOADING_PARENTS = 5;
 
 var bind = function(fn, scope) {
     return function() {
@@ -125,6 +126,21 @@ var Context = function(config) {
 
 var contextProto = Context.prototype = {};
 
+var checkCircularDependency = function(module, lookInside) {
+    if (lookInside === module) {
+        return true;
+    }
+    var parents = getModuleProperty(lookInside, PROPERTY_PRELOADING_PARENTS);
+    if (parents) {
+        for (var i = 0; parents[i]; i++) {
+            if (checkCircularDependency(module, parents[i])) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
 // Preloading a module means making it ready to be executed (loading its definition and preloading its
 // dependencies)
 contextProto.modulePreload = function(module, parent) {
@@ -134,12 +150,12 @@ contextProto.modulePreload = function(module, parent) {
     var preloading = getModuleProperty(module, PROPERTY_PRELOADING);
     if (preloading) {
         // If we get here, it may be because of a circular dependency
-        // check it here:
-        while (parent) {
-            if (parent === module) {
+        if (parent) {
+            if (checkCircularDependency(module, parent)) {
                 return promise.done;
+            } else {
+                getModuleProperty(module, PROPERTY_PRELOADING_PARENTS).push(parent);
             }
-            parent = parent.parent;
         }
         return preloading;
     }
@@ -151,11 +167,13 @@ contextProto.modulePreload = function(module, parent) {
     } else {
         module.require.main = module;
     }
+    setModuleProperty(module, PROPERTY_PRELOADING_PARENTS, parent ? [parent] : []);
     return setModuleProperty(module, PROPERTY_PRELOADING, self.moduleLoadDefinition(module).then(function() {
         return self.modulePreloadDependencies(module, getModuleProperty(module, PROPERTY_DEPENDENCIES));
     }).then(function() {
         module.preloaded = true;
         setModuleProperty(module, PROPERTY_PRELOADING, false);
+        setModuleProperty(module, PROPERTY_PRELOADING_PARENTS, null);
     }, function(error) {
         throw noderError("modulePreload", [module], error);
     }).always(function() {

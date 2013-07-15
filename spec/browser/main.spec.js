@@ -48,7 +48,7 @@ describe("Main", function() {
                 baseUrl: directory + '/main-tests/circularDependency/'
             }
         });
-        newRootModule.asyncRequire(['file1']).then(function() {
+        newRootModule.asyncRequire(['file1', 'file2']).then(function() {
             var file1 = newRootModule.asyncRequire('file1');
             expect(file1.test1()).to.equal('ok1');
             expect(file1.test2()).to.equal('ok2');
