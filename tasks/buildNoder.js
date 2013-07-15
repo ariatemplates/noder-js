@@ -17,6 +17,8 @@ module.exports = function(grunt) {
     var path = require('path');
     var fileUtils = grunt.file;
     var log = grunt.log;
+    var UglifyJS = require("uglify-js");
+    var replaceConstants = require("./helpers/replaceConstants");
 
     // This regexp only matches calls to require for local modules (starting with './' or '../' or 'noder/')
     var requireRegexp = /(^|[^\s.])\s*\brequire\s*\(\s*["']((\.\.?|noder-js)\/[^"']+)["']\s*\)|(\/\*[\s\S]*?\*\/)|((?:[^\\]|^)\/\/.*?([\n\r]|$))/g;
@@ -28,12 +30,12 @@ module.exports = function(grunt) {
     var src = path.join(__dirname, '../src/');
     var envConfig = {
         "node": {
-            header: "/*jshint undef:true, node:true*/\nmodule.exports = (function(){\n'use strict';\n",
+            header: "/*jshint undef:true, node:true, -W069*/\nmodule.exports = (function(){\n'use strict';\n",
             footer: "\n})();",
             modules: [path.join(src, 'modules/**/*.js'), path.join(src, 'node-modules/**/*.js')]
         },
         "browser": {
-            header: "/*jshint undef:true*/\n(function(global,callEval){\n'use strict';\n",
+            header: "/*jshint undef:true, -W069*/\n(function(global,callEval){\n'use strict';\n",
             footer: "\n})((function(){return this;})(),function(c){\n/*jshint evil:true */\neval(c);\n});",
             modules: [path.join(src, 'modules/**/*.js'), path.join(src, 'browser-modules/**/*.js')]
         }
@@ -134,7 +136,17 @@ module.exports = function(grunt) {
         try {
             composeFile();
             checkUnusedModules();
-            fileUtils.write(data.dest, output.join(''));
+
+            var ast = UglifyJS.parse(output.join(''));
+            ast.figure_out_scope();
+            replaceConstants(ast);
+            output = ast.print_to_string({
+                comments: true,
+                beautify: true,
+                ascii_only: true
+            });
+
+            fileUtils.write(data.dest, output);
         } catch (e) {
             log.error(e);
             return false;
