@@ -13,16 +13,19 @@
  * limitations under the License.
  */
 
-var appendSourceUrl = true;
+var isIE;
 
-module.exports = function(code, fileName) {
+var evalJS = function(code, fileName) {
     var res = {};
     // Using the 'arguments[1].res = ...' trick because IE does not let eval return a function
-    if (fileName && appendSourceUrl) {
-        code = ['/*\n * File: ', fileName, '\n */\narguments[1].res=', code, '\n//@ sourceURL=', fileName].join('');
+    if (fileName) {
+        code = ['/*\n * File: ', fileName, '\n */\narguments[1].res=', code, '\n//', isIE ? "#" : "@", ' sourceURL=', fileName].join('');
     } else {
         code = 'arguments[1].res=' + code;
     }
     callEval(code, res); // callEval is defined outside of any closure
     return res.res;
 };
+
+isIE = evalJS("/*@cc_on!@*/0");
+module.exports = evalJS;
