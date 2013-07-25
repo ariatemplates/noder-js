@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Amadeus s.a.s.
+ * Copyright 2013 Amadeus s.a.s.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,17 +13,13 @@
  * limitations under the License.
  */
 
-var promise = require('./promise');
-var typeUtils = require('./src/modules/type');
-
 module.exports = {
-    create: function(module) {
-        return function(arg) {
-            if (typeUtils.isArray(arg)) {
-                return promise.done;
-            } else if (typeUtils.isString(arg)) {
-                return module.require(arg);
-            }
-        };
+    testPlugin: function() {
+        require("./$plugin");
+        return false;
+    },
+    testNotPlugin: function() {
+        require("./notPlugin");
+        return false;
     }
 };

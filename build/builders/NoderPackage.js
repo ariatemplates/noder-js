@@ -61,7 +61,7 @@ NoderPackage.prototype.getDependencies = function(statements) {
         body: statements
     });
     var textContent = topLevel.print_to_string();
-    return findRequires(textContent);
+    return findRequires(textContent, true);
 };
 
 module.exports = NoderPackage;

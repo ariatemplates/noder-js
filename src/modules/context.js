@@ -216,10 +216,41 @@ contextProto.moduleLoadDefinition = function(module) {
     return res;
 };
 
-contextProto.modulePreloadDependencies = function(module, modules) {
+contextProto.moduleProcessPlugin = function(module, pluginDef) {
+    var allowedParameters = {
+        "module": module,
+        "__dirname": module.dirname,
+        "__filename": module.filename
+    };
+    var parameters = pluginDef.args.slice(0);
+    for (var i = 0, l = parameters.length; i < l; i++) {
+        var curParameter = parameters[i];
+        if (typeUtils.isArray(curParameter)) {
+            curParameter = curParameter[0];
+            if (!allowedParameters.hasOwnProperty(curParameter)) {
+                return;
+            }
+            parameters[i] = allowedParameters[curParameter];
+        }
+    }
+    return this.moduleExecute(this.getModule(this.moduleResolve(module, pluginDef.module))).thenSync(function(plugin) {
+        var method = (plugin[pluginDef.method] || {}).$preload;
+        if (method) {
+            return method.apply(plugin, parameters);
+        }
+    }).thenSync(null, function(error) {
+        throw noderError("moduleProcessPlugin", [module, pluginDef], error);
+    });
+};
+
+contextProto.modulePreloadDependencies = function(module, dependencies) {
     var promises = [];
-    for (var i = 0, l = modules.length; i < l; i++) {
-        promises.push(this.modulePreload(this.getModule(this.moduleResolve(module, modules[i])), module));
+    for (var i = 0, l = dependencies.length; i < l; i++) {
+        var curDependency = dependencies[i];
+        var curPromise = typeUtils.isString(curDependency) ?
+            this.modulePreload(this.getModule(this.moduleResolve(module, curDependency)), module) :
+            this.moduleProcessPlugin(module, curDependency);
+        promises.push(curPromise);
     }
     return promise.when(promises);
 };
@@ -291,13 +322,13 @@ contextProto.moduleExecute = function(module) {
 contextProto.moduleAsyncRequire = function(module, id) {
     if (typeUtils.isArray(id)) {
         return this.modulePreloadDependencies(module, id);
-    } else {
+    } else if (typeUtils.isString(id)) {
         return this.moduleRequire(module, id);
     }
 };
 
 contextProto.jsModuleDefine = function(jsCode, moduleFilename, url, lineDiff) {
-    var dependencies = findRequires(jsCode);
+    var dependencies = findRequires(jsCode, true);
     var body = this.jsModuleEval(jsCode, url || moduleFilename, lineDiff);
     return this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
 };

@@ -8,7 +8,7 @@ describe("Size", function() {
         expect(stat.size).to.be.below(maxSize);
     };
 
-    it('Noder should stay smaller than 5 kB', function() {
-        checkSize('dist/browser/noder.min.js.gz', 5120 /* 5 kB = 5 * 1024 bytes */ );
+    it('Noder should stay smaller than 6 kB', function() {
+        checkSize('dist/browser/noder.min.js.gz', 6144 /* 6 kB = 6 * 1024 bytes */ );
     });
 });
