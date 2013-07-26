@@ -30,7 +30,7 @@ var errorsList = {
         }
         return unshiftErrorInfo(this.cause, out);
     },
-    "notPreloaded": function(module) {
+    "notPreloaded": function(out, module) {
         out.unshift("cannot execute module '", module.filename, "' as it is not preloaded.\n");
     },
     "jsEval": function(out, jsCode, url, lineDiff) {
