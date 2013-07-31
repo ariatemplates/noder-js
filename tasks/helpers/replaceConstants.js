@@ -24,7 +24,7 @@ var isAcceptedConstantType = function(node) {
     });
 };
 
-module.exports = function(ast) {
+module.exports = function(ast, isConstant) {
     var extraInfoNodeName = "replaceConstantsInfo" + (new Date()).getTime();
     var symbols = [];
     var walker = new UglifyJS.TreeWalker(function(node) {
@@ -64,7 +64,7 @@ module.exports = function(ast) {
     });
     ast.walk(walker);
     symbols.forEach(function(extraInfo) {
-        if (extraInfo.constant && isAcceptedConstantType(extraInfo.value)) {
+        if (extraInfo.constant && (isAcceptedConstantType(extraInfo.value) || isConstant(extraInfo.value))) {
             var originalNode = extraInfo.value;
             originalNode.start = new UglifyJS.AST_Token({
                 comments_before: [{
