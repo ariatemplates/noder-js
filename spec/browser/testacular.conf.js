@@ -15,7 +15,6 @@
 
 basePath = '../..';
 files = [MOCHA, MOCHA_ADAPTER, require.resolve('chai/chai.js'), 'spec/browser/injectNoder.js', 'spec/browser/*.spec.js', {
-        pattern: '**/*.js',
-        included: false
-    }
-];
+    pattern: '**/*.js',
+    included: false
+}];

@@ -68,10 +68,9 @@ module.exports = function(ast, isConstant) {
             var originalNode = extraInfo.value;
             originalNode.start = new UglifyJS.AST_Token({
                 comments_before: [{
-                        type: "comment2",
-                        value: extraInfo.name
-                    }
-                ]
+                    type: "comment2",
+                    value: extraInfo.name
+                }]
             });
             extraInfo.usages.forEach(function(usage) {
                 var newNode = cloneNode(extraInfo.value);

@@ -42,29 +42,27 @@ module.exports = function(grunt) {
         copy: {
             browser: {
                 files: [{
-                        src: [accornPath],
-                        dest: 'dist/browser/noderError/acorn.js'
-                    }, {
-                        expand: true,
-                        cwd: 'src/plugins/',
-                        src: ['**'],
-                        dest: 'dist/browser/',
-                        filter: 'isFile'
-                    }
-                ]
+                    src: [accornPath],
+                    dest: 'dist/browser/noderError/acorn.js'
+                }, {
+                    expand: true,
+                    cwd: 'src/plugins/',
+                    src: ['**'],
+                    dest: 'dist/browser/',
+                    filter: 'isFile'
+                }]
             },
             node: {
                 files: [{
-                        src: [accornPath],
-                        dest: 'dist/node/noderError/acorn.js'
-                    }, {
-                        expand: true,
-                        cwd: 'src/plugins/',
-                        src: ['**'],
-                        dest: 'dist/node/',
-                        filter: 'isFile'
-                    }
-                ]
+                    src: [accornPath],
+                    dest: 'dist/node/noderError/acorn.js'
+                }, {
+                    expand: true,
+                    cwd: 'src/plugins/',
+                    src: ['**'],
+                    dest: 'dist/node/',
+                    filter: 'isFile'
+                }]
             }
         },
         uglify: {
@@ -137,7 +135,15 @@ module.exports = function(grunt) {
             run: {}
         },
         jsbeautifier: {
-            files: '<%= jshint.sources %>'
+            update: {
+                src: '<%= jshint.sources %>'
+            },
+            check: {
+                src: '<%= jshint.sources %>',
+                options: {
+                    mode: "VERIFY_ONLY"
+                }
+            }
         }
     });
 
@@ -151,9 +157,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.registerTask('build', ['clean', 'noder', 'copy', 'uglify', 'gzip']);
     // testacular_start without dontWait must always be the last task to run (it terminates the process)
-    grunt.registerTask('test', ['jshint', 'mocha', 'testacular_start:integration']);
+    grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'testacular_start:integration']);
     grunt.registerTask('testacular', ['testacular_start:dev', 'dev', 'watch']);
-    grunt.registerTask('dev', ['jsbeautifier', 'build', 'jshint', 'testacular_run']);
+    grunt.registerTask('beautify', ['jsbeautifier:update']);
+    grunt.registerTask('dev', ['beautify', 'build', 'jshint', 'testacular_run']);
     grunt.registerTask('coverage', 'testacular_start:coverage');
     grunt.registerTask('default', ['build', 'test']);
 };
