@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var extend = require("./extend.js");
+var merge = require("./merge.js");
 var isFunction = require("./type.js").isFunction;
 var asyncCall = require("./asyncCall.js");
 var uncaughtError = require("./uncaughtError.js");
@@ -97,7 +97,7 @@ var createPromise = function() {
     promise.promise = function() {
         return promise;
     };
-    extend(deferred, promise);
+    merge(deferred, promise);
     return deferred;
 };
 

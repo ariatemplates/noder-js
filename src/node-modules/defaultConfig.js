@@ -13,4 +13,4 @@
  * limitations under the License.
  */
 
-module.exports = {};
+module.exports = require("../unpackaged-modules/packagedConfig")();

@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
-var UglifyJS = require("uglify-js");
-var replaceNode = require("./replaceNode");
-var cloneNode = require("./cloneNode");
+var atpackager = require("../atpackager").atpackager();
+var UglifyJS = atpackager.uglify;
+var uglifyHelpers = atpackager.uglifyHelpers;
+var replaceNode = uglifyHelpers.replaceNode;
+var cloneNode = uglifyHelpers.cloneNode;
 
 var constantTypes = [UglifyJS.AST_Number, UglifyJS.AST_String, UglifyJS.AST_Boolean];
 var isAcceptedConstantType = function(node) {

@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-var merge = require("../modules/merge");
-var config = require("../unpackaged-modules/packagedConfig")();
-merge(config, require('./scriptConfig.js'), true);
-
-module.exports = config;
+module.exports = function() {
+    return {};
+};

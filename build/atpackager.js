@@ -13,18 +13,28 @@
  * limitations under the License.
  */
 
-var UglifyJS = require("uglify-js");
+var atpackager = null;
 
-module.exports = function(wrapper, statements) {
-    var result = UglifyJS.parse(wrapper);
-    result = result.transform(new UglifyJS.TreeTransformer(function(node) {
-        if (node instanceof UglifyJS.AST_SimpleStatement) {
-            node = node.body;
-            if (node instanceof UglifyJS.AST_SymbolRef && node.name == "$CONTENT$") {
-                return UglifyJS.MAP.splice(statements);
-            }
+/**
+ * Sets the instance of atpackager to be used when needed.
+ * @param {Object} atpackager
+ */
+exports.init = function(initAtpackager) {
+    if (initAtpackager && atpackager !== initAtpackager) {
+        if (atpackager) {
+            throw new Error("Trying to override the stored atpackager instance.");
         }
-    }));
+        atpackager = initAtpackager;
+    }
+};
 
-    return result;
+/**
+ * Returns the stored instance of atpackager.
+ * @return {Object}
+ */
+exports.atpackager = function() {
+    if (!atpackager) {
+        throw new Error("atpackager is not yet defined.");
+    }
+    return atpackager;
 };

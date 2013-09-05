@@ -12,9 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var typeUtils = require("./type");
 
-var merge = require("../modules/merge");
-var config = require("../unpackaged-modules/packagedConfig")();
-merge(config, require('./scriptConfig.js'), true);
+var merge = function(dst, src, rec) {
+    for (var key in src) {
+        if (src.hasOwnProperty(key)) {
+            var srcValue = src[key];
+            var dstValue;
+            if (rec && typeUtils.isPlainObject(srcValue) && typeUtils.isPlainObject(dstValue = dst[key])) {
+                merge(dstValue, srcValue, rec);
+            } else {
+                dst[key] = srcValue;
+            }
+        }
+    }
+};
 
-module.exports = config;
+module.exports = merge;

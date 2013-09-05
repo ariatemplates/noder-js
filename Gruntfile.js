@@ -22,47 +22,47 @@ module.exports = function(grunt) {
 
     var licenseLong = grunt.file.read('tasks/templates/LICENSE-long');
     var licenseSmall = grunt.file.read('tasks/templates/LICENSE-small');
-    var accornPath = require.resolve('acorn/acorn.js');
+    var acornPath = require.resolve('acorn/acorn.js');
+
+    var noderPackages = function(noderEnvironment) {
+        return [{
+            builder: {
+                type: "NoderBootstrapPackage",
+                cfg: {
+                    noderEnvironment: noderEnvironment,
+                    header: licenseLong
+                }
+            },
+            name: "noder.js"
+        }];
+    };
 
     grunt.initConfig({
         pkg: pkg,
         clean: ['dist'],
-        noder: {
+        atpackager: {
             browser: {
-                banner: licenseLong,
-                env: "browser",
-                dest: 'dist/browser/noder.js'
+                options: {
+                    outputDirectory: "dist/browser",
+                    packages: noderPackages("browser")
+                }
             },
             node: {
-                banner: licenseLong,
-                env: "node",
-                dest: 'dist/node/noder.js'
-            }
-        },
-        copy: {
-            browser: {
-                files: [{
-                    src: [accornPath],
-                    dest: 'dist/browser/noderError/acorn.js'
-                }, {
-                    expand: true,
-                    cwd: 'src/plugins/',
-                    src: ['**'],
-                    dest: 'dist/browser/',
-                    filter: 'isFile'
-                }]
+                options: {
+                    outputDirectory: "dist/node",
+                    packages: noderPackages("node")
+                }
             },
-            node: {
-                files: [{
-                    src: [accornPath],
-                    dest: 'dist/node/noderError/acorn.js'
-                }, {
-                    expand: true,
-                    cwd: 'src/plugins/',
-                    src: ['**'],
-                    dest: 'dist/node/',
-                    filter: 'isFile'
-                }]
+            options: {
+                sourceDirectories: ['src/plugins'],
+                sourceFiles: ['**/*.js'],
+                visitors: [{
+                    type: "ImportSourceFile",
+                    cfg: {
+                        sourceFile: acornPath,
+                        targetLogicalPath: "noderError/acorn.js"
+                    }
+                }, "CopyUnpackaged"]
             }
         },
         uglify: {
@@ -91,11 +91,12 @@ module.exports = function(grunt) {
             }
         },
         jshint: {
-            sources: ['package.json', '*.js', 'tasks/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
+            sources: ['package.json', '*.js', 'tasks/**/*.js', 'build/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
             dist: ['dist/*/noder.js'],
             options: {
                 debug: true,
-                unused: true
+                unused: true,
+                eqnull: true
             }
         },
         mocha: {
@@ -147,15 +148,15 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.loadTasks("tasks");
     grunt.loadTasks("tasks/internal");
+    grunt.loadNpmTasks('atpackager');
+    require('atpackager').loadPlugin('./atpackager');
     grunt.loadNpmTasks('grunt-jsbeautifier');
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks("grunt-contrib-jshint");
-    grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-contrib-clean");
-    grunt.registerTask('build', ['clean', 'noder', 'copy', 'uglify', 'gzip']);
+    grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip']);
     // testacular_start without dontWait must always be the last task to run (it terminates the process)
     grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'testacular_start:integration']);
     grunt.registerTask('testacular', ['testacular_start:dev', 'dev', 'watch']);

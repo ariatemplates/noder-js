@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-var UglifyJS = require("uglify-js");
+var UglifyJS = require("../atpackager").atpackager().uglify;
 
 /**
- * Analyses the AST of a file and returns its require dependencies as an array of strings.
+ * Analyses the AST of a file and returns its require dependencies
  * @param {Object} ast uglify-js abstract syntax tree
  * @return {Array} array of objects
  */

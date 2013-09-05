@@ -13,22 +13,11 @@
  * limitations under the License.
  */
 
-var UglifyJS = require("uglify-js");
-
-var copyToken = function(token) {
-    token = token || {};
-    return new UglifyJS.AST_Token({
-        comments_before: (token.comments_before || []).slice(0)
-    });
-};
-
-module.exports = function(node) {
-    var transformer = new UglifyJS.TreeTransformer(function(node, descend) {
-        var nodeClone = node.clone();
-        nodeClone.start = copyToken(node.start);
-        nodeClone.end = copyToken(node.end);
-        descend(nodeClone, this);
-        return nodeClone;
-    });
-    return node.transform(transformer);
+module.exports = function(atpackager) {
+    require("./atpackager").init(atpackager);
+    atpackager.builders.NoderPackage = require("./builders/NoderPackage");
+    atpackager.builders.NoderBootstrapPackage = require("./builders/NoderBootstrapPackage");
+    atpackager.visitors.NoderDependencies = require("./visitors/NoderDependencies");
+    atpackager.visitors.NoderMap = require("./visitors/NoderMap");
+    atpackager.visitors.NoderResolverMap = require("./visitors/NoderResolverMap");
 };
