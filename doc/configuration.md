@@ -79,6 +79,12 @@ Noder supports the following configuration options:
   packaging: {
     baseUrl: "", // Base URL which is prepended to every path when requesting files to the server.
     // It can be either absolute or relative to the current page location.
+    requestConfig: {
+      // Options passed to the noder-js/request module when requesting files to the server.
+      // Here are some useful properties:
+      sync: false, // whether requests are synchronous (true) or asynchronous (false, default value).
+      headers: {} // map of http headers and their values
+    },
     packagesMap: {
       // This section specifies how files are packaged.
       // Any file not included in a package is processed in unpackaged mode.

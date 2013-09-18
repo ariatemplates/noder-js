@@ -15,7 +15,7 @@
 
 var extend = require("./extend.js");
 var isFunction = require("./type.js").isFunction;
-var nextTickApply = require("./asyncCall.js").nextTickApply;
+var asyncCall = require("./asyncCall.js");
 var uncaughtError = require("./uncaughtError.js");
 
 var concat = Array.prototype.concat;
@@ -49,16 +49,18 @@ var createPromise = function() {
     var listeners = {};
 
     var listenersMethods = function(newState) {
-        var addCb = function() {
-            var curListeners;
-            if (state === PENDING_STATE) {
-                curListeners = listeners[newState] || [];
-                listeners[newState] = concat.apply(curListeners, arguments);
-            } else if (state === newState) {
-                curListeners = concat.apply([], arguments);
-                nextTickApply(curListeners, result);
-            }
-            return this;
+        var addCb = function(applyFunction) {
+            return function() {
+                var curListeners;
+                if (state === PENDING_STATE) {
+                    curListeners = listeners[newState] || [];
+                    listeners[newState] = concat.apply(curListeners, arguments);
+                } else if (state === newState) {
+                    curListeners = concat.apply([], arguments);
+                    applyFunction(curListeners, result);
+                }
+                return this;
+            };
         };
         var fire = function() {
             if (state !== PENDING_STATE) {
@@ -68,9 +70,9 @@ var createPromise = function() {
             state = newState;
             var myListeners = listeners[newState];
             listeners = null;
-            nextTickApply(myListeners, result);
+            asyncCall.nextTickApply(myListeners, result);
         };
-        return [addCb, fire];
+        return [addCb(asyncCall.nextTickApply), addCb(asyncCall.syncApply), fire];
     };
     var done = listenersMethods("resolved");
     var fail = listenersMethods("rejected");
@@ -86,8 +88,10 @@ var createPromise = function() {
             deferred.done.apply(deferred, arguments).fail.apply(deferred, arguments);
             return this;
         },
-        done: done[0 /*addCb*/ ],
-        fail: fail[0 /*addCb*/ ],
+        done: done[0 /*addCbAsync*/ ],
+        fail: fail[0 /*addCbAsync*/ ],
+        doneSync: done[1 /*addCbSync*/ ],
+        failSync: fail[1 /*addCbSync*/ ],
         then: function(done, fail) {
             var res = createPromise();
             deferred.done(isFunction(done) ? propagateResults(done, res) : res.resolve);
@@ -101,8 +105,8 @@ var createPromise = function() {
             return deferred.then(createPromise.empty, uncaughtError);
         }
     };
-    deferred.resolve = done[1 /*fire*/ ];
-    deferred.reject = fail[1 /*fire*/ ];
+    deferred.resolve = done[2 /*fire*/ ];
+    deferred.reject = fail[2 /*fire*/ ];
     promise.promise(deferred);
 
     return deferred;

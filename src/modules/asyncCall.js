@@ -54,5 +54,6 @@ module.exports = {
                 apply(callbacks, params, scope);
             });
         }
-    }
+    },
+    syncApply: apply
 };

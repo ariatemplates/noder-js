@@ -51,7 +51,7 @@ loaderProto.moduleLoad = function(module) {
 loaderProto.loadUnpackaged = function(moduleName) {
     var url = this.baseUrl + moduleName;
     var context = this.context;
-    return request(url).then(function(jsCode) {
+    return request(url, this.config.requestConfig).then(function(jsCode) {
         context.jsModuleDefine(jsCode, moduleName, url);
     }).always(function() {
         context = null;
@@ -63,7 +63,7 @@ loaderProto.loadPackaged = function(packageName) {
     var url = self.baseUrl + packageName;
     var res = self.currentLoads[url];
     if (!res) {
-        self.currentLoads[url] = res = request(url).then(function(jsCode) {
+        self.currentLoads[url] = res = request(url, self.config.requestConfig).then(function(jsCode) {
             var body = self.jsPackageEval(jsCode, url);
             body(self.context.define);
         }).always(function() {
