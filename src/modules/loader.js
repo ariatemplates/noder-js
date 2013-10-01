@@ -44,11 +44,12 @@ loaderProto.moduleLoad = function(module) {
     if (packageName) {
         return this.loadPackaged(packageName);
     } else {
-        return this.loadUnpackaged(moduleName);
+        return this.loadUnpackaged(module);
     }
 };
 
-loaderProto.loadUnpackaged = function(moduleName) {
+loaderProto.loadUnpackaged = function(module) {
+    var moduleName = module.filename;
     var url = this.baseUrl + moduleName;
     var context = this.context;
     return request(url, this.config.requestConfig).thenSync(function(jsCode) {
