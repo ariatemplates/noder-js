@@ -322,6 +322,11 @@ contextProto.builtinModules = {
                 }
             };
         };
+    },
+    "noder-js/currentContext.js": function(context) {
+        return function(module) {
+            module.exports = context;
+        };
     }
 };
 
