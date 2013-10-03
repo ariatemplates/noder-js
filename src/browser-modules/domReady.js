@@ -17,43 +17,38 @@ var promise = require('../modules/promise.js');
 var domReadyPromise;
 var createDomReadyPromise = function() {
     var document = global.document;
-    if (document && document.readyState === "complete") {
+    if (!document || document.readyState === "complete") {
         // in this simple case, avoid creating a new promise, just use promise.done
         return promise.done;
     }
     var res = promise();
-    if (!document) {
-        // this may happen, for example, in a web worker
-        res.reject(new Error("No document."));
-    } else {
-        var callback = function() {
-            if (res) {
-                res.resolve(); // resolve with no parameter
-            }
-        };
-        if (document.addEventListener) {
-            document.addEventListener("DOMContentLoaded", callback);
-            // Fallback in case the browser does not support DOMContentLoaded:
-            global.addEventListener("load", callback);
-            res.always(function() {
-                // clean the closure and listeners
-                document.removeEventListener("DOMContentLoaded", callback);
-                global.removeEventListener("load", callback);
-                document = null;
-                callback = null;
-                res = null;
-            });
-        } else if (document.attachEvent) {
-            // Fallback to the onload event on IE:
-            global.attachEvent("onload", callback);
-            res.always(function() {
-                // clean the closure and listeners
-                global.detachEvent("onload", callback);
-                document = null;
-                callback = null;
-                res = null;
-            });
+    var callback = function() {
+        if (res) {
+            res.resolve(); // resolve with no parameter
         }
+    };
+    if (document.addEventListener) {
+        document.addEventListener("DOMContentLoaded", callback);
+        // Fallback in case the browser does not support DOMContentLoaded:
+        global.addEventListener("load", callback);
+        res.always(function() {
+            // clean the closure and listeners
+            document.removeEventListener("DOMContentLoaded", callback);
+            global.removeEventListener("load", callback);
+            document = null;
+            callback = null;
+            res = null;
+        });
+    } else if (document.attachEvent) {
+        // Fallback to the onload event on IE:
+        global.attachEvent("onload", callback);
+        res.always(function() {
+            // clean the closure and listeners
+            global.detachEvent("onload", callback);
+            document = null;
+            callback = null;
+            res = null;
+        });
     }
     return res.promise();
 };

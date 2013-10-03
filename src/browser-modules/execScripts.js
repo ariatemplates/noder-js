@@ -28,22 +28,25 @@ var createModuleExecuteFunction = function(context, module) {
 
 module.exports = function(context, scriptType) {
     return domReady().then(function() {
-        var scripts = global.document.getElementsByTagName('script');
+        var document = global.document;
         var executePromise = promise.done;
-        var i, l;
-        for (i = 0, l = scripts.length; i < l; i++) {
-            var curScript = scripts[i];
-            if (curScript.type === scriptType) {
-                var filename = curScript.getAttribute('data-filename');
-                // the try ... catch here allows to go on with the execution of script tags
-                // even if one has a syntax error
-                try {
-                    // all scripts are defined before any is executed
-                    // so that it is possible to require one script tag from another (in any order)
-                    var curModule = context.jsModuleDefine(curScript.innerHTML, filename);
-                    executePromise = executePromise.then(createModuleExecuteFunction(context, curModule));
-                } catch (error) {
-                    uncaughtError(error);
+        if (document) {
+            var scripts = document.getElementsByTagName('script');
+            var i, l;
+            for (i = 0, l = scripts.length; i < l; i++) {
+                var curScript = scripts[i];
+                if (curScript.type === scriptType) {
+                    var filename = curScript.getAttribute('data-filename');
+                    // the try ... catch here allows to go on with the execution of script tags
+                    // even if one has a syntax error
+                    try {
+                        // all scripts are defined before any is executed
+                        // so that it is possible to require one script tag from another (in any order)
+                        var curModule = context.jsModuleDefine(curScript.innerHTML, filename);
+                        executePromise = executePromise.then(createModuleExecuteFunction(context, curModule));
+                    } catch (error) {
+                        uncaughtError(error);
+                    }
                 }
             }
         }

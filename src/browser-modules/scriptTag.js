@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var document = global.document;
+var document = global.document || {};
 
 var getLastScript = function() {
     // When not in the "loading" mode, it is not reliable to use the last script to find the configuration
