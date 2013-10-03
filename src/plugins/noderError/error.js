@@ -67,7 +67,7 @@ var unshiftErrorInfo = function(error, out) {
             return handler.apply(error, params);
         }
     } else {
-        out.push(error + "");
+        out.unshift(error + "\n");
     }
 };
 
