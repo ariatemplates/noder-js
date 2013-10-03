@@ -17,9 +17,9 @@ var splitRegExp = /(?=[\/'"]|\brequire\s*\()/;
 var requireRegExp = /^require\s*\(\s*$/;
 var endOfLineRegExp = /[\r\n]/;
 var quoteRegExp = /^['"]$/;
-var operatorRegExp = /^[!%&\(*+,\-\/:;<=>?\[\^]$/;
+var operatorRegExp = /^(\w{2,}|[!%&\(*+,\-\/:;<=>?\[\^])$/;
 var firstNonSpaceCharRegExp = /^\s*(\S)/;
-var lastNonSpaceCharRegExp = /(\S)\s*$/;
+var lastNonSpaceCharRegExp = /(\b(return|throw|new|in)|\S)\s*$/;
 
 var isEscaped = function(string) {
     var escaped = false;

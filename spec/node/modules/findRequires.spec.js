@@ -76,6 +76,16 @@ describe('Dependencies extraction', function() {
         expectDeps('var itsARegExp = ( /* comment 1 */ /* comment 2 */ /require("falseRequire")/) ; var trueRequire = require("trueRequire"); var anotherRegExp = (/* comment 1 */ /* comment 2 */ /require("falseRequire")/) ;', ["trueRequire"]);
         expectDeps('var notARegExp = 4 // comment 1 \n // comment 2 \n / 2 ; var trueRequire = require("trueRequire"); var otherDivision = (4) // comment 1 \n // comment 2\n / 2 ;', ["trueRequire"]);
         expectDeps('var itsARegExp = ( // comment 1 \n // comment 2 \n /require("falseRequire")/) ; var trueRequire = require("trueRequire"); var anotherRegExp = (// comment 1 \n // comment 2 \n /require("falseRequire")/) ;', ["trueRequire"]);
+        expectDeps('var something = 5 ; var myTest = function() { return something /require("trueRequire") ; } ;', ["trueRequire"]);
+        expectDeps('var notreturn = 5 ; var myTest = function() { return notreturn /require("trueRequire") ; } ;', ["trueRequire"]);
+        expectDeps('var notthrow = 5 ; var myTest = function() { return notthrow /require("trueRequire") ; } ;', ["trueRequire"]);
+        expectDeps('var notnew = 5 ; var myTest = function() { return notnew /require("trueRequire") ; } ;', ["trueRequire"]);
+        expectDeps('var notin = 5 ; var myTest = function() { return notin /require("trueRequire") ; } ;', ["trueRequire"]);
+        expectDeps('var myTest = function() { return /require("falseRequire")/.test(require("trueRequire")) ; } ;', ["trueRequire"]);
+        expectDeps('var myTest = function() { throw /require("falseRequire")/.test(require("trueRequire")) ; } ;', ["trueRequire"]);
+        expectDeps('var myTest = function() { return new /require("falseRequire")/.something(require("trueRequire")) ; } ;', ["trueRequire"]);
+        expectDeps('var myTest = function() { return "test" in /require("falseRequire")/.something(require("trueRequire")) ; } ;', ["trueRequire"]);
+        expectDeps('var myTest = function() { something /require("trueRequire") ; } ;', ["trueRequire"]);
     });
 
     it('Quotes and comments', function() {
