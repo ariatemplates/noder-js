@@ -30,6 +30,11 @@ var errorsList = {
         }
         return unshiftErrorInfo(this.cause, out);
     },
+    "modulePreloadRec": function(out, module) {
+        if (module.filename != '.') {
+            out.unshift("invalid recursive call to modulePreload '", module.filename, "'\n");
+        }
+    },
     "notPreloaded": function(out, module) {
         out.unshift("cannot execute module '", module.filename, "' as it is not preloaded.\n");
     },

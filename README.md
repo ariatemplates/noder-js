@@ -15,6 +15,8 @@ This allows to easily import dependencies with ``var myModule = require("myModul
 
 * It supports both packaged and unpackaged modules.
 
+* It supports both asynchronous and synchronous HTTP requests (requests are asynchronous by default to avoid blocking the browser).
+
 * Modules can be loaded on demand (both in packaged and unpackaged mode).
 
 * It is tested on Firefox (latest), Chrome (latest), Internet Explorer 7 (and later) and PhantomJS. It is very likely to be compatible with other browsers as well.
@@ -45,8 +47,9 @@ use in a usual [node.js](http://nodejs.org) application. Some people suggested t
 but it was refused as it increases too much the complexity of the loader.
 
 * The approach used by Noder is to provide a loader for browsers to be able to run unmodified [node.js](http://nodejs.org) modules. The fact that Noder is compatible with
-the synchronous (and simple to use) ``require`` syntax does not mean it is using synchronous requests though. All requests are done asynchronously through
-[XHR](http://www.w3.org/TR/XMLHttpRequest1/) but Noder waits until all transitive static dependencies of a module are loaded before executing the code of the module.
+the synchronous (and simple to use) ``require`` syntax does not mean it is using synchronous requests though (even if a synchronous mode is also supported). By default,
+all requests are done asynchronously through [XHR](http://www.w3.org/TR/XMLHttpRequest1/) but Noder waits until all transitive static dependencies of a module are loaded
+before executing the code of the module.
 	* When a non-packaged module is requested, dependencies are determined by quickly parsing the content of the module with regular expressions, extracting all calls to the
 	``require`` function. Note that non-packaged mode is normally used only during development.
 	* When a packaged module is requested, the package format (very similar to the one used by [Requirejs](http://requirejs.org/))

@@ -21,6 +21,19 @@ var uncaughtError = require("./uncaughtError.js");
 var concat = Array.prototype.concat;
 
 var PENDING_STATE = "pending";
+var RESOLVED_STATE = "resolved";
+var REJECTED_STATE = "rejected";
+
+var chainAnswer = function(obj, resolve, reject) {
+    if (obj) {
+        var then = obj.thenSync || obj.then;
+        if (isFunction(then)) {
+            then.call(obj, resolve, reject);
+            return;
+        }
+    }
+    resolve(obj);
+};
 
 var propagateResults = function(callback, deferred) {
     return function() {
@@ -28,11 +41,8 @@ var propagateResults = function(callback, deferred) {
             // the try...catch here is essential for a correct promises implementation
             // see: https://gist.github.com/3889970
             var res = callback.apply(null, arguments);
-            if (res && isFunction(res.then)) {
-                res.then(deferred.resolve, deferred.reject);
-            } else {
-                deferred.resolve(res);
-            }
+            // call thenSync if present, otherwise then
+            chainAnswer(res, deferred.resolve, deferred.reject);
         } catch (e) {
             deferred.reject(e);
         } finally {
@@ -42,15 +52,18 @@ var propagateResults = function(callback, deferred) {
     };
 };
 
+var Promise = function() {};
+
 var createPromise = function() {
-    var deferred = {};
+    var deferred = new Promise();
+    var promise = new Promise();
     var state = PENDING_STATE;
     var result = null;
     var listeners = {};
 
-    var listenersMethods = function(newState) {
-        var addCb = function(applyFunction) {
-            return function() {
+    var createMethods = function(doneOrFail, resolveOrReject, newState) {
+        var addCb = function(sync, applyFunction) {
+            promise[doneOrFail + sync] = function() {
                 var curListeners;
                 if (state === PENDING_STATE) {
                     curListeners = listeners[newState] || [];
@@ -62,7 +75,9 @@ var createPromise = function() {
                 return this;
             };
         };
-        var fire = function() {
+        addCb("", asyncCall.nextTickApply);
+        addCb("Sync", asyncCall.syncApply);
+        promise[resolveOrReject] = function() {
             if (state !== PENDING_STATE) {
                 return;
             }
@@ -72,45 +87,44 @@ var createPromise = function() {
             listeners = null;
             asyncCall.nextTickApply(myListeners, result);
         };
-        return [addCb(asyncCall.nextTickApply), addCb(asyncCall.syncApply), fire];
     };
-    var done = listenersMethods("resolved");
-    var fail = listenersMethods("rejected");
+    createMethods("done", "resolve", RESOLVED_STATE);
+    createMethods("fail", "reject", REJECTED_STATE);
 
-    var promise = {
-        state: function() {
-            return state;
-        },
-        isPending: function() {
-            return state == PENDING_STATE;
-        },
-        always: function() {
-            deferred.done.apply(deferred, arguments).fail.apply(deferred, arguments);
-            return this;
-        },
-        done: done[0 /*addCbAsync*/ ],
-        fail: fail[0 /*addCbAsync*/ ],
-        doneSync: done[1 /*addCbSync*/ ],
-        failSync: fail[1 /*addCbSync*/ ],
-        then: function(done, fail) {
-            var res = createPromise();
-            deferred.done(isFunction(done) ? propagateResults(done, res) : res.resolve);
-            deferred.fail(isFunction(fail) ? propagateResults(fail, res) : res.reject);
-            return res.promise();
-        },
-        promise: function(obj) {
-            return obj ? extend(obj, promise) : promise;
-        },
-        end: function() {
-            return deferred.then(createPromise.empty, uncaughtError);
-        }
+    promise.state = function() {
+        return state;
     };
-    deferred.resolve = done[2 /*fire*/ ];
-    deferred.reject = fail[2 /*fire*/ ];
-    promise.promise(deferred);
-
+    promise.promise = function() {
+        return promise;
+    };
+    extend(deferred, promise);
     return deferred;
 };
+
+var promiseProto = createPromise.prototype = Promise.prototype = {
+    end: function() {
+        return this.thenSync(createPromise.empty, uncaughtError);
+    }
+};
+
+var createThenAndAlways = function(sync) {
+    var doneMethodName = "done" + sync;
+    var failMethodName = "fail" + sync;
+    promiseProto["then" + sync] = function(done, fail) {
+        var res = createPromise();
+        this[doneMethodName](isFunction(done) ? propagateResults(done, res) : res.resolve);
+        this[failMethodName](isFunction(fail) ? propagateResults(fail, res) : res.reject);
+        return res.promise();
+    };
+    promiseProto["always" + sync] = function() {
+        this[doneMethodName].apply(this, arguments);
+        this[failMethodName].apply(this, arguments);
+        return this;
+    };
+};
+
+createThenAndAlways("Sync");
+createThenAndAlways("");
 
 var done = createPromise();
 done.resolve();
@@ -124,7 +138,6 @@ createPromise.noop = function() {
 };
 
 var countDown = function(state, index) {
-    state.counter++;
     return function(result) {
         if (!state) {
             // already called with this index
@@ -147,24 +160,18 @@ var countDown = function(state, index) {
 
 createPromise.when = function() {
     var array = concat.apply([], arguments);
-    var promise = createPromise(),
-        state, reject;
-    for (var i = 0, l = array.length; i < l; i++) {
-        var curItem = array[i];
-        if (curItem && isFunction(curItem.then)) {
-            if (!state) {
-                state = {
-                    promise: promise,
-                    counter: 0,
-                    array: array
-                };
-                reject = promise.reject;
-            }
-            curItem.then(countDown(state, i), reject);
-        }
+    if (!array.length) {
+        return createPromise.done;
     }
-    if (!state) {
-        promise.resolve.apply(promise, array);
+    var promise = createPromise();
+    var reject = promise.reject;
+    var state = {
+        promise: promise,
+        counter: array.length,
+        array: array
+    };
+    for (var i = 0, l = array.length; i < l; i++) {
+        chainAnswer(array[i], countDown(state, i), reject);
     }
     return promise.promise();
 };

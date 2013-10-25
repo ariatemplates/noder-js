@@ -148,14 +148,17 @@ contextProto.modulePreload = function(module, parent) {
         return promise.done;
     }
     var preloading = getModuleProperty(module, PROPERTY_PRELOADING);
-    if (preloading) {
+    var preloadingParents = getModuleProperty(module, PROPERTY_PRELOADING_PARENTS);
+    if (preloading || preloadingParents) {
         // If we get here, it may be because of a circular dependency
         if (parent) {
             if (checkCircularDependency(module, parent)) {
                 return promise.done;
-            } else {
-                getModuleProperty(module, PROPERTY_PRELOADING_PARENTS).push(parent);
             }
+            preloadingParents.push(parent);
+        }
+        if (!preloading) {
+            throw noderError("modulePreloadRec", [module]);
         }
         return preloading;
     }
@@ -168,9 +171,9 @@ contextProto.modulePreload = function(module, parent) {
         module.require.main = module;
     }
     setModuleProperty(module, PROPERTY_PRELOADING_PARENTS, parent ? [parent] : []);
-    return setModuleProperty(module, PROPERTY_PRELOADING, self.moduleLoadDefinition(module).then(function() {
+    return setModuleProperty(module, PROPERTY_PRELOADING, self.moduleLoadDefinition(module).thenSync(function() {
         return self.modulePreloadDependencies(module, getModuleProperty(module, PROPERTY_DEPENDENCIES));
-    }).then(function() {
+    }).thenSync(function() {
         module.preloaded = true;
         setModuleProperty(module, PROPERTY_PRELOADING, false);
         setModuleProperty(module, PROPERTY_PRELOADING_PARENTS, null);
@@ -190,19 +193,23 @@ contextProto.moduleLoadDefinition = function(module) {
     }
     var res = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
     if (!res) {
-        // store the promise so that it can be resolved when the define method is called:
-        res = setModuleProperty(module, PROPERTY_LOADING_DEFINITION, promise());
         var filename = module.filename;
         if (this.builtinModules.hasOwnProperty(filename)) {
             this.moduleDefine(module, [], this.builtinModules[filename](this));
+            res = promise.done;
         } else {
-            this.loader.moduleLoad(module).always(function(error) {
-                // if reaching this, and if res is still pending, then it means the module was not found where expected
-                if (res.isPending()) {
-                    res.reject(noderError("moduleLoadDefinition", [module], error));
+            var asyncOrError = true;
+            res = this.loader.moduleLoad(module).alwaysSync(function(error) {
+                // check that the definition was correctly loaded:
+                if (getModuleProperty(module, PROPERTY_DEFINITION)) {
+                    asyncOrError = false;
+                } else {
+                    throw noderError("moduleLoadDefinition", [module], error);
                 }
-                res = null;
             });
+            if (asyncOrError) {
+                setModuleProperty(module, PROPERTY_LOADING_DEFINITION, res);
+            }
         }
     }
     return res;
@@ -220,7 +227,7 @@ contextProto.moduleExecuteSync = function(module) {
     if (module.loaded || getModuleProperty(module, PROPERTY_EXECUTING)) { /* this.executing is true only in the case of a circular dependency */
         return module.exports;
     }
-    if (!module.preloaded) {
+    if (this.modulePreload(module).state() != "resolved") {
         throw noderError("notPreloaded", [module]);
     }
     var exports = module.exports;
@@ -265,18 +272,14 @@ contextProto.moduleDefine = function(module, dependencies, body) {
         // do not override an existing definition
         setModuleProperty(module, PROPERTY_DEFINITION, body);
         setModuleProperty(module, PROPERTY_DEPENDENCIES, dependencies);
-        var loadingDefinition = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
-        if (loadingDefinition) {
-            setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
-            loadingDefinition.resolve();
-        }
+        setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
     }
     return module;
 };
 
 contextProto.moduleExecute = function(module) {
     var self = this;
-    return self.modulePreload(module).then(function() {
+    return self.modulePreload(module).thenSync(function() {
         return self.moduleExecuteSync(module);
     }).always(function() {
         self = null;

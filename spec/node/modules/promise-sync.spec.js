@@ -13,19 +13,24 @@
  * limitations under the License.
  */
 
-describe("Promises/A+ Tests", function() {
-    var Deferred = require('../../../promise.js');
+describe('Promises/Sync', function() {
+    var expect = require("chai").expect;
+    var promise = require("../../../promise.js");
 
-    require("promises-aplus-tests").mocha({
-        pending: function() {
-            var deferred = Deferred();
+    var checkResolveFnSync = function(promiseObject, done) {
+        var sync = true;
+        var called = 0;
+        promiseObject.thenSync(function() {
+            called++;
+            expect(sync).to.equal(true);
+        });
+        sync = false;
+        expect(called).to.equal(1);
+        setTimeout(done, 25);
+    };
 
-            return {
-                promise: deferred.promise(),
-                fulfill: deferred.resolve,
-                reject: deferred.reject
-            };
-        }
+    it("thenSync is synchronous on promise.done", function(done) {
+        checkResolveFnSync(promise.done, done);
     });
 
 });
