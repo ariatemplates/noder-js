@@ -75,6 +75,13 @@ var start = function(context) {
     var config = context.config;
     var actions = promise.done;
 
+    var main = config.main;
+    actions = actions.then(main ? function() {
+        return context.execModuleCall(main);
+    } : promise.empty /* if there is no main module, an empty parameter should be passed to onstart */ );
+
+    actions = actions.then(config.onstart);
+
     if (!("scriptsType" in config)) {
         config.scriptsType = config.varName;
     }
@@ -84,13 +91,6 @@ var start = function(context) {
             return execScripts(context, scriptsType);
         });
     }
-
-    var main = config.main;
-    actions = actions.then(main ? function() {
-        return context.execModuleCall(main);
-    } : promise.empty /* if there is no main module, an empty parameter should be passed to onstart */ );
-
-    actions = actions.then(config.onstart);
 
     return actions.always(function() {
         context = null;
