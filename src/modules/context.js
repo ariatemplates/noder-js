@@ -104,9 +104,6 @@ var Context = function(config) {
     this.config = config;
     this.cache = {};
 
-    this.resolver = new Resolver(this);
-    this.loader = new Loader(this);
-
     var rootModule = new Module(this);
     rootModule.preloaded = true;
     rootModule.loaded = true;
@@ -115,6 +112,9 @@ var Context = function(config) {
     rootModule.execute = bind(this.jsModuleExecute, this);
     rootModule.createContext = Context.createContext;
     this.rootModule = rootModule;
+
+    this.resolver = new Resolver(this);
+    this.loader = new Loader(this);
 
     var globalVarName = config.varName;
     if (globalVarName) {
