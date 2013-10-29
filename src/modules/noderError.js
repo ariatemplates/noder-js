@@ -14,15 +14,14 @@
  */
 var errorNb = 0;
 
-var syncLogDetails;
-var asyncLogDetails = function() {
+var logDetails = function() {
+    var async = false;
     var self = this;
-    if (syncLogDetails) {
-        return syncLogDetails.call(self);
-    }
-    return getHandler().then(function() {
-        return syncLogDetails.call(self, true);
+    var res = getHandler().thenSync(function(syncLogDetails) {
+        return syncLogDetails.call(self, async);
     });
+    async = true;
+    return res;
 };
 
 var handlerPromise;
@@ -32,14 +31,13 @@ var getHandler = function() {
         var scriptBaseUrl = require('../node-modules/scriptBaseUrl');
         var loadingContext = new Context({
             packaging: {
+                requestConfig: {
+                    sync: true
+                },
                 baseUrl: scriptBaseUrl()
             }
         });
-        handlerPromise = loadingContext.moduleExecute(loadingContext.getModule("noderError/error.js")).then(function(
-            receivedHandler) {
-            // changes the logDetails function for next time
-            syncLogDetails = receivedHandler;
-        });
+        handlerPromise = loadingContext.moduleExecute(loadingContext.getModule("noderError/error.js"));
     }
     return handlerPromise;
 };
@@ -52,7 +50,7 @@ var createError = function(code, args, cause) {
     error.code = code;
     error.args = args;
     error.cause = cause;
-    error.logDetails = syncLogDetails || asyncLogDetails;
+    error.logDetails = logDetails;
     return error;
 };
 

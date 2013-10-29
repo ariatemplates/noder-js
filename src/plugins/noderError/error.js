@@ -14,11 +14,12 @@
  */
 
 var asyncRequire = require('noder-js/asyncRequire').create(module);
-var evalError;
+var promise = require('noder-js/promise');
 
 var errorsList = {
     "XMLHttpRequest": function(out, url, xhr) {
         out.unshift("failed to download '", url, "': ", xhr.status, " ", xhr.statusText, "\n");
+        return promise.done;
     },
     "moduleLoadDefinition": function(out, module) {
         out.unshift("failed to load definition of module '", module.filename, "'\n");
@@ -34,32 +35,29 @@ var errorsList = {
         if (module.filename != '.') {
             out.unshift("invalid recursive call to modulePreload '", module.filename, "'\n");
         }
+        return promise.done;
     },
     "notPreloaded": function(out, module) {
         out.unshift("cannot execute module '", module.filename, "' as it is not preloaded.\n");
+        return promise.done;
     },
     "jsEval": function(out, jsCode, url, lineDiff) {
-        var next = function() {
-            if (!evalError) {
-                evalError = asyncRequire('./evalError.js');
-            }
+        return asyncRequire(['./evalError.js']).thenSync(function() {
+            var evalError = asyncRequire('./evalError.js');
             var syntaxError = evalError(out, jsCode, url, lineDiff);
             if (!syntaxError) {
                 out.unshift("error while evaluating '" + url + "'\n");
                 return unshiftErrorInfo(this.cause, out);
             }
-        };
-        if (evalError) {
-            return next();
-        } else {
-            return asyncRequire(['./evalError.js']).then(next);
-        }
+        });
     },
     "resolverRoot": function(out, path) {
         out.unshift("trying to go upper than the root of modules when resolving '", path.join('/'), "'\n");
+        return promise.done;
     },
     "resolverLoop": function(out, path) {
         out.unshift("inifinite loop when resolving '", path.join('/'), "'\n");
+        return promise.done;
     }
 };
 
@@ -79,19 +77,14 @@ var unshiftErrorInfo = function(error, out) {
 module.exports = function(async) {
     var self = this;
     var out = [];
-    var promise = unshiftErrorInfo(self, out);
-    var next = function() {
+    var res = unshiftErrorInfo(self, out).thenSync(function() {
         out.unshift("NoderError: ");
         var message = out.join('');
         self.message = self.description = message;
         if (async) {
             console.error("Details about NoderError #" + self.id + ":\n" + message);
         }
-    };
-    if (promise) {
-        async = true;
-        return promise.then(next);
-    } else {
-        next();
-    }
+    });
+    async = true;
+    return res;
 };
