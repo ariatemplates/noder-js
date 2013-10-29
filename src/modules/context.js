@@ -199,14 +199,15 @@ contextProto.moduleLoadDefinition = function(module) {
             res = promise.done;
         } else {
             var asyncOrError = true;
-            res = this.loader.moduleLoad(module).alwaysSync(function(error) {
+            var checkResult = function(error) {
                 // check that the definition was correctly loaded:
                 if (getModuleProperty(module, PROPERTY_DEFINITION)) {
                     asyncOrError = false;
                 } else {
                     throw noderError("moduleLoadDefinition", [module], error);
                 }
-            });
+            };
+            res = this.loader.moduleLoad(module).thenSync(checkResult, checkResult);
             if (asyncOrError) {
                 setModuleProperty(module, PROPERTY_LOADING_DEFINITION, res);
             }
