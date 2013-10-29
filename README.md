@@ -67,7 +67,7 @@ before executing the code of the module.
 * Add the following line in your HTML page, replacing ``firstModule`` with the name of the first module to load and execute:
 
 ```html
-<script type="noder.min.js?firstModule"></script>
+<script type="text/javascript" src="noder.min.js?firstModule"></script>
 ```
 
 By default, the module is looked for in the same directory as the HTML page, but it is possible to change it through configuration options.
