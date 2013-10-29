@@ -76,18 +76,18 @@ var start = function(context) {
     var actions = promise.done;
 
     var main = config.main;
-    actions = actions.then(main ? function() {
+    actions = actions.thenSync(main ? function() {
         return context.execModuleCall(main);
     } : promise.empty /* if there is no main module, an empty parameter should be passed to onstart */ );
 
-    actions = actions.then(config.onstart);
+    actions = actions.thenSync(config.onstart);
 
     if (!("scriptsType" in config)) {
         config.scriptsType = config.varName;
     }
     var scriptsType = config.scriptsType;
     if (scriptsType) {
-        actions = actions.then(function() {
+        actions = actions.thenSync(function() {
             return execScripts(context, scriptsType);
         });
     }
