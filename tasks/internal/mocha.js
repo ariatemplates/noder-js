@@ -14,36 +14,5 @@
  */
 
 module.exports = function(grunt) {
-    grunt.registerMultiTask('mocha', 'Run mocha tests', function() {
-        var spawn = require('child_process').spawn;
-
-        var files = this.filesSrc;
-        var args = [];
-        args.push(require.resolve("mocha/bin/mocha"));
-        var options = this.options();
-        for (var key in options) {
-            if (options.hasOwnProperty(key)) {
-                var value = options[key];
-                if (!Array.isArray(value)) {
-                    value = [value];
-                }
-                for (var i = 0, l = value.length; i < l; i++) {
-                    args.push("--" + key);
-                    args.push(value[i]);
-                }
-            }
-        }
-        args.push.apply(args, files);
-        grunt.verbose.writeln("Executing " + args.join(' '));
-        var done = this.async();
-        var proc = spawn(process.argv[0], args, {
-            stdio: 'inherit'
-        });
-        proc.on('exit', function(exitCode) {
-            if (exitCode !== 0) {
-                grunt.warn("Some tests failed. Exit code from mocha: " + exitCode);
-            }
-            done();
-        });
-    });
+    require('../helpers/execTask')(grunt, 'mocha', require.resolve("mocha/bin/mocha"));
 };

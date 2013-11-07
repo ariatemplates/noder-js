@@ -15,7 +15,7 @@
 
 describe('Type', function() {
     var type = require('../../../src/modules/type.js');
-    var expect = require("chai").expect;
+    var expect = require("expect.js");
     it('isPlainObject', function() {
         var isPlainObject = type.isPlainObject;
         expect(isPlainObject({})).to.equal(true);

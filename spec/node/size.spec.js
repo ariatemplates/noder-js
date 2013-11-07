@@ -1,7 +1,7 @@
 describe("Size", function() {
     var fs = require('fs');
     var path = require('path');
-    var expect = require("chai").expect;
+    var expect = require("expect.js");
 
     var checkSize = function(file, maxSize) {
         var stat = fs.statSync(path.join(__dirname, '../../', file));

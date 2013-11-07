@@ -14,7 +14,7 @@
  */
 
 describe('Promises/When', function() {
-    var expect = require("chai").expect;
+    var expect = require("expect.js");
     var promise = require("../../../promise.js");
 
     var myValue = {};

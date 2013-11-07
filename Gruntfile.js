@@ -15,10 +15,6 @@
 
 module.exports = function(grunt) {
     var pkg = require('./package.json');
-    var config = pkg.config;
-    var env = process.env;
-    // The environment variable is defined when grunt is run from npm.
-    var testBrowsersCfg = env.npm_config_test_browsers || config['test-browsers'];
 
     var licenseLong = grunt.file.read('tasks/templates/LICENSE-long');
     var licenseSmall = grunt.file.read('tasks/templates/LICENSE-small');
@@ -110,30 +106,114 @@ module.exports = function(grunt) {
             files: '<%= jshint.sources %>',
             tasks: ['dev']
         },
-        testacular_start: {
-            integration: {
-                configFile: './spec/browser/testacular.conf.js',
-                browsers: testBrowsersCfg.split(','),
+        karma: {
+            options: {
+                frameworks: ['mocha', 'expect'],
+                plugins: [
+                    'karma-*'
+                ],
+                files: [
+                    'spec/browser/injectNoder.js',
+                    'spec/browser/**/*.spec.js', {
+                        pattern: 'dist/browser/**',
+                        included: false
+                    }, {
+                        pattern: 'spec/browser/**',
+                        included: false
+                    }
+                ],
+                browsers: ['Firefox'],
+                // global config for SauceLabs
+                sauceLabs: {
+                    username: 'ariatemplates',
+                    accessKey: '620e638e-90d2-48e1-b66c-f9505dcb888b',
+                    testName: 'noder runtime tests'
+                },
+                customLaunchers: {
+                    'SL_Chrome': {
+                        base: 'SauceLabs',
+                        browserName: 'chrome',
+                        platform: 'Linux',
+                        version: '30'
+                    },
+                    'SL_Firefox': {
+                        base: 'SauceLabs',
+                        browserName: 'firefox',
+                        platform: 'Linux'
+                    },
+                    'SL_Safari_6': {
+                        base: 'SauceLabs',
+                        browserName: 'safari',
+                        platform: 'OS X 10.8',
+                        version: '6'
+                    },
+                    'SL_IE_7': {
+                        base: 'SauceLabs',
+                        browserName: 'internet explorer',
+                        platform: 'Windows XP',
+                        version: '7'
+                    },
+                    'SL_IE_8': {
+                        base: 'SauceLabs',
+                        browserName: 'internet explorer',
+                        platform: 'Windows 7',
+                        version: '8'
+                    },
+                    'SL_IE_9': {
+                        base: 'SauceLabs',
+                        browserName: 'internet explorer',
+                        platform: 'Windows 2008',
+                        version: '9'
+                    },
+                    'SL_IE_10': {
+                        base: 'SauceLabs',
+                        browserName: 'internet explorer',
+                        platform: 'Windows 2012',
+                        version: '10'
+                    },
+                    'SL_IE_11': {
+                        base: 'SauceLabs',
+                        browserName: 'internet explorer',
+                        platform: 'Windows 8.1',
+                        version: '11'
+                    },
+                    'IOS': {
+                        base: 'SauceLabs',
+                        browserName: 'iphone',
+                        platform: 'OS X 10.8',
+                        version: '6.1'
+                    },
+                    'ANDROID': {
+                        base: 'SauceLabs',
+                        browserName: 'ANDROID',
+                        platform: 'Linux',
+                        version: '4.0'
+                    }
+                }
+                //logLevel: 'LOG_INFO'
+            },
+            unit: {
                 singleRun: true
             },
-            dev: {
-                configFile: './spec/browser/testacular.conf.js',
-                browsers: testBrowsersCfg.split(','),
+            tdd: {
                 singleRun: false,
-                dontWait: true
+                autoWatch: true
             },
-            coverage: {
-                configFile: './spec/browser/testacular.conf.js',
-                browsers: testBrowsersCfg.split(','),
-                singleRun: true,
-                preprocessors: {
-                    '**/dist/browser/noder.js': 'coverage'
+            ci: {
+                sauceLabs: {
+                    startConnect: false,
+                    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
                 },
-                reporters: ['coverage']
+                transports: ['xhr-polling'],
+                singleRun: true,
+                browsers: ['SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
+                reporters: ['dots', 'saucelabs']
+            },
+            sauce: {
+                singleRun: true,
+                browsers: ['SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
+                reporters: ['dots', 'saucelabs']
             }
-        },
-        testacular_run: {
-            run: {}
         },
         jsbeautifier: {
             update: {
@@ -156,12 +236,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks("grunt-contrib-jshint");
     grunt.loadNpmTasks("grunt-contrib-clean");
+    grunt.loadNpmTasks('grunt-karma');
     grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip']);
-    // testacular_start without dontWait must always be the last task to run (it terminates the process)
-    grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'testacular_start:integration']);
-    grunt.registerTask('testacular', ['testacular_start:dev', 'dev', 'watch']);
+    grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:unit']);
+    grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci']);
     grunt.registerTask('beautify', ['jsbeautifier:update']);
-    grunt.registerTask('dev', ['beautify', 'build', 'jshint', 'testacular_run']);
-    grunt.registerTask('coverage', 'testacular_start:coverage');
+    grunt.registerTask('dev', ['beautify', 'build', 'jshint']);
     grunt.registerTask('default', ['build', 'test']);
 };
