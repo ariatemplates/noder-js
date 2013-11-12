@@ -72,13 +72,13 @@ var unshiftErrorInfo = function(error, out) {
     } else {
         out.unshift(error + "\n");
     }
+    return promise.done;
 };
 
 module.exports = function(async) {
     var self = this;
     var out = [];
     var res = unshiftErrorInfo(self, out).thenSync(function() {
-        out.unshift("NoderError: ");
         var message = out.join('');
         self.message = self.description = message;
         if (async) {
