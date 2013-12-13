@@ -99,6 +99,8 @@ var start = function(context) {
     });
 };
 
+var BuiltinModules = function() {};
+
 var createInstance = function(configConstructor, defaultConstructor, param) {
     var Constructor = configConstructor || defaultConstructor;
     return new Constructor(param, defaultConstructor);
@@ -108,6 +110,7 @@ var Context = function(config) {
     config = config || {};
     this.config = config;
     this.cache = {};
+    this.builtinModules = new BuiltinModules();
 
     var rootModule = new Module(this);
     rootModule.preloaded = true;
@@ -199,8 +202,9 @@ contextProto.moduleLoadDefinition = function(module) {
     var res = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
     if (!res) {
         var filename = module.filename;
-        if (this.builtinModules.hasOwnProperty(filename)) {
-            this.moduleDefine(module, [], this.builtinModules[filename](this));
+        var builtin = this.builtinModules["/" + filename];
+        if (builtin) {
+            this.moduleDefine(module, [], builtin(this));
             res = promise.done;
         } else {
             var asyncOrError = true;
@@ -351,8 +355,8 @@ contextProto.execModuleCall = function(moduleFilename) {
     return this.moduleExecute(this.getModule(this.moduleResolve(this.rootModule, moduleFilename)));
 };
 
-contextProto.builtinModules = {
-    "noder-js/asyncRequire.js": function(context) {
+Context.builtinModules = BuiltinModules.prototype = {
+    "/noder-js/asyncRequire.js": function(context) {
         return function(module) {
             module.exports = {
                 create: function(module) {
@@ -363,7 +367,7 @@ contextProto.builtinModules = {
             };
         };
     },
-    "noder-js/currentContext.js": function(context) {
+    "/noder-js/currentContext.js": function(context) {
         return function(module) {
             module.exports = context;
         };
@@ -376,11 +380,11 @@ Context.createContext = function(cfg) {
     return (new Context(cfg)).rootModule;
 };
 
-Context.expose = function(name, exports) {
+Context.expose = contextProto.expose = function(name, exports) {
     var body = function(module) {
         module.exports = exports;
     };
-    contextProto.builtinModules[name] = function() {
+    this.builtinModules["/" + name] = function() {
         return body;
     };
 };
