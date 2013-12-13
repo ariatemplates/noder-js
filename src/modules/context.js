@@ -99,6 +99,11 @@ var start = function(context) {
     });
 };
 
+var createInstance = function(configConstructor, defaultConstructor, param) {
+    var Constructor = configConstructor || defaultConstructor;
+    return new Constructor(param, defaultConstructor);
+};
+
 var Context = function(config) {
     config = config || {};
     this.config = config;
@@ -113,8 +118,8 @@ var Context = function(config) {
     rootModule.createContext = Context.createContext;
     this.rootModule = rootModule;
 
-    this.resolver = new Resolver(this);
-    this.loader = new Loader(this);
+    this.resolver = createInstance(config.Resolver, Resolver, this);
+    this.loader = createInstance(config.Loader, Loader, this);
 
     var globalVarName = config.varName;
     if (globalVarName) {
