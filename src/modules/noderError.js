@@ -28,16 +28,9 @@ var handlerPromise;
 var getHandler = function() {
     if (!handlerPromise) {
         var Context = require('./context');
-        var scriptBaseUrl = require('../node-modules/scriptBaseUrl');
-        var loadingContext = new Context({
-            packaging: {
-                requestConfig: {
-                    sync: true
-                },
-                baseUrl: scriptBaseUrl()
-            }
-        });
-        handlerPromise = loadingContext.moduleExecute(loadingContext.getModule("noderError/error.js"));
+        var errorConfig = require("../unpackaged-modules/packagedConfig")().errorContext;
+        var loadingContext = new Context(errorConfig);
+        handlerPromise = loadingContext.moduleExecute(loadingContext.getModule(errorConfig.main));
     }
     return handlerPromise;
 };

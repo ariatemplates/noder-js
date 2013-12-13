@@ -25,6 +25,7 @@ var RequireDependencies = function(cfg) {
     this.mustExist = cfg.hasOwnProperty('mustExist') ? cfg.mustExist : true;
     this.externalDependencies = cfg.hasOwnProperty('externalDependencies') ? cfg.externalDependencies : [];
     this.noderConfig = cfg.noderConfig;
+    this.noderContext = cfg.noderContext;
 };
 
 RequireDependencies.prototype.computeDependencies = function(packaging, inputFile) {
@@ -37,7 +38,7 @@ RequireDependencies.prototype.computeDependencies = function(packaging, inputFil
     if (ast) {
         var resolver = this.resolver;
         if (!resolver) {
-            resolver = this.resolver = configUtils.getResolver(packaging, this.noderConfig);
+            resolver = this.resolver = configUtils.getResolver(packaging, this.noderConfig, this.noderContext);
         }
 
         ast.figure_out_scope();

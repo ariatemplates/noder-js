@@ -14,7 +14,7 @@
  */
 
 var merge = require("../modules/merge");
-var config = require("../unpackaged-modules/packagedConfig")();
+var config = require("../unpackaged-modules/packagedConfig")().mainContext;
 merge(config, require('./scriptConfig.js'), true);
 
 module.exports = config;

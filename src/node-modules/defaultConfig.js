@@ -13,4 +13,4 @@
  * limitations under the License.
  */
 
-module.exports = require("../unpackaged-modules/packagedConfig")();
+module.exports = require("../unpackaged-modules/packagedConfig")().mainContext;

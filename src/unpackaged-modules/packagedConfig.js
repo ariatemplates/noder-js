@@ -13,6 +13,18 @@
  * limitations under the License.
  */
 
+var path = require("path");
 module.exports = function() {
-    return {};
+    return {
+        "mainContext": {},
+        "errorContext": {
+            main: "error.js",
+            packaging: {
+                baseUrl: path.join(__dirname, "../plugins/noderError/"),
+                requestConfig: {
+                    sync: true
+                }
+            }
+        }
+    };
 };

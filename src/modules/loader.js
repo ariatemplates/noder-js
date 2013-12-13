@@ -18,11 +18,12 @@ var jsEval = require('./jsEval.js');
 var findInMap = require('./findInMap.js');
 var split = require('./path.js').split;
 var emptyObject = {};
+var scriptBaseUrl = require('../node-modules/scriptBaseUrl');
 
 var Loader = function(context) {
     var config = context.config.packaging || emptyObject;
     this.config = config;
-    this.baseUrl = config.baseUrl || "";
+    this.baseUrl = (config.baseUrl || "").replace(/^%scriptdir%\//, scriptBaseUrl());
     this.context = context;
     this.currentLoads = {};
     var bootstrap = config.bootstrap;

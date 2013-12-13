@@ -4,6 +4,7 @@ var NoderResolverMap = function(cfg) {
     cfg = cfg || {};
     this.files = cfg.files || ['**/*'];
     this.noderConfig = cfg.noderConfig;
+    this.noderContext = cfg.noderContext;
 };
 
 var addDirectories = function(config, fileName) {
@@ -24,7 +25,7 @@ NoderResolverMap.prototype.onAddSourceFile = function(packaging, inputFile) {
     if (!inputFile.isMatch(this.files)) {
         return;
     }
-    addDirectories(configUtils.getResolverMap(packaging, this.noderConfig), inputFile.logicalPath);
+    addDirectories(configUtils.getResolverMap(packaging, this.noderConfig, this.noderContext), inputFile.logicalPath);
 };
 
 module.exports = NoderResolverMap;

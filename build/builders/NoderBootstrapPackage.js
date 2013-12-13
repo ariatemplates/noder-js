@@ -47,7 +47,9 @@ var noderEnvConfig = {
         modules: [path.join(noderSrc, 'modules/**/*.js'), path.join(noderSrc, 'browser-modules/**/*.js')],
         defConfig: function() {
             return {
-                varName: "noder"
+                mainContext: {
+                    varName: "noder"
+                }
             };
         }
     }
@@ -60,7 +62,10 @@ var NoderBootstrapPackage = function(cfg) {
     this.noderMainModule = cfg.noderMainModule || "main";
     this.noderEnvConfig = noderEnvConfig[cfg.noderEnvironment || "browser"];
     this.noderConfig = cfg.noderConfig;
-    this.noderConfigOptions = cfg.noderConfigOptions;
+    this.noderConfigFullOptions = {
+        mainContext: cfg.noderConfigOptions || {},
+        errorContext: cfg.noderConfigErrorOptions || {}
+    };
     if (cfg.noderPackageWrapper) {
         this.noderPackageWrapper = cfg.noderPackageWrapper;
     }
@@ -78,7 +83,7 @@ var NoderBootstrapPackage = function(cfg) {
 util.inherits(NoderBootstrapPackage, NoderPackage);
 
 NoderBootstrapPackage.prototype.noderPackageWrapper = "(function(define) {\n $CONTENT$\n })";
-NoderBootstrapPackage.prototype.noderPackageConfigProperty = "packaging.bootstrap";
+NoderBootstrapPackage.prototype.noderPackageConfigProperty = "mainContext.packaging.bootstrap";
 
 NoderBootstrapPackage.prototype.createNoderContent = function() {
     var modules = fileUtils.expand({
@@ -130,7 +135,7 @@ NoderBootstrapPackage.prototype.getOutputJS = function(outputFile) {
 NoderBootstrapPackage.prototype.wrapOutputFile = function(outputFile, packagesContent) {
     var noderContent = this.createNoderContent();
     configUtils.setBootstrapFileContent(this.noderConfig, outputFile, {
-        config: this.noderConfigOptions,
+        config: this.noderConfigFullOptions,
         noderContent: noderContent,
         packagesContent: packagesContent.length > 0 ? getExpression(wrapCode(this.noderPackageWrapper, packagesContent)) : null
     });

@@ -18,7 +18,6 @@ module.exports = function(grunt) {
 
     var licenseLong = grunt.file.read('tasks/templates/LICENSE-long');
     var licenseSmall = grunt.file.read('tasks/templates/LICENSE-small');
-    var acornPath = require.resolve('acorn/acorn.js');
 
     var noderPackages = function(noderEnvironment) {
         return [{
@@ -50,15 +49,9 @@ module.exports = function(grunt) {
                 }
             },
             options: {
-                sourceDirectories: ['src/plugins'],
-                sourceFiles: ['**/*.js'],
-                visitors: [{
-                    type: "ImportSourceFile",
-                    cfg: {
-                        sourceFile: acornPath,
-                        targetLogicalPath: "noderError/acorn.js"
-                    }
-                }, "CopyUnpackaged"]
+                sourceDirectories: [],
+                sourceFiles: [],
+                visitors: ["NoderPlugins"]
             }
         },
         uglify: {

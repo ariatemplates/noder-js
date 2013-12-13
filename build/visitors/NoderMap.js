@@ -53,6 +53,7 @@ var NoderMap = function(cfg) {
     this.starCompress = cfg.hasOwnProperty('starCompress') ? cfg.starCompress : ['**/*'];
     this.starStarCompress = cfg.hasOwnProperty('starStarCompress') ? cfg.starStarCompress : ['**/*'];
     this.noderConfig = cfg.noderConfig;
+    this.noderContext = cfg.noderContext;
 };
 
 NoderMap.prototype.onBeforeBuild = function(packaging) {
@@ -146,7 +147,7 @@ NoderMap.prototype._starStarCompress = function(path, map) {
 };
 
 NoderMap.prototype.onAfterBuild = function(packaging) {
-    var map = configUtils.getPackagesMap(packaging, this.noderConfig);
+    var map = configUtils.getPackagesMap(packaging, this.noderConfig, this.noderContext);
     var sourceFilesPatterns = this.sourceFiles;
     var outputFilesPatterns = this.outputFiles;
     var sourceFiles = packaging.sourceFiles;

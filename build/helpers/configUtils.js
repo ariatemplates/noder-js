@@ -14,8 +14,22 @@
  */
 
 var DefaultResolver = require("../../src/modules/resolver");
+var defaultConfig = require("../../src/unpackaged-modules/packagedConfig");
 var merge = require("../../src/modules/merge");
 var noderConfigsKeyName = "noderConfigs" + (new Date()).getTime();
+
+var getPath = function(path, root) {
+    var parts = path.split(".");
+    var curContainer = root;
+    for (var i = 0, l = parts.length; i < l; i++) {
+        var curPart = parts[i];
+        if (!curContainer[curPart]) {
+            curContainer[curPart] = {};
+        }
+        curContainer = curContainer[curPart];
+    }
+    return curContainer;
+};
 
 var getInfo = function(packaging, configName) {
     if (!configName) {
@@ -27,42 +41,51 @@ var getInfo = function(packaging, configName) {
     }
     var info = configs[configName];
     if (!info) {
+        var defConfig = defaultConfig();
+        defConfig.errorContext.packaging.baseUrl = "%scriptdir%/noderError/";
         info = configs[configName] = {
-            config: {
-                resolver: {
-                    "default": {}
-                },
-                packaging: {
-                    packagesMap: {}
-                }
-            },
+            config: defConfig,
             plannedBuilds: 1
         };
     }
     return info;
 };
 
-var getResolver = function(packaging, config) {
+var getResolver = function(packaging, config, context) {
     if (config && config.moduleResolve) {
         return config;
     }
+    if (!context) {
+        context = "mainContext";
+    }
+    var propertyName = "resolver" + context;
     var info = getInfo(packaging, config);
-    if (!info.resolver) {
-        info.resolver = new DefaultResolver({
-            config: info.config
+    if (!info[propertyName]) {
+        // If the resolver configuration does not exist yet,
+        // let's create it:
+        getPath(context + ".resolver.default", info.config);
+        // then create the resolver:
+        info[propertyName] = new DefaultResolver({
+            config: getPath(context, info.config)
         });
     }
-    return info.resolver;
+    return info[propertyName];
 };
 
-var getResolverMap = function(packaging, config) {
+var getResolverMap = function(packaging, config, context) {
     var info = getInfo(packaging, config);
-    return info.config.resolver["default"];
+    if (!context) {
+        context = "mainContext";
+    }
+    return getPath(context + ".resolver.default", info.config);
 };
 
-var getPackagesMap = function(packaging, config) {
+var getPackagesMap = function(packaging, config, context) {
     var info = getInfo(packaging, config);
-    return info.config.packaging.packagesMap;
+    if (!context) {
+        context = "mainContext";
+    }
+    return getPath(context + ".packaging.packagesMap", info.config);
 };
 
 var setBootstrapFileContent = function(config, outputFile, content) {
@@ -70,7 +93,7 @@ var setBootstrapFileContent = function(config, outputFile, content) {
     info.bootstrapFile = outputFile;
     info.noderContent = content.noderContent;
     info.packagesContent = content.packagesContent;
-    merge(info.config, content.config);
+    merge(info.config, content.config, true);
 };
 
 var getBootstrapFileContent = function(config, outputFile) {

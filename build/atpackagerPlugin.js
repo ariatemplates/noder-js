@@ -21,4 +21,5 @@ module.exports = function(atpackager) {
     atpackager.visitors.NoderMap = require("./visitors/NoderMap");
     atpackager.visitors.NoderResolverMap = require("./visitors/NoderResolverMap");
     atpackager.visitors.NoderRequiresGenerator = require("./visitors/NoderRequiresGenerator");
+    atpackager.visitors.NoderPlugins = require("./visitors/NoderPlugins");
 };
