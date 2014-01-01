@@ -49,12 +49,12 @@ module.exports = function(url, options) {
     var deferred = promise();
     var xhr = newHttpRequestObject();
     var headers = options.headers || {};
+    xhr.open(options.method || 'GET', url, !options.sync);
     for (var key in headers) {
         if (headers.hasOwnProperty(key)) {
             xhr.setRequestHeader(key, headers[key]);
         }
     }
-    xhr.open(options.method || 'GET', url, !options.sync);
     xhr.onreadystatechange = createCallback(url, xhr, deferred);
     // Note that, on IE, onreadystatechange can be called during the call to send
     xhr.send(options.data);
