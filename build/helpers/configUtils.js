@@ -35,7 +35,8 @@ var getInfo = function(packaging, configName) {
                 packaging: {
                     packagesMap: {}
                 }
-            }
+            },
+            plannedBuilds: 1
         };
     }
     return info;
@@ -90,11 +91,24 @@ var rebuildBootstrapFile = function(packaging, config) {
     file.builder.rebuild(file);
 };
 
+var planBootstrapFileRebuild = function(packaging, config) {
+    var info = getInfo(packaging, config);
+    info.plannedBuilds++;
+};
+
+var skipCurrentBootstrapFileBuild = function(packaging, config) {
+    var info = getInfo(packaging, config);
+    info.plannedBuilds--;
+    return info.plannedBuilds > 0;
+};
+
 module.exports = {
     getPackagesMap: getPackagesMap,
     getResolverMap: getResolverMap,
     getResolver: getResolver,
     setBootstrapFileContent: setBootstrapFileContent,
     getBootstrapFileContent: getBootstrapFileContent,
-    rebuildBootstrapFile: rebuildBootstrapFile
+    rebuildBootstrapFile: rebuildBootstrapFile,
+    planBootstrapFileRebuild: planBootstrapFileRebuild,
+    skipCurrentBootstrapFileBuild: skipCurrentBootstrapFileBuild
 };

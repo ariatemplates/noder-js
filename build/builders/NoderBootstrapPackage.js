@@ -134,10 +134,16 @@ NoderBootstrapPackage.prototype.wrapOutputFile = function(outputFile, packagesCo
         noderContent: noderContent,
         packagesContent: packagesContent.length > 0 ? getExpression(wrapCode(this.noderPackageWrapper, packagesContent)) : null
     });
+    if (configUtils.skipCurrentBootstrapFileBuild(outputFile.packaging, this.noderConfig)) {
+        return [];
+    }
     return this.getOutputJS(outputFile).body;
 };
 
 NoderBootstrapPackage.prototype.rebuild = function(outputFile) {
+    if (configUtils.skipCurrentBootstrapFileBuild(outputFile.packaging, this.noderConfig)) {
+        return;
+    }
     this.writeJSOutputFile(outputFile, this.getOutputJS(outputFile));
 };
 

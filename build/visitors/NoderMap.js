@@ -55,6 +55,10 @@ var NoderMap = function(cfg) {
     this.noderConfig = cfg.noderConfig;
 };
 
+NoderMap.prototype.onBeforeBuild = function(packaging) {
+    configUtils.planBootstrapFileRebuild(packaging, this.noderConfig);
+};
+
 NoderMap.prototype._starCompress = function(path, map) {
     var packageWithMaxFiles = null;
     var filesPerPackage = {};
