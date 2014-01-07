@@ -43,7 +43,7 @@ var noderEnvConfig = {
         }
     },
     "browser": {
-        wrapper: "/*jshint undef:true, -W069, -W055*/\n(function(global,callEval,packagedConfig){\n'use strict';\n$NODER_CONTENT$\n})((function(){return this;})(),function(c){\n/*jshint evil:true */\neval(c);\n},function(){\n$PACKAGED_CONFIG$\n});",
+        wrapper: "/*jshint undef:true, -W069, -W055*/\n(function(global,callEval,packagedConfig){\n'use strict';\n$NODER_CONTENT$\n})((function(){return this;})(),function(){\n/*jshint evil:true */\neval(arguments[0]);\n},function(){\n$PACKAGED_CONFIG$\n});",
         modules: [path.join(noderSrc, 'modules/**/*.js'), path.join(noderSrc, 'browser-modules/**/*.js')],
         defConfig: function() {
             return {
