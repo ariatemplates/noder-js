@@ -96,4 +96,50 @@ describe("Main", function() {
         expect(file2.test1()).to.equal('ok1');
         expect(file2.test2()).to.equal('ok2');
     });
+
+    var checkSyntaxErrorMsg = function(error) {
+        if (error.logDetails) {
+            error.logDetails();
+        }
+        var errorMsg = error.message || error.description;
+        expect(errorMsg).to.contain("Unexpected token in");
+        expect(errorMsg).to.contain("syntax.error.js");
+        expect(errorMsg).to.contain("line 2,");
+        expect(errorMsg).to.contain("something: wrong)");
+    };
+
+    it("Syntax error asynchronous", function(done) {
+        var newRootModule = noder.createContext({
+            packaging: {
+                requestConfig: {
+                    sync: true
+                },
+                baseUrl: directory + '/main-tests/error/'
+            }
+        });
+
+        newRootModule.asyncRequire('syntax.error.js').then(function() {
+            expect().fail("No error while loading syntax.error.js");
+        }, checkSyntaxErrorMsg).then(done, fail(done));
+    });
+
+    it("Syntax error synchronous", function() {
+        var newRootModule = noder.createContext({
+            packaging: {
+                requestConfig: {
+                    sync: true
+                },
+                baseUrl: directory + '/main-tests/error/'
+            }
+        });
+
+        var error = false;
+        try {
+            newRootModule.require('syntax.error.js');
+        } catch (e) {
+            error = true;
+            checkSyntaxErrorMsg(e);
+        }
+        expect(error).to.equal(true);
+    });
 });

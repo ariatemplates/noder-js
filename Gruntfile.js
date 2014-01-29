@@ -80,7 +80,7 @@ module.exports = function(grunt) {
             }
         },
         jshint: {
-            sources: ['package.json', '*.js', 'tasks/**/*.js', 'build/**/*.js', 'src/**/*.js', 'spec/**/*.js'],
+            sources: ['package.json', '*.js', 'tasks/**/*.js', 'build/**/*.js', 'src/**/*.js', 'spec/**/*.js', '!spec/**/*.error.js', '!spec/browser/json2.js'],
             dist: ['dist/*/noder.js'],
             options: {
                 debug: true,
@@ -106,6 +106,7 @@ module.exports = function(grunt) {
                     'karma-*'
                 ],
                 files: [
+                    'spec/browser/json2.js',
                     'spec/browser/injectNoder.js',
                     'spec/browser/**/*.spec.js', {
                         pattern: 'dist/browser/**',
