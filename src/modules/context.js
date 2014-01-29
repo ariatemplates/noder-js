@@ -274,8 +274,9 @@ contextProto.moduleExecuteSync = function(module) {
     if (module.loaded || getModuleProperty(module, PROPERTY_EXECUTING)) { /* this.executing is true only in the case of a circular dependency */
         return module.exports;
     }
-    if (this.modulePreload(module).state() != "resolved") {
-        throw noderError("notPreloaded", [module]);
+    var preloadPromise = this.modulePreload(module);
+    if (preloadPromise.state() != "resolved") {
+        throw noderError("notPreloaded", [module], preloadPromise.result());
     }
     var exports = module.exports;
     setModuleProperty(module, PROPERTY_EXECUTING, true);

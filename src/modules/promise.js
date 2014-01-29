@@ -97,6 +97,9 @@ var createPromise = function() {
     promise.promise = function() {
         return promise;
     };
+    promise.result = function() {
+        return result && result[0];
+    };
     merge(deferred, promise);
     return deferred;
 };
