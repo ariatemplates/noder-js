@@ -4,7 +4,7 @@
 
 This page explains how to build Noder from sources. This is especially useful if you are planning to
 contribute to this project. Note that if you only intend to use Noder, you can use the already
-built version available in the [downloads section](https://github.com/ariatemplates/noder/downloads).
+built version available in the [releases section](https://github.com/ariatemplates/noder/releases).
 
 ## Cloning and building Noder
 

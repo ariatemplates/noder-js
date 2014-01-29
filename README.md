@@ -11,7 +11,7 @@ Noder is a JavaScript loader for web browsers with the following features:
 * It is compatible with [CommonJS Modules/1.0 specifications](http://www.commonjs.org/specs/modules/1.0/) and mostly compatible with the [node.js](http://nodejs.org) module system.
 This allows to easily import dependencies with ``var myModule = require("myModule");``
 
-* It is (and will stay) small: &lt; 5kB minified and gzipped.
+* It is (and will stay) small: &lt; 6kB minified and gzipped.
 
 * It supports both packaged and unpackaged modules.
 
@@ -57,7 +57,7 @@ before executing the code of the module.
 
 ## Getting started
 
-* Download the latest release of Noder: [noder.zip](https://github.com/ariatemplates/noder/raw/builds/noder-browser.zip)
+* Download the `noder-browser.zip` file from the latest release of Noder in the [releases section](https://github.com/ariatemplates/noder/releases).
 
 * Extract it in the folder of your choice. It contains the following files and directories:
 	* ``noder.min.js``: main entry point of Noder
