@@ -46,8 +46,7 @@ var errorsList = {
         return promise.done;
     },
     "jsEval": function(out, jsCode, url, lineDiff) {
-        return asyncRequire(['./evalError.js']).thenSync(function() {
-            var evalError = asyncRequire('./evalError.js');
+        return asyncRequire('./evalError.js').thenSync(function(evalError) {
             var syntaxError = evalError(out, jsCode, url, lineDiff);
             if (!syntaxError) {
                 out.unshift("error while evaluating '" + url + "'\n");
