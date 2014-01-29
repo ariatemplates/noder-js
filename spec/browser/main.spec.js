@@ -34,11 +34,12 @@ describe("Main", function() {
                 baseUrl: directory + '/main-tests/simple/'
             }
         });
-        newRootModule.asyncRequire(['file1']).then(function() {
-            var file1 = newRootModule.asyncRequire('file1');
+        newRootModule.asyncRequire('file1').then(function(file1) {
             expect(file1.test1()).to.equal('simple-ok1');
             expect(file1.test2()).to.equal('simple-ok2');
             expect(file1.test3()).to.equal('simple-ok3');
+
+            expect(file1).to.equal(newRootModule.require('file1'));
         }).then(done, fail(done));
     });
 
@@ -65,14 +66,15 @@ describe("Main", function() {
                 baseUrl: directory + '/main-tests/circularDependency/'
             }
         });
-        newRootModule.asyncRequire(['file1', 'file2']).then(function() {
-            var file1 = newRootModule.asyncRequire('file1');
+        newRootModule.asyncRequire('file1', 'file2').then(function(file1, file2) {
             expect(file1.test1()).to.equal('ok1');
             expect(file1.test2()).to.equal('ok2');
 
-            var file2 = newRootModule.asyncRequire('file2');
             expect(file2.test1()).to.equal('ok1');
             expect(file2.test2()).to.equal('ok2');
+
+            expect(file1).to.equal(newRootModule.require('file1'));
+            expect(file2).to.equal(newRootModule.require('file2'));
         }).then(done, fail(done));
     });
 

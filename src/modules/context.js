@@ -43,6 +43,12 @@ var bind1 = function(fn, scope, paramBind) {
     };
 };
 
+var bindAsyncRequire = function(context, module) {
+    return function() {
+        return context.moduleAsyncRequire(module, arguments);
+    };
+};
+
 var Module = function(context, filename) {
     if (filename) {
         this.dirname = dirname(filename);
@@ -116,7 +122,7 @@ var Context = function(config) {
     rootModule.preloaded = true;
     rootModule.loaded = true;
     rootModule.define = this.define = bind(this.define, this);
-    rootModule.asyncRequire = bind1(this.moduleAsyncRequire, this, rootModule);
+    rootModule.asyncRequire = bindAsyncRequire(this, rootModule);
     rootModule.execute = bind(this.jsModuleExecute, this);
     rootModule.createContext = Context.createContext;
     this.rootModule = rootModule;
@@ -328,12 +334,22 @@ contextProto.moduleExecute = function(module) {
     });
 };
 
-contextProto.moduleAsyncRequire = function(module, id) {
-    if (typeUtils.isArray(id)) {
-        return this.modulePreloadDependencies(module, id);
-    } else if (typeUtils.isString(id)) {
-        return this.moduleRequire(module, id);
-    }
+contextProto.moduleAsyncRequire = function(module, dependencies) {
+    return this.modulePreloadDependencies(module, dependencies).thenSync(function() {
+        var defer = promise();
+        var result = [];
+        for (var i = 0, l = dependencies.length; i < l; i++) {
+            var item = dependencies[i];
+            if (typeUtils.isString(item)) {
+                result[i] = module.require(item);
+            }
+        }
+        defer.resolve.apply(defer, result);
+        return defer.promise();
+    }).always(function() {
+        module = null;
+        dependencies = null;
+    });
 };
 
 contextProto.jsModuleDefine = function(jsCode, moduleFilename, url, lineDiff) {
@@ -360,9 +376,7 @@ Context.builtinModules = BuiltinModules.prototype = {
         return function(module) {
             module.exports = {
                 create: function(module) {
-                    return function(id) {
-                        return context.moduleAsyncRequire(module, id);
-                    };
+                    return bindAsyncRequire(context, module);
                 }
             };
         };

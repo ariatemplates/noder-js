@@ -37,18 +37,11 @@ describe("Loader plugins", function() {
                 }
             });
 
-            newRootModule.asyncRequire([fileName]).then(function() {
+            newRootModule.asyncRequire(fileName).then(function(pluginUsage1) {
                 var cache = newRootModule.require.cache;
                 var pluginUsage1Module = cache[fileName];
-                expect(pluginUsage1Module.preloaded).to.equal(true);
-                expect(pluginUsage1Module.loaded).to.equal(false);
                 var pluginModule = cache["$plugin.js"];
-                expect(pluginModule.preloaded).to.equal(true);
-                expect(pluginModule.loaded).to.equal(false);
                 var notPluginModule = cache["notPlugin.js"];
-                expect(notPluginModule.preloaded).to.equal(true);
-                expect(notPluginModule.loaded).to.equal(false);
-                var pluginUsage1 = newRootModule.asyncRequire(fileName);
                 expect(pluginUsage1Module.preloaded).to.equal(true);
                 expect(pluginUsage1Module.loaded).to.equal(true);
                 expect(pluginModule.preloaded).to.equal(true);
@@ -74,24 +67,17 @@ describe("Loader plugins", function() {
                 }
             });
 
-            newRootModule.asyncRequire([fileName]).then(function() {
+            newRootModule.asyncRequire(fileName).then(function(pluginUsage2) {
                 var cache = newRootModule.require.cache;
                 var pluginUsage2Module = cache[fileName];
-                expect(pluginUsage2Module.preloaded).to.equal(true);
-                expect(pluginUsage2Module.loaded).to.equal(false);
                 var pluginModule = cache["$plugin.js"];
-                expect(pluginModule.preloaded).to.equal(true);
-                expect(pluginModule.loaded).to.equal(true);
                 var notPluginModule = cache["notPlugin.js"];
-                expect(notPluginModule.preloaded).to.equal(true);
-                expect(notPluginModule.loaded).to.equal(false);
                 expect(pluginModule.exports.preloadCalls).to.length(usages);
                 var preloadCalls = pluginModule.exports.preloadCalls;
                 for (var i = 0, l = preloadCalls.length; i < l; i++) {
                     expect(preloadCalls[i].resolved).to.equal(true);
                 }
                 expect(notPluginModule.exports.preloadCalls).to.be.an("undefined");
-                var pluginUsage2 = newRootModule.asyncRequire(fileName);
                 expect(pluginUsage2Module.preloaded).to.equal(true);
                 expect(pluginUsage2Module.loaded).to.equal(true);
                 expect(pluginModule.preloaded).to.equal(true);

@@ -78,12 +78,12 @@ In addition to the basic synchronous version of require (which is equivalent to 
 a built-in asynchronous promise-based version.
 
 * The ``asyncRequire`` method is available on the global ``noder`` variable, so that it is easy to load
-a module asynchronously from any Javascript file (even if this file is not using the module format):
+one (or more) module(s) asynchronously from any Javascript file (even if this file is not using the module format):
 
 ```js
-// preloads lib/myMainModule asynchronously and execute it:
-noder.asyncRequire(['lib/myMainModule']).then(function(){
-    noder.require('lib/myMainModule');
+// preloads and executes lib/myModule:
+noder.asyncRequire('lib/myModule').then(function(myModule){
+    // myModule can be used here
 });
 ```
 
@@ -94,14 +94,9 @@ the synchronous ``require`` method).
 ```js
 var asyncRequire = require('noder-js/asyncRequire').create(module); // Create an asyncRequire function for this module.
 
-// When an array is used as a parameter of the asyncRequire function, it preloads the corresponding modules
-// and returns a promise.
-asyncRequire(["myFirstModule","mySecondModule"]).then(function (){
-    // When called with a simple string, asyncRequire is equivalent to require (except that it will not
-    // be detected by the regular expression which preloads dependencies statically).
-    var firstModule = asyncRequire("myFirstModule");
-    var secondModule = asyncRequire("mySecondModule");
-    // Do something with firstModule and secondModule
+// asyncRequire preloads and executes the modules given as parameters and returns a promise.
+asyncRequire("myFirstModule", "./mySecondModule").then(function (myFirstModule, mySecondModule){
+    // Do something with myFirstModule and mySecondModule
 }, function (error) {
     // Do something in case of failure
 });

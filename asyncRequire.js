@@ -18,12 +18,21 @@ var typeUtils = require('./src/modules/type');
 
 module.exports = {
     create: function(module) {
-        return function(arg) {
-            if (typeUtils.isArray(arg)) {
-                return promise.done;
-            } else if (typeUtils.isString(arg)) {
-                return module.require(arg);
+        return function() {
+            var defer = promise();
+            var result = [];
+            try {
+                for (var i = 0, l = arguments.length; i < l; i++) {
+                    var item = arguments[i];
+                    if (typeUtils.isString(item)) {
+                        result[i] = module.require(item);
+                    }
+                }
+                defer.resolve.apply(defer, result);
+            } catch (e) {
+                defer.reject(e);
             }
+            return defer.promise();
         };
     }
 };
