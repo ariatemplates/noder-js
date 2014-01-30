@@ -171,15 +171,9 @@ module.exports = function(grunt) {
                         platform: 'Windows 8.1',
                         version: '11'
                     },
-                    'IOS': {
+                    'SL_Android': {
                         base: 'SauceLabs',
-                        browserName: 'iphone',
-                        platform: 'OS X 10.8',
-                        version: '6.1'
-                    },
-                    'ANDROID': {
-                        base: 'SauceLabs',
-                        browserName: 'ANDROID',
+                        browserName: 'android',
                         platform: 'Linux',
                         version: '4.0'
                     }
@@ -200,12 +194,12 @@ module.exports = function(grunt) {
                 },
                 transports: ['xhr-polling'],
                 singleRun: true,
-                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
+                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'SL_Android', 'SL_Safari_6'],
                 reporters: ['dots', 'saucelabs']
             },
             sauce: {
                 singleRun: true,
-                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
+                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'SL_Android', 'SL_Safari_6'],
                 reporters: ['dots', 'saucelabs']
             }
         },

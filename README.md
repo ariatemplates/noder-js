@@ -19,7 +19,15 @@ This allows to easily import dependencies with ``var myModule = require("myModul
 
 * Modules can be loaded on demand (both in packaged and unpackaged mode).
 
-* It is tested on Firefox (latest), Chrome (latest), Internet Explorer 7 (and later) and PhantomJS. It is very likely to be compatible with other browsers as well.
+* It is tested on:
+	* Firefox (latest)
+	* Chrome 30
+	* Safari 6
+	* Internet Explorer 7, 8, 9, 10 and 11
+	* Android 4.0
+	* PhantomJS
+
+* It is very likely to be compatible with other browsers as well.
 
 * Even if it is intended to be run on web browsers, a node.js version of Noder is also available.
 
