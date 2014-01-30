@@ -116,7 +116,7 @@ module.exports = function(grunt) {
                         included: false
                     }
                 ],
-                browsers: ['Firefox'],
+                browsers: ['Firefox', 'PhantomJS'],
                 // global config for SauceLabs
                 sauceLabs: {
                     username: 'ariatemplates',
@@ -200,12 +200,12 @@ module.exports = function(grunt) {
                 },
                 transports: ['xhr-polling'],
                 singleRun: true,
-                browsers: ['SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
+                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
                 reporters: ['dots', 'saucelabs']
             },
             sauce: {
                 singleRun: true,
-                browsers: ['SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
+                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'ANDROID'],
                 reporters: ['dots', 'saucelabs']
             }
         },
