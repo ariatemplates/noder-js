@@ -3,10 +3,10 @@
     "name": "noder-js",
     "description": "JavaScript CommonJS loader",
     "version": "1.2.0-rc1",
-    "homepage": "http://github.com/ariatemplates/noder",
+    "homepage": "http://github.com/ariatemplates/noder-js",
     "repository": {
         "type": "git",
-        "url": "git://github.com/ariatemplates/noder.git"
+        "url": "git://github.com/ariatemplates/noder-js.git"
     },
     "devDependencies": {
         "atpackager": "0.2.2",

@@ -1,6 +1,6 @@
 # Noder
 
-[![Build Status](https://secure.travis-ci.org/ariatemplates/noder.png?branch=master)](https://travis-ci.org/ariatemplates/noder)
+[![Build Status](https://secure.travis-ci.org/ariatemplates/noder-js.png?branch=master)](https://travis-ci.org/ariatemplates/noder-js)
 
 ***Note that Noder is still under construction.***
 
@@ -65,7 +65,7 @@ before executing the code of the module.
 
 ## Getting started
 
-* Download the `noder-browser.zip` file from the latest release of Noder in the [releases section](https://github.com/ariatemplates/noder/releases).
+* Download the `noder-browser.zip` file from the latest release of Noder in the [releases section](https://github.com/ariatemplates/noder-js/releases).
 
 * Extract it in the folder of your choice. It contains the following files and directories:
 	* ``noder.min.js``: main entry point of Noder
