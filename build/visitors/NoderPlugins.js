@@ -46,9 +46,11 @@ var pluginsPath = path.resolve(__dirname, "../../src/plugins");
 var NoderPlugins = function(cfg) {
     cfg = cfg || {};
     this.targetFiles = cfg.targetFiles || ["**/*"];
-    this.builder = cfg.builder || {
-        type: "Concat"
-    };
+    if (!cfg.customPackage) {
+        this.builder = cfg.builder || {
+            type: "Concat"
+        };
+    }
     this.targetBaseLogicalPath = cfg.targetBaseLogicalPath || "";
 };
 
@@ -75,9 +77,11 @@ NoderPlugins.prototype._addFile = function(packaging, absolutePath, logicalPath,
     } else {
         sourceFile.setTextContent(textContent);
     }
-    var targetFile = packaging.addOutputFile(logicalPath, true);
-    targetFile.builder = packaging.createObject(this.builder, atpackager.builders);
-    sourceFile.setOutputFile(targetFile);
+    if (this.builder) {
+        var targetFile = packaging.addOutputFile(logicalPath, true);
+        targetFile.builder = packaging.createObject(this.builder, atpackager.builders);
+        sourceFile.setOutputFile(targetFile);
+    }
 };
 
 module.exports = NoderPlugins;

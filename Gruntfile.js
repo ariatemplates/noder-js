@@ -19,44 +19,85 @@ module.exports = function(grunt) {
     var licenseLong = grunt.file.read('tasks/templates/LICENSE-long');
     var licenseSmall = grunt.file.read('tasks/templates/LICENSE-small');
 
-    var noderPackages = function(noderEnvironment) {
-        return [{
-            builder: {
-                type: "NoderBootstrapPackage",
-                cfg: {
-                    noderEnvironment: noderEnvironment,
-                    header: licenseLong
-                }
-            },
-            name: "noder.js"
-        }];
+    var atpackagerCfg = function(noderEnvironment) {
+        return {
+            options: {
+                outputDirectory: "dist/" + noderEnvironment,
+                sourceDirectories: [],
+                sourceFiles: [],
+                visitors: ["NoderPlugins"],
+                packages: [{
+                    builder: {
+                        type: "NoderBootstrapPackage",
+                        cfg: {
+                            noderEnvironment: noderEnvironment,
+                            header: licenseLong
+                        }
+                    },
+                    name: "noder.js"
+                }]
+            }
+        };
+    };
+
+    var atpackagerCfgDev = function(noderEnvironment) {
+        return {
+            options: {
+                outputDirectory: "dist/" + noderEnvironment,
+                sourceDirectories: [],
+                sourceFiles: [],
+                visitors: [{
+                    type: 'JSStripBanner',
+                    cfg: {
+                        files: ["**/*.js", "!**/acorn.js"]
+                    }
+                }, {
+                    type: 'NoderDependencies',
+                    cfg: {
+                        externalDependencies: ['noder-js/**']
+                    }
+                }, "CheckDependencies", {
+                    type: "NoderPlugins",
+                    cfg: {
+                        customPackage: true
+                    }
+                }],
+                packages: [{
+                    builder: {
+                        type: "NoderBootstrapPackage",
+                        cfg: {
+                            noderEnvironment: noderEnvironment,
+                            header: licenseLong,
+                            noderPackageConfigProperty: "errorContext.packaging.bootstrap",
+                            noderConfigErrorOptions: {
+                                main: "noderError/error.js",
+                                packaging: {
+                                    baseUrl: "",
+                                    requestConfig: null
+                                }
+                            }
+                        }
+                    },
+                    name: "noder.dev.js",
+                    files: ["noderError/*.js"]
+                }]
+            }
+        };
     };
 
     grunt.initConfig({
         pkg: pkg,
         clean: ['dist'],
         atpackager: {
-            browser: {
-                options: {
-                    outputDirectory: "dist/browser",
-                    packages: noderPackages("browser")
-                }
-            },
-            node: {
-                options: {
-                    outputDirectory: "dist/node",
-                    packages: noderPackages("node")
-                }
-            },
-            options: {
-                sourceDirectories: [],
-                sourceFiles: [],
-                visitors: ["NoderPlugins"]
-            }
+            browser: atpackagerCfg("browser"),
+            node: atpackagerCfg("node"),
+            browserDev: atpackagerCfgDev("browser"),
+            nodeDev: atpackagerCfgDev("node")
         },
         uglify: {
             options: {
-                banner: licenseSmall
+                banner: licenseSmall,
+                preserveComments: "some"
             },
             browser: {
                 src: ['dist/browser/noder.js'],
@@ -65,17 +106,27 @@ module.exports = function(grunt) {
             node: {
                 src: ['dist/node/noder.js'],
                 dest: 'dist/node/noder.min.js'
+            },
+            browserDev: {
+                src: ['dist/browser/noder.dev.js'],
+                dest: 'dist/browser/noder.dev.min.js'
+            },
+            nodeDev: {
+                src: ['dist/node/noder.dev.js'],
+                dest: 'dist/node/noder.dev.min.js'
             }
         },
         gzip: {
             browser: {
                 files: {
-                    'dist/browser/noder.min.js.gz': 'dist/browser/noder.min.js'
+                    'dist/browser/noder.min.js.gz': 'dist/browser/noder.min.js',
+                    'dist/browser/noder.dev.min.js.gz': 'dist/browser/noder.dev.min.js'
                 }
             },
             node: {
                 files: {
-                    'dist/node/noder.min.js.gz': 'dist/node/noder.min.js'
+                    'dist/node/noder.min.js.gz': 'dist/node/noder.min.js',
+                    'dist/node/noder.dev.min.js.gz': 'dist/node/noder.dev.min.js'
                 }
             }
         },
