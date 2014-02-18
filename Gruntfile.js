@@ -216,15 +216,11 @@ module.exports = function(grunt) {
         }
     });
 
+    require('load-grunt-tasks')(grunt);
     grunt.loadTasks("tasks/internal");
     grunt.loadNpmTasks('atpackager');
     require('atpackager').loadPlugin('./atpackager');
-    grunt.loadNpmTasks('grunt-jsbeautifier');
-    grunt.loadNpmTasks("grunt-contrib-uglify");
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks("grunt-contrib-jshint");
-    grunt.loadNpmTasks("grunt-contrib-clean");
-    grunt.loadNpmTasks('grunt-karma');
+
     grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip']);
     grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:unit']);
     grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci']);
