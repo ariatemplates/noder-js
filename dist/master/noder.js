@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.2.0-rc1 - 18 Feb 2014
+ * Noder-js 1.2.0-rc1 - 19 Feb 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -47,7 +47,7 @@
                 if (src.hasOwnProperty(key)) {
                     var srcValue = src[key];
                     var dstValue;
-                    if (rec && /*typeUtils*/ type$module.isPlainObject(srcValue) && type$module.isPlainObject(dstValue = dst[key])) {
+                    if (rec && /*typeUtils*/ type$module.isPlainObject(srcValue) && /*typeUtils*/ type$module.isPlainObject(dstValue = dst[key])) {
                         merge(dstValue, srcValue, rec);
                     } else {
                         dst[key] = srcValue;
@@ -151,7 +151,7 @@
                 var addCb = function(sync, applyFunction) {
                     promise[doneOrFail + sync] = function() {
                         var curListeners;
-                        if (state === "pending") {
+                        if (state === /*PENDING_STATE*/ "pending") {
                             curListeners = listeners[newState] || [];
                             listeners[newState] = concat.apply(curListeners, arguments);
                         } else if (state === newState) {
@@ -162,16 +162,16 @@
                     };
                 };
                 addCb("", /*asyncCall*/ asyncCall$module.nextTickApply);
-                addCb("Sync", asyncCall$module.syncApply);
+                addCb("Sync", /*asyncCall*/ asyncCall$module.syncApply);
                 promise[resolveOrReject] = function() {
-                    if (state !== "pending") {
+                    if (state !== /*PENDING_STATE*/ "pending") {
                         return;
                     }
                     result = arguments;
                     state = newState;
                     var myListeners = listeners[newState];
                     listeners = null;
-                    asyncCall$module.nextTickApply(myListeners, result);
+                    /*asyncCall*/ asyncCall$module.nextTickApply(myListeners, result);
                 };
             };
             createMethods("done", "resolve", /*RESOLVED_STATE*/ "resolved");
@@ -218,42 +218,53 @@
             return done;
         };
         var countDown = function(state, index) {
-            return function(result) {
-                if (!state) {
-                    // already called with this index
-                    return;
-                }
-                var array = state.array;
-                array[index] = result;
-                state.counter--;
-                if (!state.counter) {
-                    var promise = state.promise;
-                    // clean closure variables:
-                    state.array = null;
-                    state.promise = null;
-                    promise.resolve.apply(promise, array);
-                }
-                // prevent another call with the same index
-                state = null;
+            return function(ok) {
+                return function(result) {
+                    if (!state) {
+                        // already called with this index
+                        return;
+                    }
+                    if (state[/*STATE_OK*/ 3]) {
+                        if (ok) {
+                            state[/*STATE_RESULT*/ 2][index] = result;
+                        } else {
+                            state[/*STATE_OK*/ 3] = false;
+                            state[/*STATE_RESULT*/ 2] = arguments;
+                            if (state[/*STATE_FAILFAST*/ 4]) {
+                                state[/*STATE_COUNTER*/ 1] = 1;
+                            }
+                        }
+                    }
+                    state[/*STATE_COUNTER*/ 1]--;
+                    if (!state[/*STATE_COUNTER*/ 1]) {
+                        var promise = state[/*STATE_PROMISE*/ 0];
+                        var endResult = state[/*STATE_RESULT*/ 2];
+                        // clean closure variables:
+                        state[/*STATE_PROMISE*/ 0] = state[/*STATE_RESULT*/ 2] = null;
+                        (state[/*STATE_OK*/ 3] ? promise.resolve : promise.reject).apply(promise, endResult);
+                    }
+                    // prevent another call with the same index
+                    state = null;
+                };
             };
         };
-        createPromise.when = function() {
-            var array = concat.apply([], arguments);
-            if (!array.length) {
-                return createPromise.done;
-            }
-            var promise = createPromise();
-            var reject = promise.reject;
-            var state = {
-                promise: promise,
-                counter: array.length,
-                array: array
+        var createWhen = function(failFast) {
+            return function() {
+                var array = concat.apply([], arguments);
+                if (!array.length) {
+                    return createPromise.done;
+                }
+                var promise = createPromise();
+                var state = [ promise, array.length, array, true, failFast ];
+                for (var i = 0, l = array.length; i < l; i++) {
+                    var fn = countDown(state, i);
+                    chainAnswer(array[i], fn(true), fn(false));
+                }
+                return promise.promise();
             };
-            for (var i = 0, l = array.length; i < l; i++) {
-                chainAnswer(array[i], countDown(state, i), reject);
-            }
-            return promise.promise();
         };
+        createPromise.when = createWhen(true);
+        createPromise.whenAll = createWhen(false);
         promise$module = createPromise;
     })();
     packagedConfig$module = packagedConfig;
@@ -461,7 +472,7 @@
             var url = self.baseUrl + packageName;
             var res = self.currentLoads[url];
             if (!res) {
-                self.currentLoads[url] = res = request$module(url, self.config.requestConfig).thenSync(function(jsCode) {
+                self.currentLoads[url] = res = /*request*/ request$module(url, self.config.requestConfig).thenSync(function(jsCode) {
                     var body = self.jsPackageEval(jsCode, url);
                     body(self.context.define);
                 }).always(function() {
@@ -547,7 +558,7 @@
                     throw /*noderError*/ noderError$module("resolverRoot", [ terms ]);
                 }
                 if (allValues[curValue]) {
-                    throw noderError$module("resolverLoop", [ terms ]);
+                    throw /*noderError*/ noderError$module("resolverLoop", [ terms ]);
                 } else {
                     allValues[curValue] = lastValue;
                 }
@@ -588,7 +599,7 @@
                 // in this simple case, avoid creating a new promise, just use promise.done
                 return /*promise*/ promise$module.done;
             }
-            var res = promise$module();
+            var res = /*promise*/ promise$module();
             var callback = function() {
                 if (res) {
                     res.resolve();
@@ -918,10 +929,10 @@
             this.exports = {};
         };
         var getModuleProperty = function(module, property) {
-            return module["_noder"][property];
+            return module[/*noderPropertiesKey*/ "_noder"][property];
         };
         var setModuleProperty = function(module, property, value) {
-            module["_noder"][property] = value;
+            module[/*noderPropertiesKey*/ "_noder"][property] = value;
             return value;
         };
         var start = function(context) {
@@ -930,7 +941,7 @@
             var main = config.main;
             actions = actions.thenSync(main ? function() {
                 return context.execModuleCall(main);
-            } : promise$module.empty);
+            } : /*promise*/ promise$module.empty);
             actions = actions.thenSync(config.onstart);
             if (!("scriptsType" in config)) {
                 config.scriptsType = config.varName;
@@ -957,6 +968,7 @@
             this.config = config;
             this.cache = {};
             this.builtinModules = new BuiltinModules();
+            this.when = config.failFast === false ? /*promise*/ promise$module.whenAll : /*promise*/ promise$module.when;
             var rootModule = new Module(this);
             rootModule.preloaded = true;
             rootModule.loaded = true;
@@ -992,15 +1004,15 @@
         // dependencies)
         contextProto.modulePreload = function(module, parent) {
             if (module.preloaded) {
-                return promise$module.done;
+                return /*promise*/ promise$module.done;
             }
             var preloading = getModuleProperty(module, /*PROPERTY_PRELOADING*/ 3);
-            var preloadingParents = getModuleProperty(module, 5);
+            var preloadingParents = getModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5);
             if (preloading || preloadingParents) {
                 // If we get here, it may be because of a circular dependency
                 if (parent) {
                     if (checkCircularDependency(module, parent)) {
-                        return promise$module.done;
+                        return /*promise*/ promise$module.done;
                     }
                     preloadingParents.push(parent);
                 }
@@ -1017,15 +1029,15 @@
             } else {
                 module.require.main = module;
             }
-            setModuleProperty(module, 5, parent ? [ parent ] : []);
-            return setModuleProperty(module, 3, self.moduleLoadDefinition(module).thenSync(function() {
+            setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5, parent ? [ parent ] : []);
+            return setModuleProperty(module, /*PROPERTY_PRELOADING*/ 3, self.moduleLoadDefinition(module).thenSync(function() {
                 return self.modulePreloadDependencies(module, getModuleProperty(module, /*PROPERTY_DEPENDENCIES*/ 1));
             }).thenSync(function() {
                 module.preloaded = true;
-                setModuleProperty(module, 3, false);
-                setModuleProperty(module, 5, null);
+                setModuleProperty(module, /*PROPERTY_PRELOADING*/ 3, false);
+                setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5, null);
             }, function(error) {
-                throw noderError$module("modulePreload", [ module ], error);
+                throw /*noderError*/ noderError$module("modulePreload", [ module ], error);
             }).always(function() {
                 // clean up
                 module = null;
@@ -1035,7 +1047,7 @@
         };
         contextProto.moduleLoadDefinition = function(module) {
             if (getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
-                return promise$module.done;
+                return /*promise*/ promise$module.done;
             }
             var res = getModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4);
             if (!res) {
@@ -1043,20 +1055,20 @@
                 var builtin = this.builtinModules["/" + filename];
                 if (builtin) {
                     this.moduleDefine(module, [], builtin(this));
-                    res = promise$module.done;
+                    res = /*promise*/ promise$module.done;
                 } else {
                     var asyncOrError = true;
                     var checkResult = function(error) {
                         // check that the definition was correctly loaded:
-                        if (getModuleProperty(module, 0)) {
+                        if (getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
                             asyncOrError = false;
                         } else {
-                            throw noderError$module("moduleLoadDefinition", [ module ], error);
+                            throw /*noderError*/ noderError$module("moduleLoadDefinition", [ module ], error);
                         }
                     };
                     res = this.loader.moduleLoad(module).thenSync(checkResult, checkResult);
                     if (asyncOrError) {
-                        setModuleProperty(module, 4, res);
+                        setModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4, res);
                     }
                 }
             }
@@ -1085,17 +1097,17 @@
                     return method.apply(plugin, parameters);
                 }
             }).thenSync(null, function(error) {
-                throw noderError$module("moduleProcessPlugin", [ module, pluginDef ], error);
+                throw /*noderError*/ noderError$module("moduleProcessPlugin", [ module, pluginDef ], error);
             });
         };
         contextProto.modulePreloadDependencies = function(module, dependencies) {
             var promises = [];
             for (var i = 0, l = dependencies.length; i < l; i++) {
                 var curDependency = dependencies[i];
-                var curPromise = type$module.isString(curDependency) ? this.modulePreload(this.getModule(this.moduleResolve(module, curDependency)), module) : this.moduleProcessPlugin(module, curDependency);
+                var curPromise = /*typeUtils*/ type$module.isString(curDependency) ? this.modulePreload(this.getModule(this.moduleResolve(module, curDependency)), module) : this.moduleProcessPlugin(module, curDependency);
                 promises.push(curPromise);
             }
-            return promise$module.when(promises);
+            return this.when(promises);
         };
         contextProto.moduleExecuteSync = function(module) {
             if (module.loaded || getModuleProperty(module, /*PROPERTY_EXECUTING*/ 2)) {
@@ -1104,18 +1116,18 @@
             }
             var preloadPromise = this.modulePreload(module);
             if (preloadPromise.state() != "resolved") {
-                throw noderError$module("notPreloaded", [ module ], preloadPromise.result());
+                throw /*noderError*/ noderError$module("notPreloaded", [ module ], preloadPromise.result());
             }
             var exports = module.exports;
-            setModuleProperty(module, 2, true);
+            setModuleProperty(module, /*PROPERTY_EXECUTING*/ 2, true);
             try {
-                getModuleProperty(module, 0).call(exports, module, global);
-                setModuleProperty(module, 0, null);
-                setModuleProperty(module, 1, null);
+                getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0).call(exports, module, global);
+                setModuleProperty(module, /*PROPERTY_DEFINITION*/ 0, null);
+                setModuleProperty(module, /*PROPERTY_DEPENDENCIES*/ 1, null);
                 module.loaded = true;
                 return module.exports;
             } finally {
-                setModuleProperty(module, 2, false);
+                setModuleProperty(module, /*PROPERTY_EXECUTING*/ 2, false);
             }
         };
         contextProto.moduleResolve = function(module, id) {
@@ -1139,11 +1151,11 @@
             this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
         };
         contextProto.moduleDefine = function(module, dependencies, body) {
-            if (!getModuleProperty(module, 0)) {
+            if (!getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
                 // do not override an existing definition
-                setModuleProperty(module, 0, body);
-                setModuleProperty(module, 1, dependencies);
-                setModuleProperty(module, 4, false);
+                setModuleProperty(module, /*PROPERTY_DEFINITION*/ 0, body);
+                setModuleProperty(module, /*PROPERTY_DEPENDENCIES*/ 1, dependencies);
+                setModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4, false);
             }
             return module;
         };
@@ -1158,11 +1170,11 @@
         };
         contextProto.moduleAsyncRequire = function(module, dependencies) {
             return this.modulePreloadDependencies(module, dependencies).thenSync(function() {
-                var defer = promise$module();
+                var defer = /*promise*/ promise$module();
                 var result = [];
                 for (var i = 0, l = dependencies.length; i < l; i++) {
                     var item = dependencies[i];
-                    if (type$module.isString(item)) {
+                    if (/*typeUtils*/ type$module.isString(item)) {
                         result[i] = module.require(item);
                     }
                 }
@@ -1224,7 +1236,7 @@
         if (!/^\s*$/.test(configContent || "")) {
             config = /*exec*/ eval$module(configContent) || config;
         }
-        var src = scriptTag$module.src;
+        var src = /*scriptTag*/ scriptTag$module.src;
         if (!config.main && src) {
             var questionMark = src.indexOf("?");
             if (questionMark > -1) {
@@ -1239,12 +1251,12 @@
         defaultConfig$module = config;
     })();
     /*Context*/ context$module.expose("noder-js/promise.js", promise$module);
-    context$module.expose("noder-js/context.js", context$module);
-    context$module.expose("noder-js/findRequires.js", findRequires$module);
-    context$module.expose("noder-js/jsEval.js", jsEval$module);
-    context$module.expose("noder-js/request.js", request$module);
-    context$module.expose("noder-js/asyncCall.js", asyncCall$module);
-    main$module = context$module.createContext(/*defaultConfig*/ defaultConfig$module);
+    /*Context*/ context$module.expose("noder-js/context.js", context$module);
+    /*Context*/ context$module.expose("noder-js/findRequires.js", findRequires$module);
+    /*Context*/ context$module.expose("noder-js/jsEval.js", jsEval$module);
+    /*Context*/ context$module.expose("noder-js/request.js", request$module);
+    /*Context*/ context$module.expose("noder-js/asyncCall.js", asyncCall$module);
+    main$module = /*Context*/ context$module.createContext(/*defaultConfig*/ defaultConfig$module);
     return main$module;
 })(function() {
     return this;
