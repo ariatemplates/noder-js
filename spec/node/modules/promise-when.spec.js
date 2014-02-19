@@ -27,16 +27,57 @@ describe('Promises/When', function() {
             expect(value).to.equal(myValue);
             done();
         }, function() {
-            done("The promise raised an unexpected error.");
+            done(new Error("The promise raised an unexpected error."));
         });
     };
 
-    it("Direct value", function(done) {
+    it("Direct value (when)", function(done) {
         checkResult(promise.when([myFunction()]), done);
     });
 
-    it("Chaining promises", function(done) {
+    it("Chaining promises (when)", function(done) {
         checkResult(promise.when([promise.done.then(myFunction)]), done);
+    });
+
+    it("Fail fast (when)", function(done) {
+        var unresolvedDefer = promise();
+        var errorDefer = promise();
+        var myError = {};
+        errorDefer.reject(myError);
+        promise.when([unresolvedDefer.promise(), errorDefer.promise()]).then(function() {
+            done(new Error("The success callback should not be called."));
+        }, function(raisedError) {
+            expect(raisedError).to.equal(myError);
+            done();
+        }).end();
+    });
+
+
+    it("Direct value (whenAll)", function(done) {
+        checkResult(promise.whenAll([myFunction()]), done);
+    });
+
+    it("Chaining promises (whenAll)", function(done) {
+        checkResult(promise.whenAll([promise.done.then(myFunction)]), done);
+    });
+
+    it("Fail slow (whenAll)", function(done) {
+        var later = false;
+        var resolveLaterDefer = promise();
+        var errorDefer = promise();
+        var myError = {};
+        errorDefer.reject(myError);
+        promise.whenAll([resolveLaterDefer.promise(), errorDefer.promise()]).then(function() {
+            done(new Error("The success callback should not be called."));
+        }, function(raisedError) {
+            expect(later).to.equal(true);
+            expect(raisedError).to.equal(myError);
+            done();
+        }).end();
+        setTimeout(function() {
+            later = true;
+            resolveLaterDefer.resolve();
+        }, 200);
     });
 
 });

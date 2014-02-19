@@ -117,6 +117,7 @@ var Context = function(config) {
     this.config = config;
     this.cache = {};
     this.builtinModules = new BuiltinModules();
+    this.when = config.failFast === false ? promise.whenAll : promise.when;
 
     var rootModule = new Module(this);
     rootModule.preloaded = true;
@@ -267,7 +268,7 @@ contextProto.modulePreloadDependencies = function(module, dependencies) {
             this.moduleProcessPlugin(module, curDependency);
         promises.push(curPromise);
     }
-    return promise.when(promises);
+    return this.when(promises);
 };
 
 contextProto.moduleExecuteSync = function(module) {

@@ -140,43 +140,67 @@ createPromise.noop = function() {
     return done;
 };
 
+var STATE_PROMISE = 0;
+var STATE_COUNTER = 1;
+var STATE_RESULT = 2;
+var STATE_OK = 3;
+var STATE_FAILFAST = 4;
+
 var countDown = function(state, index) {
-    return function(result) {
-        if (!state) {
-            // already called with this index
-            return;
-        }
-        var array = state.array;
-        array[index] = result;
-        state.counter--;
-        if (!state.counter) {
-            var promise = state.promise;
-            // clean closure variables:
-            state.array = null;
-            state.promise = null;
-            promise.resolve.apply(promise, array);
-        }
-        // prevent another call with the same index
-        state = null;
+    return function(ok) {
+        return function(result) {
+            if (!state) {
+                // already called with this index
+                return;
+            }
+            if (state[STATE_OK]) {
+                if (ok) {
+                    state[STATE_RESULT][index] = result;
+                } else {
+                    state[STATE_OK] = false;
+                    state[STATE_RESULT] = arguments;
+                    if (state[STATE_FAILFAST]) {
+                        state[STATE_COUNTER] = 1;
+                    }
+                }
+            }
+            state[STATE_COUNTER]--;
+            if (!state[STATE_COUNTER]) {
+                var promise = state[STATE_PROMISE];
+                var endResult = state[STATE_RESULT];
+                // clean closure variables:
+                state[STATE_PROMISE] = state[STATE_RESULT] = null;
+                (state[STATE_OK] ? promise.resolve : promise.reject).apply(promise, endResult);
+            }
+            // prevent another call with the same index
+            state = null;
+        };
     };
 };
 
-createPromise.when = function() {
-    var array = concat.apply([], arguments);
-    if (!array.length) {
-        return createPromise.done;
-    }
-    var promise = createPromise();
-    var reject = promise.reject;
-    var state = {
-        promise: promise,
-        counter: array.length,
-        array: array
+var createWhen = function(failFast) {
+    return function() {
+        var array = concat.apply([], arguments);
+        if (!array.length) {
+            return createPromise.done;
+        }
+        var promise = createPromise();
+        var state = [
+            promise /* STATE_PROMISE */ ,
+            array.length /* STATE_COUNTER */ ,
+            array /* STATE_RESULT */ ,
+            true /* STATE_OK */ ,
+            failFast /* STATE_FAILFAST */
+        ];
+        for (var i = 0, l = array.length; i < l; i++) {
+            var fn = countDown(state, i);
+            chainAnswer(array[i], fn(true), fn(false));
+        }
+        return promise.promise();
     };
-    for (var i = 0, l = array.length; i < l; i++) {
-        chainAnswer(array[i], countDown(state, i), reject);
-    }
-    return promise.promise();
 };
+
+createPromise.when = createWhen(true);
+createPromise.whenAll = createWhen(false);
 
 module.exports = createPromise;

@@ -48,6 +48,12 @@ Noder supports the following configuration options:
   // it overrides the value defined after the question mark in the Noder script tag.
   // A module loaded this way is considered the main module, available through require.main.
 
+  failFast: false, // Whether to fail fast when a dependency cannot be loaded
+  // If this parameter is false, Noder waits for all other dependencies to be loaded before
+  // raising the error.
+  // If this parameter is true, Noder raises the error as soon as possible.
+  // The default value is true.
+
   onstart : function (mainModule) {
     // Function to be executed when the main module has been loaded.
     // The reference to the exported object is given as a parameter.
