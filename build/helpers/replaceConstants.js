@@ -67,15 +67,14 @@ module.exports = function(ast, isConstant) {
     ast.walk(walker);
     symbols.forEach(function(extraInfo) {
         if (extraInfo.constant && (isAcceptedConstantType(extraInfo.value) || isConstant(extraInfo.value))) {
-            var originalNode = extraInfo.value;
-            originalNode.start = new UglifyJS.AST_Token({
-                comments_before: [{
-                    type: "comment2",
-                    value: extraInfo.name
-                }]
-            });
             extraInfo.usages.forEach(function(usage) {
                 var newNode = cloneNode(extraInfo.value);
+                newNode.start = new UglifyJS.AST_Token({
+                    comments_before: [{
+                        type: "comment2",
+                        value: extraInfo.name
+                    }]
+                });
                 replaceNode(usage.node, usage.parent, newNode);
             });
             if (extraInfo.definition.varList.definitions.length > 1) {
