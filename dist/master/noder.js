@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.2.0-rc1 - 19 Feb 2014
+ * Noder-js 1.2.0-rc1 - 20 Mar 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -415,11 +415,7 @@
             // IE is using the "interactive" mode instead of "loading".
             if (document.readyState == "loading" || document.readyState == "interactive") {
                 var scripts = document.getElementsByTagName("script");
-                var scriptTag = scripts[scripts.length - 1];
-                if (scriptTag && scriptTag.src) {
-                    // without src it cannot be the right script tag
-                    return scriptTag;
-                }
+                return scripts[scripts.length - 1];
             }
         };
         scriptTag$module = document.currentScript || getLastScript() || {};
@@ -1232,15 +1228,18 @@
     })();
         (function() {
         var config = {};
-        var configContent = /*scriptTag*/ scriptTag$module.innerHTML;
-        if (!/^\s*$/.test(configContent || "")) {
-            config = /*exec*/ eval$module(configContent) || config;
-        }
         var src = /*scriptTag*/ scriptTag$module.src;
-        if (!config.main && src) {
-            var questionMark = src.indexOf("?");
-            if (questionMark > -1) {
-                config.main = decodeURIComponent(src.substring(questionMark + 1));
+        if (src) {
+            // only read the script config if the script tag has an src attribute
+            var configContent = /*scriptTag*/ scriptTag$module.innerHTML;
+            if (!/^\s*$/.test(configContent || "")) {
+                config = /*exec*/ eval$module(configContent) || config;
+            }
+            if (!config.main) {
+                var questionMark = src.indexOf("?");
+                if (questionMark > -1) {
+                    config.main = decodeURIComponent(src.substring(questionMark + 1));
+                }
             }
         }
         scriptConfig$module = config;
