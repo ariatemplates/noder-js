@@ -20,11 +20,7 @@ var getLastScript = function() {
     // IE is using the "interactive" mode instead of "loading".
     if (document.readyState == "loading" || document.readyState == "interactive") {
         var scripts = document.getElementsByTagName('script');
-        var scriptTag = scripts[scripts.length - 1];
-        if (scriptTag && scriptTag.src) {
-            // without src it cannot be the right script tag
-            return scriptTag;
-        }
+        return scripts[scripts.length - 1];
     }
 };
 

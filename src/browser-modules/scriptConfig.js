@@ -15,17 +15,19 @@
 
 var scriptTag = require('./scriptTag.js');
 var config = {};
-var configContent = scriptTag.innerHTML;
-if (!/^\s*$/.test(configContent || "")) {
-    var exec = require('./eval.js');
-    config = exec(configContent) || config;
-}
 var src = scriptTag.src;
-if (!config.main && src) {
-    var questionMark = src.indexOf('?');
-    if (questionMark > -1) {
-        config.main = decodeURIComponent(src.substring(questionMark + 1));
+if (src) {
+    // only read the script config if the script tag has an src attribute
+    var configContent = scriptTag.innerHTML;
+    if (!/^\s*$/.test(configContent || "")) {
+        var exec = require('./eval.js');
+        config = exec(configContent) || config;
+    }
+    if (!config.main) {
+        var questionMark = src.indexOf('?');
+        if (questionMark > -1) {
+            config.main = decodeURIComponent(src.substring(questionMark + 1));
+        }
     }
 }
-
 module.exports = config;
