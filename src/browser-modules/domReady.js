@@ -28,13 +28,13 @@ var createDomReadyPromise = function() {
         }
     };
     if (document.addEventListener) {
-        document.addEventListener("DOMContentLoaded", callback);
+        document.addEventListener("DOMContentLoaded", callback, false);
         // Fallback in case the browser does not support DOMContentLoaded:
-        global.addEventListener("load", callback);
+        global.addEventListener("load", callback, false);
         res.always(function() {
             // clean the closure and listeners
-            document.removeEventListener("DOMContentLoaded", callback);
-            global.removeEventListener("load", callback);
+            document.removeEventListener("DOMContentLoaded", callback, false);
+            global.removeEventListener("load", callback, false);
             document = null;
             callback = null;
             res = null;
