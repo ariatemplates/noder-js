@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.2.0-rc1 - 20 Mar 2014
+ * Noder-js 1.2.0-rc1 - 21 Mar 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -602,13 +602,13 @@
                 }
             };
             if (document.addEventListener) {
-                document.addEventListener("DOMContentLoaded", callback);
+                document.addEventListener("DOMContentLoaded", callback, false);
                 // Fallback in case the browser does not support DOMContentLoaded:
-                global.addEventListener("load", callback);
+                global.addEventListener("load", callback, false);
                 res.always(function() {
                     // clean the closure and listeners
-                    document.removeEventListener("DOMContentLoaded", callback);
-                    global.removeEventListener("load", callback);
+                    document.removeEventListener("DOMContentLoaded", callback, false);
+                    global.removeEventListener("load", callback, false);
                     document = null;
                     callback = null;
                     res = null;
