@@ -40,6 +40,7 @@ var createCallback = function(url, xhr, deferred) {
             }
             // clean the closure:
             url = xhr = deferred = null;
+            return true;
         }
     };
 };
@@ -55,8 +56,12 @@ module.exports = function(url, options) {
             xhr.setRequestHeader(key, headers[key]);
         }
     }
-    xhr.onreadystatechange = createCallback(url, xhr, deferred);
-    // Note that, on IE, onreadystatechange can be called during the call to send
     xhr.send(options.data);
+    var checkState = createCallback(url, xhr, deferred);
+    if (!checkState()) {
+        // only set onreadystatechange if it is useful
+        // (i.e. the response is not available synchronously)
+        xhr.onreadystatechange = checkState;
+    }
     return deferred.promise();
 };
