@@ -19,6 +19,8 @@ var findInMap = require('./findInMap.js');
 var split = require('./path.js').split;
 var emptyObject = {};
 var scriptBaseUrl = require('../node-modules/scriptBaseUrl');
+var filters = require('./filters');
+var bind1 = require('./bind1');
 
 var Loader = function(context) {
     var config = context.config.packaging || emptyObject;
@@ -50,14 +52,21 @@ loaderProto.moduleLoad = function(module) {
 };
 
 loaderProto.loadUnpackaged = function(module) {
-    var moduleName = module.filename;
-    var url = this.baseUrl + moduleName;
-    var context = this.context;
-    return request(url, this.config.requestConfig).thenSync(function(jsCode) {
-        context.jsModuleDefine(jsCode, moduleName, url);
-    }).always(function() {
-        context = null;
-    });
+    module.url = this.baseUrl + module.filename;
+    return request(module.url, this.config.requestConfig).thenSync(bind1(this.preprocessUnpackaged, this, module));
+};
+
+loaderProto.preprocessUnpackaged = function(module, code) {
+    var preprocessors = this.config.preprocessors;
+    if (!preprocessors || !preprocessors.length) {
+        return this.defineUnpackaged(module, code);
+    } else {
+        return filters(this.context, preprocessors, module.filename, [code, module.filename]).thenSync(bind1(this.defineUnpackaged, this, module));
+    }
+};
+
+loaderProto.defineUnpackaged = function(module, code) {
+    this.context.jsModuleDefine(code, module.filename, module.url);
 };
 
 loaderProto.loadPackaged = function(packageName) {

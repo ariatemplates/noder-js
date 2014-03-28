@@ -91,6 +91,24 @@ Noder supports the following configuration options:
       sync: false, // whether requests are synchronous (true) or asynchronous (false, default value).
       headers: {} // map of http headers and their values
     },
+    preprocessors: [
+      // Items defined in this array define preprocessors which are called before the content of a module
+      // is evaluated, allowing each preprocessor to change the content.
+      // Preprocessors are called in the order defined here.
+      // Pre-processing only applies to unpackaged files.
+      // A preprocessor module must export a function in module.export.
+      // It is passed 2 parameters: the file content and the file name.
+      // The preprocessor is supposed to return the modified file content, or a promise resolving
+      // to the modified file content.
+      {
+        pattern: /\.coffee$/,
+        module: "preprocessors/coffeeScript.js"
+      },
+      {
+        pattern: /\.yml$/,
+        module: "preprocessors/yaml.js"
+      }
+    ],
     packagesMap: {
       // This section specifies how files are packaged.
       // Any file not included in a package is processed in unpackaged mode.
