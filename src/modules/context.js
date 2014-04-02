@@ -22,6 +22,7 @@ var noderError = require('./noderError.js');
 var dirname = require('./path.js').dirname;
 var jsEval = require('./jsEval.js');
 var findRequires = require('./findRequires.js');
+var bind1 = require('./bind1.js');
 var noderPropertiesKey = "_noder";
 
 var PROPERTY_DEFINITION = 0;
@@ -34,12 +35,6 @@ var PROPERTY_PRELOADING_PARENTS = 5;
 var bind = function(fn, scope) {
     return function() {
         return fn.apply(scope, arguments);
-    };
-};
-
-var bind1 = function(fn, scope, paramBind) {
-    return function(param) {
-        return fn.call(scope, paramBind, param);
     };
 };
 
