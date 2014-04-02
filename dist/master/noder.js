@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.2.0-rc1 - 25 Mar 2014
+ * Noder-js 1.2.0-rc1 - 02 Apr 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -19,7 +19,7 @@
 /*jshint undef:true, -W069, -W055*/
 (function(global, callEval, packagedConfig) {
     "use strict";
-    var type$module, merge$module, nextTick$module, uncaughtError$module, asyncCall$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, scriptConfig$module, defaultConfig$module, main$module;
+    var type$module, merge$module, nextTick$module, uncaughtError$module, asyncCall$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, bind$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, scriptConfig$module, defaultConfig$module, main$module;
         (function() {
         var toString = Object.prototype.toString;
         var isString = function(str) {
@@ -429,6 +429,29 @@
         var src = scriptTag$module.src;
         return src ? path$module.dirname(src.replace(/\?.*$/, "")) + "/" : "";
     };
+    filters$module = function(context, filterConfig, filename, args) {
+        var items = (filterConfig || []).slice(0);
+        var next = function(content) {
+            args[0] = content;
+            if (!items.length) {
+                return /*promise*/ promise$module.when(content);
+            }
+            var currentFilter = items.shift();
+            if (currentFilter.pattern && currentFilter.pattern.test(filename)) {
+                return context.moduleAsyncRequire(context.rootModule, [ currentFilter.module ]).thenSync(function(processor) {
+                    return /*promise*/ promise$module.when(processor.apply(this, args)).thenSync(next);
+                });
+            } else {
+                return next(args[0]);
+            }
+        };
+        return next(args[0]);
+    };
+    bind$module = function(fn, scope, paramBind) {
+        return function(param) {
+            return fn.call(scope, paramBind, param);
+        };
+    };
         (function() {
         var split = path$module.split;
         var emptyObject = {};
@@ -459,14 +482,19 @@
             }
         };
         loaderProto.loadUnpackaged = function(module) {
-            var moduleName = module.filename;
-            var url = this.baseUrl + moduleName;
-            var context = this.context;
-            return /*request*/ request$module(url, this.config.requestConfig).thenSync(function(jsCode) {
-                context.jsModuleDefine(jsCode, moduleName, url);
-            }).always(function() {
-                context = null;
-            });
+            module.url = this.baseUrl + module.filename;
+            return /*request*/ request$module(module.url, this.config.requestConfig).thenSync(/*bind1*/ bind$module(this.preprocessUnpackaged, this, module));
+        };
+        loaderProto.preprocessUnpackaged = function(module, code) {
+            var preprocessors = this.config.preprocessors;
+            if (!preprocessors || !preprocessors.length) {
+                return this.defineUnpackaged(module, code);
+            } else {
+                return /*filters*/ filters$module(this.context, preprocessors, module.filename, [ code, module.filename ]).thenSync(/*bind1*/ bind$module(this.defineUnpackaged, this, module));
+            }
+        };
+        loaderProto.defineUnpackaged = function(module, code) {
+            this.context.jsModuleDefine(code, module.filename, module.url);
         };
         loaderProto.loadPackaged = function(packageName) {
             var self = this;
@@ -901,11 +929,6 @@
                 return fn.apply(scope, arguments);
             };
         };
-        var bind1 = function(fn, scope, paramBind) {
-            return function(param) {
-                return fn.call(scope, paramBind, param);
-            };
-        };
         var bindAsyncRequire = function(context, module) {
             return function() {
                 return context.moduleAsyncRequire(module, arguments);
@@ -920,8 +943,8 @@
             this[/*noderPropertiesKey*/ "_noder"] = {};
             this.filename = filename;
             this.id = filename;
-            this.require = bind1(context.moduleRequire, context, this);
-            this.require.resolve = bind1(context.moduleResolve, context, this);
+            this.require = /*bind1*/ bind$module(context.moduleRequire, context, this);
+            this.require.resolve = /*bind1*/ bind$module(context.moduleResolve, context, this);
             this.require.cache = context.cache;
             this.parent = null;
             this.children = [];
