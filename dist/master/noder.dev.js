@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.2.0-rc1 - 02 Apr 2014
+ * Noder-js 1.2.0-rc1 - 03 Apr 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
