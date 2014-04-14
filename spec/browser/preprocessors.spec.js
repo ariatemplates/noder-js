@@ -202,4 +202,29 @@ describe("Preprocessors", function() {
         change3: "OK",
         change4: "OK"
     }, false));
+
+    it("Preprocessor with arguments", createTest([{
+        pattern: /originalFile/,
+        module: "stringReplacements",
+        options: {
+            replacements: [{
+                find: /<PREPROCESSOR1/g,
+                replace: "<PREPROCESSOR2"
+            }, {
+                find: /-CHANGE1>/g,
+                replace: "-CHANGE2>"
+            }]
+        }
+    }, {
+        pattern: /originalFile/,
+        module: "asyncPreprocessor2"
+    }], {
+        fileName1: "originalFile.js",
+        fileName2: "originalFile.js",
+        change1: "OK",
+        change2: "OK",
+        change3: "OK",
+        change4: "OK"
+    }, false));
+
 });

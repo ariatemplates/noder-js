@@ -25,7 +25,7 @@ module.exports = function(context, filterConfig, filename, args) {
         var currentFilter = items.shift();
         if (currentFilter.pattern && currentFilter.pattern.test(filename)) {
             return context.moduleAsyncRequire(context.rootModule, [currentFilter.module]).thenSync(function(processor) {
-                return promise.when(processor.apply(this, args)).thenSync(next);
+                return promise.when(processor.apply(this, args.concat(currentFilter.options))).thenSync(next);
             });
         } else {
             return next(args[0]);

@@ -97,7 +97,10 @@ Noder supports the following configuration options:
       // Preprocessors are called in the order defined here.
       // Pre-processing only applies to unpackaged files.
       // A preprocessor module must export a function in module.export.
-      // It is passed 2 parameters: the file content and the file name.
+      // It is passed 2 arguments: the file content and the file name.
+      // Additional arguments can be specified with the options property, which can be
+      // either an array (for multiple extra arguments) or any other value (for a single
+      // extra argument).
       // The preprocessor is supposed to return the modified file content, or a promise resolving
       // to the modified file content.
       {
@@ -107,6 +110,14 @@ Noder supports the following configuration options:
       {
         pattern: /\.yml$/,
         module: "preprocessors/yaml.js"
+      },
+      {
+        pattern: /\.js$/,
+        module: "preprocessors/myJSPreprocessor.js",
+        options: {
+          // This options object will be passed to myJSPreprocessor as its 3rd argument
+          specialFeature: true
+        }
       }
     ],
     packagesMap: {
