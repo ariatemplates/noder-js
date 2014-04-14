@@ -25,7 +25,7 @@ var readFileSync = function(file, encoding, callback) {
 };
 
 module.exports = function(url, options) {
-    var deferred = promise();
+    var deferred = promise.defer();
     var readFile = options && options.sync ? readFileSync : fs.readFile;
     readFile(url, 'utf-8', function(err, data) {
         if (err) {
@@ -34,5 +34,5 @@ module.exports = function(url, options) {
             deferred.resolve(data);
         }
     });
-    return deferred.promise();
+    return deferred.promise;
 };

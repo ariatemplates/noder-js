@@ -271,7 +271,7 @@ contextProto.moduleExecuteSync = function(module) {
         return module.exports;
     }
     var preloadPromise = this.modulePreload(module);
-    if (preloadPromise.state() != "resolved") {
+    if (!preloadPromise.isResolved()) {
         throw noderError("notPreloaded", [module], preloadPromise.result());
     }
     var exports = module.exports;
@@ -333,7 +333,7 @@ contextProto.moduleExecute = function(module) {
 
 contextProto.moduleAsyncRequire = function(module, dependencies) {
     return this.modulePreloadDependencies(module, dependencies).thenSync(function() {
-        var defer = promise();
+        var defer = promise.defer();
         var result = [];
         for (var i = 0, l = dependencies.length; i < l; i++) {
             var item = dependencies[i];
@@ -342,7 +342,7 @@ contextProto.moduleAsyncRequire = function(module, dependencies) {
             }
         }
         defer.resolve.apply(defer, result);
-        return defer.promise();
+        return defer.promise;
     }).always(function() {
         module = null;
         dependencies = null;

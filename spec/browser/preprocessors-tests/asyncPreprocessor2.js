@@ -15,12 +15,12 @@
 var promise = require("noder-js/promise");
 
 module.exports = function(code, fileName) {
-    var defer = promise();
+    var defer = promise.defer();
     setTimeout(function() {
         var res = code.replace(/<PREPROCESSOR2-FILENAME>/g, fileName);
         res = res.replace(/<PREPROCESSOR2-CHANGE1>/g, "<PREPROCESSOR1-CHANGE2>");
         res = res.replace(/<PREPROCESSOR2-CHANGE2>/g, "OK");
         defer.resolve(res);
     }, 5);
-    return defer.promise();
+    return defer.promise;
 };

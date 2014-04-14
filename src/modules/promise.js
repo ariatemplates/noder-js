@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-var merge = require("./merge.js");
 var isFunction = require("./type.js").isFunction;
 var asyncCall = require("./asyncCall.js");
 var uncaughtError = require("./uncaughtError.js");
 
 var concat = Array.prototype.concat;
 
-var PENDING_STATE = "pending";
-var RESOLVED_STATE = "resolved";
-var REJECTED_STATE = "rejected";
+var empty = function() {};
 
 var chainAnswer = function(obj, resolve, reject) {
     if (obj) {
@@ -54,93 +51,72 @@ var propagateResults = function(callback, deferred) {
 
 var Promise = function() {};
 
-var createPromise = function() {
-    var deferred = new Promise();
-    var promise = new Promise();
-    var state = PENDING_STATE;
+var defer = function() {
+    var deferred = {};
+    var promise = deferred.promise = new Promise();
+    var state; // undefined, "resolve" or "reject"
     var result = null;
-    var listeners = {};
+    var listeners = {
+        resolve: [],
+        reject: []
+    };
 
-    var createMethods = function(doneOrFail, resolveOrReject, newState) {
-        var addCb = function(sync, applyFunction) {
-            promise[doneOrFail + sync] = function() {
-                var curListeners;
-                if (state === PENDING_STATE) {
-                    curListeners = listeners[newState] || [];
-                    listeners[newState] = concat.apply(curListeners, arguments);
-                } else if (state === newState) {
-                    curListeners = concat.apply([], arguments);
-                    applyFunction(curListeners, result);
-                }
-                return this;
-            };
-        };
-        addCb("", asyncCall.nextTickApply);
-        addCb("Sync", asyncCall.syncApply);
-        deferred[resolveOrReject] = function() {
-            if (state !== PENDING_STATE) {
-                return;
+    var createThen = function(sync, applyFunction) {
+        promise["then" + sync] = function(onResolve, onReject) {
+            var res = defer();
+            onResolve = isFunction(onResolve) ? propagateResults(onResolve, res) : res.resolve;
+            onReject = isFunction(onReject) ? propagateResults(onReject, res) : res.reject;
+            if (listeners) {
+                // register listeners
+                listeners.resolve.push(onResolve);
+                listeners.reject.push(onReject);
+            } else {
+                // result already known
+                applyFunction([state == "resolve" ? onResolve : onReject], result);
             }
-            result = arguments;
-            state = newState;
-            var myListeners = listeners[newState];
-            listeners = null;
-            asyncCall.nextTickApply(myListeners, result);
+            return res.promise;
         };
     };
-    createMethods("done", "resolve", RESOLVED_STATE);
-    createMethods("fail", "reject", REJECTED_STATE);
+    createThen("", asyncCall.nextTickApply);
+    createThen("Sync", asyncCall.syncApply);
 
-    promise.state = function() {
-        return state;
+    var createResolveReject = function(resolveOrReject) {
+        deferred[resolveOrReject] = function() {
+            if (listeners) {
+                result = arguments;
+                state = resolveOrReject;
+                var myListeners = listeners[resolveOrReject];
+                listeners = null;
+                asyncCall.nextTickApply(myListeners, result);
+            }
+        };
+        return function() {
+            return state == resolveOrReject;
+        };
     };
-    promise.promise = function() {
-        return promise;
-    };
+    promise.isResolved = createResolveReject("resolve");
+    promise.isRejected = createResolveReject("reject");
     promise.result = function() {
         return result && result[0];
     };
-    merge(deferred, promise);
     return deferred;
 };
 
-var promiseProto = createPromise.prototype = Promise.prototype = {
+Promise.prototype = {
     end: function() {
-        return this.thenSync(createPromise.empty, uncaughtError);
+        return this.thenSync(empty, uncaughtError);
+    },
+    always: function(cb) {
+        this.then(cb, cb);
+        return this;
     }
 };
 
-var createThenAndAlways = function(sync) {
-    var doneMethodName = "done" + sync;
-    var failMethodName = "fail" + sync;
-    promiseProto["then" + sync] = function(done, fail) {
-        var res = createPromise();
-        this[doneMethodName](isFunction(done) ? propagateResults(done, res) : res.resolve);
-        this[failMethodName](isFunction(fail) ? propagateResults(fail, res) : res.reject);
-        return res.promise();
-    };
-    promiseProto["always" + sync] = function() {
-        this[doneMethodName].apply(this, arguments);
-        this[failMethodName].apply(this, arguments);
-        return this;
-    };
-};
-
-createThenAndAlways("Sync");
-createThenAndAlways("");
-
-var done = createPromise();
+var done = defer();
 done.resolve();
+done = done.promise;
 
-createPromise.done = done.promise();
-
-createPromise.empty = function() {};
-
-createPromise.noop = function() {
-    return done;
-};
-
-var STATE_PROMISE = 0;
+var STATE_DEFERRED = 0;
 var STATE_COUNTER = 1;
 var STATE_RESULT = 2;
 var STATE_OK = 3;
@@ -166,11 +142,11 @@ var countDown = function(state, index) {
             }
             state[STATE_COUNTER]--;
             if (!state[STATE_COUNTER]) {
-                var promise = state[STATE_PROMISE];
+                var defer = state[STATE_DEFERRED];
                 var endResult = state[STATE_RESULT];
                 // clean closure variables:
-                state[STATE_PROMISE] = state[STATE_RESULT] = null;
-                (state[STATE_OK] ? promise.resolve : promise.reject).apply(promise, endResult);
+                state[STATE_DEFERRED] = state[STATE_RESULT] = null;
+                (state[STATE_OK] ? defer.resolve : defer.reject).apply(defer, endResult);
             }
             // prevent another call with the same index
             state = null;
@@ -182,11 +158,11 @@ var createWhen = function(failFast) {
     return function() {
         var array = concat.apply([], arguments);
         if (!array.length) {
-            return createPromise.done;
+            return done;
         }
-        var promise = createPromise();
+        var deferred = defer();
         var state = [
-            promise /* STATE_PROMISE */ ,
+            deferred /* STATE_DEFERRED */ ,
             array.length /* STATE_COUNTER */ ,
             array /* STATE_RESULT */ ,
             true /* STATE_OK */ ,
@@ -196,11 +172,14 @@ var createWhen = function(failFast) {
             var fn = countDown(state, i);
             chainAnswer(array[i], fn(true), fn(false));
         }
-        return promise.promise();
+        return deferred.promise;
     };
 };
 
-createPromise.when = createWhen(true);
-createPromise.whenAll = createWhen(false);
-
-module.exports = createPromise;
+module.exports = {
+    defer: defer,
+    when: createWhen(true),
+    whenAll: createWhen(false),
+    empty: empty,
+    done: done
+};

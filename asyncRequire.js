@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-var promise = require('./promise');
+var defer = require('./promise').defer;
 var typeUtils = require('./src/modules/type');
 
 module.exports = {
     create: function(module) {
         return function() {
-            var defer = promise();
+            var deferred = defer();
             var result = [];
             try {
                 for (var i = 0, l = arguments.length; i < l; i++) {
@@ -28,11 +28,11 @@ module.exports = {
                         result[i] = module.require(item);
                     }
                 }
-                defer.resolve.apply(defer, result);
+                deferred.resolve.apply(deferred, result);
             } catch (e) {
-                defer.reject(e);
+                deferred.reject(e);
             }
-            return defer.promise();
+            return deferred.promise;
         };
     }
 };

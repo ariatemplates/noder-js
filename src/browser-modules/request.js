@@ -47,7 +47,7 @@ var createCallback = function(url, xhr, deferred) {
 
 module.exports = function(url, options) {
     options = options || {};
-    var deferred = promise();
+    var deferred = promise.defer();
     var xhr = newHttpRequestObject();
     var headers = options.headers || {};
     xhr.open(options.method || 'GET', url, !options.sync);
@@ -63,5 +63,5 @@ module.exports = function(url, options) {
         // (i.e. the response is not available synchronously)
         xhr.onreadystatechange = checkState;
     }
-    return deferred.promise();
+    return deferred.promise;
 };
