@@ -77,7 +77,7 @@ var createPromise = function() {
         };
         addCb("", asyncCall.nextTickApply);
         addCb("Sync", asyncCall.syncApply);
-        promise[resolveOrReject] = function() {
+        deferred[resolveOrReject] = function() {
             if (state !== PENDING_STATE) {
                 return;
             }
