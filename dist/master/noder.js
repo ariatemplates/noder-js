@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.2.1 - 08 Apr 2014
+ * Noder-js 1.2.1 - 14 Apr 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -163,7 +163,7 @@
                 };
                 addCb("", /*asyncCall*/ asyncCall$module.nextTickApply);
                 addCb("Sync", /*asyncCall*/ asyncCall$module.syncApply);
-                promise[resolveOrReject] = function() {
+                deferred[resolveOrReject] = function() {
                     if (state !== /*PENDING_STATE*/ "pending") {
                         return;
                     }
