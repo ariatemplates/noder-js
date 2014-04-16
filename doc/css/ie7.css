@@ -1,0 +1,51 @@
+
+header nav a.download {
+	margin-right: 4px;
+}
+
+footer nav section.contact {
+	float: right;
+	text-align: right;
+	width: 90px;
+}
+
+footer nav section h5 a {
+	font-weight: bold !important;
+}
+
+footer nav section a, footer nav section a:visited, footer nav section a:hover {
+	color: #888;
+}
+
+.mediawiki section.content {
+	width: 956px;
+}
+
+.columns.two article.column {
+	width: 656px;
+    margin-right: 32px;
+}
+
+.home .carrousel {
+	overflow: hidden;
+}
+
+.home .carrousel .slides {
+	position: relative;
+}
+
+.home .browsers {
+	overflow: hidden;
+}
+
+.home .browsers ul {
+	float: left;
+	width: 130px;
+	margin: 0 10px 0 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.home .browsers ul li {
+	float: left;
+}

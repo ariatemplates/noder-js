@@ -1,0 +1,174 @@
+/*
+  skin for the code highlighter
+*/
+
+.snippet {
+  margin: 5px 0 15px;
+  position: relative;
+}
+
+.snippet pre {
+  border: 3px solid white;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.4);
+  margin: 8px 0 0 0;
+  border-radius: 4px;
+}
+
+.snippet pre code {
+  font-size: 14px;
+  display: block; padding: 0.5em;
+  background: #333; color: #f8f8f8;
+  border-radius: 4px;
+}
+
+.snippet pre .shebang,
+.snippet pre .comment,
+.snippet pre .template_comment,
+.snippet pre .javadoc {
+  color: #7c7c7c;
+}
+
+.snippet pre .commentBlock {
+  color: #FFFF80;
+}
+
+.snippet pre .keyword,
+.snippet pre .tag,
+.snippet pre .ruby .function .keyword,
+.snippet pre .tex .command {
+  color: #37A3ED;
+}
+
+.snippet pre .function .keyword,
+.snippet pre .sub .keyword,
+.snippet pre .method,
+.snippet pre .list .title {
+  color: #37A3ED;
+}
+
+.snippet pre .function .params {
+  color: #FFFF80;
+}
+
+.snippet pre .string,
+.snippet pre .tag .value,
+.snippet pre .cdata,
+.snippet pre .filter .argument,
+.snippet pre .attr_selector,
+.snippet pre .apache .cbracket,
+.snippet pre .date {
+  color: #80FF00;
+}
+
+.snippet pre .subst {
+  color: #DAEFA3;
+}
+
+.snippet pre .regexp {
+  color: #E9C062;
+}
+
+.snippet pre .function .title,
+.snippet pre .sub .identifier,
+.snippet pre .pi,
+.snippet pre .decorator,
+.snippet pre .ini .title,
+.snippet pre .tex .special {
+  color: #FFFFB6;
+}
+
+.snippet pre .class .title,
+.snippet pre .haskell .label,
+.snippet pre .constant,
+.snippet pre .smalltalk .class,
+.snippet pre .javadoctag,
+.snippet pre .yardoctag,
+.snippet pre .phpdoc,
+.snippet pre .nginx .built_in {
+  color: #FFFFB6;
+}
+
+.snippet pre .symbol,
+.snippet pre .ruby .symbol .string,
+.snippet pre .ruby .symbol .keyword,
+.snippet pre .ruby .symbol .keymethods,
+.snippet pre .number,
+.snippet pre .variable,
+.snippet pre .vbscript,
+.snippet pre .literal {
+  color: #BBBEFF;
+}
+
+.snippet pre .css .tag {
+  color: #96CBFE;
+}
+
+.snippet pre .css .rules .property,
+.snippet pre .css .id {
+  color: #FFFFB6;
+}
+
+.snippet pre .css .class {
+  color: #FFF;
+}
+
+.snippet pre .hexcolor {
+  color: #C6C5FE;
+}
+
+.snippet pre .number {
+  color:#FF73FD;
+}
+
+.snippet pre .tex .formula {
+  opacity: 0.7;
+}
+
+.snippet pre .expr {
+  color: #37A3ED;
+}
+
+.snippet pre .expr .value {
+  color: #BBBEFF;
+}
+
+.snippet pre .expr .string {
+  opacity: 0.85;
+}
+
+.snippet pre .at .xml .tag {
+  color: orange;
+}
+
+
+
+.snippet h5.filename {
+  color: #5092BD;
+  margin-bottom: 0;
+  margin-top: -5px;
+  padding-top: 15px;
+}
+
+.snippet h5.filename strong {
+  color: #666666;
+  text-transform: uppercase;
+  padding-right: 10px;
+}
+
+.snippet h5 .lines {
+  margin-left: 10px;
+}
+
+.snippet .linenumbers {
+  float: left;
+  margin-top: 2px;
+  font-family: monospace;
+  text-align: right;
+  font-size: 14px;
+  color: #aaa;
+  min-width: 17px;
+}
+
+.snippet .linenumbers.noheader {
+  padding-top: 8px;
+}

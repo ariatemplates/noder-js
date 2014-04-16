@@ -268,6 +268,61 @@ module.exports = function(grunt) {
                     mode: "VERIFY_ONLY"
                 }
             }
+        },
+        copy: {
+            doc: {
+                files: [{
+                    expand: true,
+                    cwd: 'doc',
+                    src: ['**', '!**/*.md'],
+                    dest: 'dist/doc'
+                }]
+            }
+        },
+        markdown: {
+            doc: {
+                options: {
+                    template: "tasks/templates/documentation.html",
+                    preCompile: function(src, context) {
+                        context.config = "";
+                        context.start = "";
+                        context.build = "";
+                        context.api = "";
+                        context.pack = "";
+                        if (src.match(/# Configuring noderJS/)) {
+                            context.title = "Configuring noderJS";
+                            context.config = "selected";
+                        } else if (src.match(/# Getting Started with noderJS/)) {
+                            context.title = "Getting Started";
+                            context.start = "selected";
+                        } else if (src.match(/# Contribute to noderJS/)) {
+                            context.title = "Contribute to noderJS";
+                            context.build = "selected";
+                        } else if (src.match(/# noderJS API Doc/)) {
+                            context.title = "noder JS API Doc";
+                            context.api = "selected";
+                        } else if (src.match(/# Packaging noderJS/)) {
+                            context.title = "Packaging noderJS";
+                            context.pack = "selected";
+                        }
+                        return src.replace(/\(([^()]*)\.md\)/g, "($1.html)");
+                    },
+                    markdownOptions: {
+                        highlight: "manual"
+                    },
+                    postCompile: function(src) {
+                        var tmp = src.replace(/<pre><code/g, "<div class='snippet'><pre><code");
+                        return tmp.replace(/<\/code><\/pre>/g, "</code></pre></div>");
+                    }
+                },
+                files: [{
+                    expand: true,
+                    cwd: 'doc',
+                    src: ['**/*.md', '!README.md'],
+                    dest: 'dist/doc',
+                    ext: '.html'
+                }]
+            }
         }
     });
 
@@ -276,9 +331,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('atpackager');
     require('atpackager').loadPlugin('./atpackager');
 
-    grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip']);
+    grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip', 'doc']);
     grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:unit']);
     grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci']);
+    grunt.registerTask('doc', ['copy:doc', 'markdown:doc']);
     grunt.registerTask('beautify', ['jsbeautifier:update']);
     grunt.registerTask('dev', ['beautify', 'build', 'jshint']);
     grunt.registerTask('default', ['build', 'test']);

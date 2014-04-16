@@ -1,0 +1,25 @@
+.styled-select {
+	width: 200px;
+	height: 30px;
+	overflow: hidden;
+	background: transparent;;
+	border-radius: 0px;
+	border: 0px;
+	background-color: transparent;
+}
+
+.styled-select select {
+	background: transparent;
+	width: 200px;
+	height: 30px;
+	padding: 0px;
+	border: 0px;
+	font-size: 16px;
+    appearance:none;
+    border-radius: 0px;
+    cursor: default;
+}
+
+.styled-select select:focus {
+	outline: none;
+}

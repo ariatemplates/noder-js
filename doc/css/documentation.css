@@ -1,0 +1,479 @@
+/*
+	Aria Templates Documentation stylesheets
+*/
+
+/* Style for the TOC */
+#toc ol {
+  padding-left: 20px;
+}
+#toc ol ol li { list-style-type: lower-alpha; }
+#toc ol ol ol li { list-style-type: lower-roman; }
+
+.documentation li.toctext {
+	text-align: left;
+}
+
+.documentation img {
+	max-width: 100%;
+	height: auto;
+}
+
+#header > .logo img { /* AT logo */
+	float:left;
+}
+
+.documentation p, .documentation li {
+	text-align: justify;
+	-moz-hyphens: auto;
+	-ms-hyphens: auto; /* IE10+ */
+	/* not adding -webkit-hyphens; it's not supported in Chrome, and in Safari, the hyphenation is lame inside <code> */
+	line-height: 150%;
+}
+
+.documentation a.new {
+	color: #BA0000;
+}
+
+.documentation section.content > .wrapper {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.documentation .printfooter {
+    display: none;
+}
+
+.documentation .columns {
+	border-left: 1px solid #dedede;
+	border-bottom: 1px solid #DEDEDE;
+	border-right: 1px solid #DEDEDE;
+	border-top: 1px solid #DEDEDE;
+	border-radius: 8px 8px 8px 8px;
+    margin-right: 2px;
+	margin-left: 2px;
+}
+
+.documentation article.column {
+	margin-right: 0 !important;
+	border-right: 1px solid #dedede;
+	padding: 20px 20px 20px 20px;
+	background-color: #fff;
+	border-radius: 0 0 0 8px;
+}
+
+.documentation .one .column {
+	float: none;
+	width: auto;
+	margin-right: -1px!important;
+}
+
+.documentation .columns aside.sidebar {
+    background: transparent url(../images/bd-sidebar.png) left top no-repeat;
+    float: right;
+    left: -1px;
+    padding-left: 19px;
+    padding-top: 5px;
+	padding-right: 20px;
+    position: relative;
+    width: 218px;
+	margin: 0;
+}
+
+.documentation article .catlinks ul {
+	overflow: hidden;
+	padding-left: 0;
+	margin-top: -5px;
+}
+
+.documentation article .catlinks ul li {
+	list-style-type: none;
+	float: left;
+	display: block;
+	padding-left: 24px;
+	background: url(../images/tag_green.png) 5px center no-repeat;
+	margin-right: 5px;
+}
+
+.documentation h1 {
+	font-size: 40px;
+}
+
+.documentation h2, .documentation h3 {
+	margin: 1em 0 6px;
+}
+
+.documentation h4 {
+    margin: 20px 0 15px;
+}
+
+.documentation code {
+    background-color: #F9F9F9;
+    border-bottom: 1px solid #EEEEEE;
+    color: #666666;
+    overflow-x: auto;
+}
+
+.documentation aside a, .documentation aside a:hover, .documentation aside a:visited {
+	color:#5092BD;
+}
+
+/* Style for the search bar */
+
+#search {
+   	background: url(../images/search-white.png) no-repeat 10px 7px #fcfcfc;
+   	background-color: #F0F0F0;
+	width:150px;
+	padding: 4px 15px 4px 35px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	border: 1px solid #CCC;
+	font-size: 16px;
+}
+
+#search:focus {
+    outline: none;
+    background-color: white;
+	-webkit-box-shadow: 0px 0px 3px #007eff;
+    -moz-box-shadow: 0px 0px 3px #007eff;
+    box-shadow: 0px 0px 3px #007eff;
+}
+
+.documentation .with-header {
+	margin-top: 40px;
+}
+
+.documentation article .callout {
+	background-color: #E1EAF3;
+    border-color: #D0DBE6 #C3CED9 #D0DBE6 #D0DBE6;
+    border-style: solid;
+    border-width: 1px;
+    color: #4F535D;
+    padding: 12px;
+    position: absolute;
+    right: 0;
+    width: 242px;
+	border-radius: 3px 0 0 3px;
+	box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+
+	font-size: 12px;
+}
+
+.documentation article .callout h4 {
+	margin: 0;
+	text-align: center;
+}
+.documentation article .callout p {
+	margin: 5px 0 0 0;
+}
+
+.documentation article .callout.didyouknow {
+	background-color: #EFFAB4;
+	border-color: #D1F2A5;
+}
+
+.documentation article .callout.reviewed,
+	.documentation article .callout.reviewneeded,
+	.documentation article .callout.draft {
+	display: none;
+	color: #fff;
+	padding: 5px 5px 5px 35px;
+	width: 105px;
+	font-weight: 700;
+	top: 72px;
+	background-position: 10px center;
+	background-repeat: no-repeat;
+	position: absolute;
+	top: 40px;
+}
+
+body.internal article .callout.reviewed,
+	body.internal article .callout.reviewneeded,
+	body.internal article .callout.draft {
+	display: block;
+}
+
+.documentation article .callout.reviewed {
+	background-color: #9BBB59;
+	border-color: #728940;
+	background-image: url(../images/tick.png);
+}
+
+.documentation article .callout.reviewneeded {
+	background-color: #66B6E8;
+	border-color: #5092BD;
+	background-image: url(../images/thumb_up.png);
+}
+
+.documentation article .callout.draft {
+	background-color: #E55454;
+	border-color: #A33C3C;
+	background-image: url(../images/exclamation.png);
+}
+
+
+/* Wrapper of the live SampleViewer module */
+.documentation .two .live {
+	-webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+	margin: 40px 0 15px 0;
+	border-radius: 4px 0 0 4px;
+	border: 1px solid #fff;
+	box-shadow: 0 0 1px rgba(0, 0, 0, 0.4);
+	min-height: 150px;
+}
+
+.doc {
+	min-height: 500px;
+}
+.doc ul {
+    padding-left: 30px;
+}
+
+.maintoc ul li {
+    list-style-type: none;
+}
+
+/* Style for the navigation bar to go back to the main index */
+.navigationbar {
+	overflow: visible;
+	font-size: 12px;
+	margin: 15px 0;
+/*	padding: 5px 0; */
+	border-bottom: 1px solid #EDEDED;
+	border-top: 1px solid #EDEDED;
+}
+
+.ghIssuesLinkBox {
+  padding: 5px;
+  background-color: #EDEDED;
+  color: #666;
+  border-radius: 3px;
+}
+.ghIssuesLink:link, .ghIssuesLink:visited {
+  text-decoration: underline;
+}
+
+/*
+.navigationbar .nav-previous {
+	padding-left: 20px;
+	background: url(../blog/wp-content/themes/ariatemplates/images/post-previous.png) no-repeat left center;
+}
+
+.navigationbar .nav-next {
+	padding-right: 20px;
+	background: url(../blog/wp-content/themes/ariatemplates/images/post-next.png) no-repeat right center;
+}*/
+
+.navigationbar .aligncenter {
+	text-align: center;
+	margin:0;
+}
+
+/*
+.navigationbar .alignright {
+	display: inline;
+	float: right;
+	margin-left: 1.625em;
+}
+
+.navigationbar .alignleft {
+	display: inline;
+	float: left;
+	margin-right: 1.625em;
+}*/
+
+
+.documentation .errorbox strong {
+	color: red;
+}
+
+.documentation .errorbox {
+}
+
+.documentation table tbody td {
+	/*padding: 5px;*/
+}
+
+.documentation table tbody td.mw-label {
+	width: 150px;
+	text-align: right;
+}
+
+/* Drop down TOC */
+
+#dropdown {
+	display: block;
+	position: relative;
+	width: 130px;
+	margin: 0 auto;
+	padding: 10px;
+}
+
+.menu-container {
+	width:945px;
+	position:absolute;
+	text-align:left;
+	padding: 15px 5px 10px;
+	display: none;
+	background:#333;
+	z-index:99999;
+	margin-left: -283px;
+	margin-top: 10px;
+	-webkit-box-shadow: 0 4px 6px -6px black;
+	-moz-box-shadow: 0 4px 6px -6px black;
+	box-shadow: 0 4px 6px -6px black;
+}
+
+.menu-container ul {
+	margin: 0;
+	padding: 0;
+}
+.menu-container li {
+	list-style-type:none;
+	text-align:left;
+}
+
+
+.menu-container li.dad {
+	font-weight: bold;
+}
+
+.menu-container li.son > a {
+	padding-left: 15px;
+}
+
+@-webkit-keyframes fadeDiv {
+	0% { opacity: 0; -webkit-animation-timing-function: linear; display:block; }
+	100% { opacity: 1; -webkit-animation-timing-function: linear; display:block; }
+}
+
+@-moz-keyframes fadeDiv {
+	0% { opacity: 0; -moz-animation-timing-function: linear; display:block; }
+	100% { opacity: 1; -moz-animation-timing-function: linear; display:block; }
+}
+
+@-ms-keyframes fadeDiv {
+	0% { opacity: 0; -ms-animation-timing-function: linear; display:block; }
+	100% { opacity: 1; -ms-animation-timing-function: linear; display:block; }
+}
+
+#dropdown:hover,
+#dropdown:focus,
+#dropdown:active {
+	background: #333;
+}
+
+#dropdown:hover .menu-container,
+#dropdown:focus .menu-container,
+#dropdown:active .menu-container {
+	display: block;
+	opacity: 1;
+	/*
+	-webkit-animation-duration:0.5s;
+	-webkit-animation-name:fadeDiv;
+	-moz-animation-duration:0.5s;
+	-moz-animation-name:fadeDiv;
+	-ms-animation-duration:0.5s;
+	-ms-animation-name:fadeDiv;
+	*/
+}
+
+
+/* columns ici */
+
+.column-1, .column-2 {
+	display:inline;
+	float:left;
+	position:relative;
+}
+
+.column-1 a,.column-2 a {
+	display:block;
+}
+
+a.currentURL {
+	color: #A2D8FA;
+}
+a.currentURL:hover {
+	color: #000;
+}
+
+.column-1 li:hover,.column-2 li:hover {
+	background:#e8edff;
+}
+
+.column-1 li a:hover,.column-2 li a:hover {
+	text-decoration:none;
+	cursor:pointer;
+}
+
+.column-1 {
+	width:225px;
+	padding-left: 17px;
+	padding-right: 26px;
+}
+
+.column-2 {
+	width:140px;
+	padding: 0px;
+}
+
+
+/* Sidebar Searchbox */
+.search-box .search-query {
+  box-sizing: border-box;
+  width: 98%;
+  padding: 4px 2px;
+  border: 1px solid #BCCDF0;
+  border-radius: 3px;
+}
+
+.search-box .search-button-cell {
+  width: 1%;
+}
+.search-box .search-button-cell input {
+  padding: 4px 2px;
+}
+
+
+iframe.samples {
+    width: 100%;
+    min-height: 400px;
+}
+
+/* Hardcoded */
+[data-sample="hardcoded"]:before {
+    content: "Hardcoded Snippet that was using Geshi directly";
+    color: #fff;
+    background-color: red;
+    display: block;
+}
+
+[data-sample="hardcoded"] {
+    border: 1px solid red;
+}
+
+[data-sample="missing"] {
+    background-color: #EFFAB4;
+    border: 1px solid #D1F2A5;
+    font-size: 95%;
+    padding: 10px;
+    text-align: center;
+}
+
+[data-sample="missing"]:before {
+    content: "Missing Sample";
+    display: block;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Have some indication of TAB-focused link from keyboard */
+a:focus {
+    background-color: #5092BD !important;
+    color: #FFF !important;
+    border-radius: 2px;
+}

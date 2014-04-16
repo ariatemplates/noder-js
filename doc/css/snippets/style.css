@@ -1,0 +1,15 @@
+
+html,body,div,span,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,abbr,address,cite,code,del,dfn,em,img,ins,kbd,q,samp,small,strong,sub,sup,var,b,i,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,figcaption,figure,footer,header,hgroup,menu,nav,section,summary,time,mark,audio,video{background:none repeat scroll 0 0 transparent;border:0 none;font-size:100%;margin:0;outline:0 none;padding:0;vertical-align:baseline}
+body{ font:16px "Helvetica Neue",Arial,"Lucida Grande",sans-serif; }
+h1,h2,h3,h4,h5,h6{line-height:1em;margin:10px 0;font-family:'Ubuntu',sans-serif;font-style:normal;text-rendering:optimizelegibility}
+h1{font-size:40px;font-weight:400;color:#bfd730}
+h2{font-size:32px;font-style:normal;font-weight:700;color:#5092bd}
+h3{font-size:22px;font-weight:400;color:#5092bd;margin-top:1em}
+h4{font-size:16px;font-weight:700;text-transform:uppercase;color:#888}
+h5{font-size:14px;font-weight:400;color:#888}
+h6{font-size:13px;font-weight:300;color:#888}
+a{color:#5092bd;text-decoration:none}
+a:visited{color:#5092bd}
+a:active{color:#5092bd}
+a:hover{color:#5092bd;text-decoration:underline}
+p{margin:10px 0}
