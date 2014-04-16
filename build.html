@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>noderJS - Contribute to noderJS</title>
+<meta charset="utf-8">
+<link href="images/favicon.ico" type="image/ico"
+	rel="shortcut icon">
+<link rel="stylesheet" href="css/all.css" type="text/css">
+<link rel="stylesheet" href="css/noder.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/style.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/highlight_skin.css" type="text/css">
+<!-- font-awesome -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<!--[if IE 7]>
+    <link rel="stylesheet" href="css/versionselect.css" type="text/css"><![endif]-->
+<link rel="stylesheet" href="css/documentation.css" type="text/css">
+<!--[if lt IE 9]>
+    <script type="text/javascript" src="js/iemap.js"></script>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript" charset="utf-8"></script>
+    <style>.ie-hidden {display:none;}</style><![endif]-->
+<!--[if lt IE 8]>
+    <link href="css/ie7.css" rel="stylesheet" type="text/css"><![endif]-->
+</head>
+<body class="documentation">
+	<header id="header">
+    <div class="logo">
+      <h5>
+        <a href="./index.html"><img alt="noderJS"
+          src="images/logo-nav.png"></a>
+      </h5>
+    </div>
+    <nav>
+      <a class="getstarted " href="./getstarted.html">Get started</a>
+      <a class="configuration " href="./configuration.html">Configuration options</a>
+      <a class="api " href="./api.html">API</a>
+      <a class="build selected" href="./build.html">Contribute</a>
+      <a class="packaging " href="./packaging.html">Packaging</a>
+    </nav>
+  </header>
+	<div class="content-wrapper">
+		<section class="content">
+			<div class="wrapper">
+				<div class="columns main-page one">
+					<article class="column"><h1 id="contribute-to-noderjs">Contribute to noderJS</h1>
+<p>This page explains how to build Noder from sources. This is especially useful if you are planning to
+contribute to this project. Note that if you only intend to use Noder, you can use the already
+built version available in the <a href="https://github.com/ariatemplates/noder-js/releases">releases section</a>.</p>
+<h2 id="cloning-and-building-noderjs">Cloning and building noderJS</h2>
+<ul>
+<li><p>First, ensure that you have <a href="http://git-scm.com/">git</a>, the latest <a href="http://nodejs.org">node.js</a> and npm installed
+(npm is bundled with the node.js installer).</p>
+</li>
+<li><p>Then, get the sources of Noder with git:</p>
+</li>
+</ul>
+<div class='snippet'><pre><code><span class="title">git</span> clone <span class="url">https://github.com/ariatemplates/noder-js.git</span> noder
+cd noder</code></pre></div>
+<ul>
+<li>Download and install development dependencies with npm:</li>
+</ul>
+<div class='snippet'><pre><code><span class="title">npm</span> install</code></pre></div>
+<ul>
+<li>Noder can then be built with <a href="http://gruntjs.com/">grunt</a>:</li>
+</ul>
+<div class='snippet'><pre><code><span class="title">node</span> node_modules/grunt/bin/grunt build</code></pre></div>
+<p>After the grunt command is finished you can find the built version in the dist directory:</p>
+<ul>
+<li><code>dist/browser/noder.js</code> : uncompressed version of Noder for web browsers</li>
+<li><code>dist/browser/noder.min.js</code> : minified version of Noder for web browsers</li>
+<li><code>dist/node/noder.js</code> : uncompressed version of Noder for node.js (useful for testing purposes)</li>
+<li><code>dist/node/noder.min.js</code> : minified version of Noder for node.js</li>
+</ul>
+<p>Remember to beautify your code after adding or editing source files running the command:</p>
+<div class='snippet'><pre><code><span class="title">grunt</span> beautify</code></pre></div>
+<p>at the root of the repo in order to beautify all files.</p>
+<h2 id="running-the-test-suite">Running the test suite</h2>
+<p>To run the test suite, you can use:</p>
+<div class='snippet'><pre><code><span class="title">npm</span> test</code></pre></div>
+<p>Whit this command in fact you are doing more than just execute a test suite, you are performing a list of different actions like executing the build, checking all the <code>.js</code> and <code>.json</code> files using <a href="http://www.jshint.com/">JSHint</a>, running the whole test suite inside node.js and running the tests inside Firefox using <a href="http://karma-runner.github.io">karma</a>.</p>
+</article>
+				</div>
+			</div>
+		</section>
+	</div>
+	<footer id="footer">
+		<section class="content legal">
+			© 2012 Aria Templates is licensed under Apache 2.0 license. See our <a
+				href="http://ariatemplates.com/license">licensing page</a>
+		</section>
+	</footer>
+</body>
+</html>

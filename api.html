@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>noderJS - noder JS API Doc</title>
+<meta charset="utf-8">
+<link href="images/favicon.ico" type="image/ico"
+	rel="shortcut icon">
+<link rel="stylesheet" href="css/all.css" type="text/css">
+<link rel="stylesheet" href="css/noder.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/style.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/highlight_skin.css" type="text/css">
+<!-- font-awesome -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<!--[if IE 7]>
+    <link rel="stylesheet" href="css/versionselect.css" type="text/css"><![endif]-->
+<link rel="stylesheet" href="css/documentation.css" type="text/css">
+<!--[if lt IE 9]>
+    <script type="text/javascript" src="js/iemap.js"></script>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript" charset="utf-8"></script>
+    <style>.ie-hidden {display:none;}</style><![endif]-->
+<!--[if lt IE 8]>
+    <link href="css/ie7.css" rel="stylesheet" type="text/css"><![endif]-->
+</head>
+<body class="documentation">
+	<header id="header">
+    <div class="logo">
+      <h5>
+        <a href="./index.html"><img alt="noderJS"
+          src="images/logo-nav.png"></a>
+      </h5>
+    </div>
+    <nav>
+      <a class="getstarted " href="./getstarted.html">Get started</a>
+      <a class="configuration " href="./configuration.html">Configuration options</a>
+      <a class="api selected" href="./api.html">API</a>
+      <a class="build " href="./build.html">Contribute</a>
+      <a class="packaging " href="./packaging.html">Packaging</a>
+    </nav>
+  </header>
+	<div class="content-wrapper">
+		<section class="content">
+			<div class="wrapper">
+				<div class="columns main-page one">
+					<article class="column"><h1 id="noderjs-api-docs-under-construction">noderJS API Docs - UNDER CONSTRUCTION</h1>
+<p>noderJS exposes different APIs that you can find listed and documented here in this page.</p>
+<h2 id="promise">promise</h2>
+<h2 id="context">context</h2>
+<h2 id="find-requires">find requires</h2>
+<h2 id="js-eval">js eval</h2>
+<h2 id="request">request</h2>
+<h5 id="request-url-options-">request (url, options);</h5>
+<p>Method to perform XHR calls</p>
+<p><strong>Parameter Values:</strong></p>
+<ul>
+<li><code>url : String</code></li>
+<li><code>options : Object</code></li>
+</ul>
+<div class='snippet'><pre><code class="lang-js">options :    {
+    headers : {}, <span class="regexp">//</span> Object - Header <span class="keyword">of</span> the request
+    data : <span class="string">"My Request is..."</span>, <span class="regexp">//</span> String - Body <span class="keyword">of</span> the request
+    sync : <span class="literal">true</span>, <span class="regexp">//</span> Boolean - It specifies <span class="keyword">if</span> the request <span class="keyword">is</span> synchronous <span class="keyword">or</span> <span class="keyword">not</span> (<span class="reserved">default</span>: <span class="literal">false</span>)
+    method : <span class="string">"GET"</span> <span class="regexp">//</span> String - Type <span class="keyword">of</span> request (<span class="reserved">default</span>: GET)
+}</code></pre></div>
+<p><strong>Return Value:</strong> <code>promise</code></p>
+<ul>
+<li>Example:</li>
+</ul>
+<div class='snippet'><pre><code class="lang-js">// <span class="variable">How</span> to use the return value:
+<span class="function"><span class="title">request</span><span class="params">(url, options)</span>.<span class="title">then</span><span class="params">(function (response<span class="variable">Text</span>, xhr<span class="variable">Object</span>) <span class="tuple">{
+    // success callback
+}</span>, <span class="keyword">fun</span><span class="function_name">ction</span>(error) <span class="tuple">{
+    // error callback
+}</span>);</code></pre></div>
+<h2 id="async-call">async call</h2>
+<h2 id="current-context">current context</h2>
+<h2 id="async-require">async require</h2>
+</article>
+				</div>
+			</div>
+		</section>
+	</div>
+	<footer id="footer">
+		<section class="content legal">
+			© 2012 Aria Templates is licensed under Apache 2.0 license. See our <a
+				href="http://ariatemplates.com/license">licensing page</a>
+		</section>
+	</footer>
+</body>
+</html>

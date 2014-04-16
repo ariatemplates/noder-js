@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>noderJS - Getting Started</title>
+<meta charset="utf-8">
+<link href="images/favicon.ico" type="image/ico"
+	rel="shortcut icon">
+<link rel="stylesheet" href="css/all.css" type="text/css">
+<link rel="stylesheet" href="css/noder.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/style.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/highlight_skin.css" type="text/css">
+<!-- font-awesome -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<!--[if IE 7]>
+    <link rel="stylesheet" href="css/versionselect.css" type="text/css"><![endif]-->
+<link rel="stylesheet" href="css/documentation.css" type="text/css">
+<!--[if lt IE 9]>
+    <script type="text/javascript" src="js/iemap.js"></script>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript" charset="utf-8"></script>
+    <style>.ie-hidden {display:none;}</style><![endif]-->
+<!--[if lt IE 8]>
+    <link href="css/ie7.css" rel="stylesheet" type="text/css"><![endif]-->
+</head>
+<body class="documentation">
+	<header id="header">
+    <div class="logo">
+      <h5>
+        <a href="./index.html"><img alt="noderJS"
+          src="images/logo-nav.png"></a>
+      </h5>
+    </div>
+    <nav>
+      <a class="getstarted selected" href="./getstarted.html">Get started</a>
+      <a class="configuration " href="./configuration.html">Configuration options</a>
+      <a class="api " href="./api.html">API</a>
+      <a class="build " href="./build.html">Contribute</a>
+      <a class="packaging " href="./packaging.html">Packaging</a>
+    </nav>
+  </header>
+	<div class="content-wrapper">
+		<section class="content">
+			<div class="wrapper">
+				<div class="columns main-page one">
+					<article class="column"><h1 id="getting-started-with-noderjs">Getting Started with noderJS</h1>
+<p>Noder supports CommonJS Modules/1.0, as specified <a href="http://www.commonjs.org/specs/modules/1.0/">here</a>.
+This basically allows a module to export its API through exports and to use the exported API from other modules through
+a synchronous require function. For information about how to write a module, you can refer to the
+<a href="http://nodejs.org/docs/latest/api/modules.html">documentation of node.js</a>.</p>
+<p>This page describes how to use Noder to load modules in a web browser.</p>
+<h2 id="including-noderjs-in-the-page">Including noderJS in the page</h2>
+<p>First of all you need to load noderJS inside your page and you can do it adding this script tag:</p>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<p>This creates a <code>noder</code> global variable which is a reference to a special module which can then be used everywhere just
+like the module variable in a module (note that the name of the variable is <a href="configuration.html">configurable</a>).</p>
+<p>When noder starts, it reads all the script tags whose type attribute is <code>noder</code> (this is configurable) and considers
+them as modules to be executed.</p>
+<p>For example:</p>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"noder"</span>&gt;</span><span class="javascript">
+    <span class="comment">// This is executed as a module.</span>
+    require(<span class="string">'lib/myMainModule'</span>).start(<span class="string">'myParam1'</span>, document.getElementById(<span class="string">'myItem'</span>));
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<p>It is also possible to both load Noder and a specific module with a single line:</p>
+<div class='snippet'><pre><code class="lang-html"><span class="comment">&lt;!-- The following script tag loads Noder and then loads lib/myMainModule --&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js?lib/myMainModule"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<p>A module loaded this way is considered the main module, available through <code>require.main</code> (as it is done in Node.js), so
+a module can check if it is the main module with: <code>module === require.main</code>.</p>
+<p>A configuration object can be specified inside the script tag to change the behavior of Noder
+(check the <a href="configuration.html">configuration options</a> for more details about available parameters):</p>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript">
+{
+    varName : <span class="string">'myNoder'</span> <span class="comment">// Name of the global variable exposed by noder, the default is "noder"</span>
+}
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<p>Here another example of how noderJS allows you to write modules based on CommonJS specifications and use them inside the browser:</p>
+<div class='snippet'><pre><code class="lang-html"><span class="comment">// a.js - first javascript file</span>
+
+<span class="keyword">var</span> b = require(<span class="string">"./b"</span>);
+
+b.myFunction();
+
+
+<span class="comment">// b.js - second javascript file</span>
+
+exports.myFunction = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="comment">// ...</span>
+}
+
+<span class="comment">// inside the browser</span>
+&lt;script type=<span class="string">"text/javascript"</span> src=<span class="string">"noder.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"noder"</span>&gt;</span><span class="javascript">
+    require(<span class="string">"a"</span>);
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></span></code></pre></div>
+<h2 id="compatibility-with-node-js">Compatibility with node.js</h2>
+<p>To provide compatibility with the Node.js implementation of CommonJS, the following global objects are available in modules
+(check <a href="http://nodejs.org/api/globals.html">here</a> for Node documentation):</p>
+<ul>
+<li><a href="http://nodejs.org/api/globals.html#globals_global">global</a></li>
+<li><a href="http://nodejs.org/api/globals.html#globals_require_resolve">require.resolve</a></li>
+<li><a href="http://nodejs.org/api/globals.html#globals_require_cache">require.cache</a></li>
+<li><a href="http://nodejs.org/api/globals.html#globals_require">require.main</a></li>
+<li><a href="http://nodejs.org/api/globals.html#globals_exports">exports and module.exports</a></li>
+<li><a href="http://nodejs.org/api/modules.html#modules_module_filename">module.filename</a></li>
+<li><a href="http://nodejs.org/api/modules.html#modules_module_id">module.id</a> (most of the time equal to module.filename)</li>
+<li><a href="http://nodejs.org/api/modules.html#modules_module_loaded">module.loaded</a></li>
+<li><a href="http://nodejs.org/api/modules.html#modules_module_require_id">module.require</a></li>
+<li><a href="http://nodejs.org/api/modules.html#modules_module_parent">module.parent</a></li>
+<li><a href="http://nodejs.org/api/modules.html#modules_module_children">module.children</a></li>
+<li><a href="http://nodejs.org/api/globals.html#globals_filename">__filename</a></li>
+<li><a href="http://nodejs.org/api/globals.html#globals_dirname">__dirname</a></li>
+</ul>
+<h2 id="asynchronous-module-loading">Asynchronous module loading</h2>
+<p>In addition to the basic synchronous version of require (which is equivalent to a static dependency), noderJS supports
+a built-in asynchronous promise-based version.</p>
+<ul>
+<li>The <code>asyncRequire</code> method is available on the global <code>noder</code> variable, so that it is easy to load
+one (or more) module(s) asynchronously from any Javascript file (even if this file is not using the module format):</li>
+</ul>
+<div class='snippet'><pre><code class="lang-html"><span class="regexp">//</span> preloads <span class="keyword">and</span> executes lib/myModule:
+noder.asyncRequire(<span class="string">'lib/myModule'</span>).<span class="keyword">then</span>(<span class="reserved">function</span>(myModule){
+    <span class="regexp">//</span> myModule can be used here
+});</code></pre></div>
+<ul>
+<li>From a module, it is better to use <code>require(&#39;noder-js/asyncRequire&#39;)</code> as shown in the following sample.
+In that case, the path of the current module is taken into account when resolving the module name (as when using
+the synchronous <code>require</code> method).</li>
+</ul>
+<div class='snippet'><pre><code class="lang-html">// Create an asyncRequire <span class="function"><span class="keyword">function</span> <span class="title">for</span> <span class="title">this</span> <span class="title">module</span>.
+<span class="title">var</span> <span class="title">asyncRequire</span> = <span class="title">require</span><span class="params">('noder-js/asyncRequire')</span></span>.create(<span class="built_in">module</span>);
+
+// asyncRequire preloads <span class="keyword">and</span> executes the modules given as parameters <span class="keyword">and</span> returns a promise.
+asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"./mySecondModule"</span>).<span class="keyword">then</span>(<span class="function"><span class="keyword">function</span> <span class="params">(myFirstModule, mySecondModule)</span></span>{
+    // Do something with myFirstModule <span class="keyword">and</span> mySecondModule
+}, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span></span> {
+    // Do something <span class="keyword">in</span> case of failure
+});</code></pre></div>
+</article>
+				</div>
+			</div>
+		</section>
+	</div>
+	<footer id="footer">
+		<section class="content legal">
+			© 2012 Aria Templates is licensed under Apache 2.0 license. See our <a
+				href="http://ariatemplates.com/license">licensing page</a>
+		</section>
+	</footer>
+</body>
+</html>

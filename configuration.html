@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>noderJS - Configuring noderJS</title>
+<meta charset="utf-8">
+<link href="images/favicon.ico" type="image/ico"
+	rel="shortcut icon">
+<link rel="stylesheet" href="css/all.css" type="text/css">
+<link rel="stylesheet" href="css/noder.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/style.css" type="text/css">
+<link rel="stylesheet" href="css/snippets/highlight_skin.css" type="text/css">
+<!-- font-awesome -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<!--[if IE 7]>
+    <link rel="stylesheet" href="css/versionselect.css" type="text/css"><![endif]-->
+<link rel="stylesheet" href="css/documentation.css" type="text/css">
+<!--[if lt IE 9]>
+    <script type="text/javascript" src="js/iemap.js"></script>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js" type="text/javascript" charset="utf-8"></script>
+    <style>.ie-hidden {display:none;}</style><![endif]-->
+<!--[if lt IE 8]>
+    <link href="css/ie7.css" rel="stylesheet" type="text/css"><![endif]-->
+</head>
+<body class="documentation">
+	<header id="header">
+    <div class="logo">
+      <h5>
+        <a href="./index.html"><img alt="noderJS"
+          src="images/logo-nav.png"></a>
+      </h5>
+    </div>
+    <nav>
+      <a class="getstarted " href="./getstarted.html">Get started</a>
+      <a class="configuration selected" href="./configuration.html">Configuration options</a>
+      <a class="api " href="./api.html">API</a>
+      <a class="build " href="./build.html">Contribute</a>
+      <a class="packaging " href="./packaging.html">Packaging</a>
+    </nav>
+  </header>
+	<div class="content-wrapper">
+		<section class="content">
+			<div class="wrapper">
+				<div class="columns main-page one">
+					<article class="column"><h1 id="configuring-noderjs">Configuring noderJS</h1>
+<h2 id="how-to-configure-noderjs">How to configure noderJS</h2>
+<ul>
+<li>noderJS can be configured by setting the configuration in the script tag which loads it.
+It will be the configuration of the default context.
+For example:</li>
+</ul>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript">
+{
+  <span class="comment">// put the configuration of the default context here</span>
+}
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<ul>
+<li>It is also possible to create a new context with a specific configuration.
+For example, supposing <code>noder</code> is the global variable exposed by noderJS (corresponding to the default context),
+the following code creates a new context with the specified configuration:</li>
+</ul>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> newNoder = noder.createContext({
+  <span class="comment">// put the configuration here</span>
+});</code></pre></div>
+<p>Then, <code>newNoder</code> is a new context, completely independent from <code>noder</code>. The possibility to have multiple contexts could be useful during testing.</p>
+<h2 id="configuration-options">Configuration options</h2>
+<p>noderJS supports the following configuration options:</p>
+<div class='snippet'><pre><code class="lang-javascript">  {
+    varName: <span class="string">'noder'</span>, <span class="comment">// Name of the global variable exposed by noderJS</span>
+    <span class="comment">// The default value for the default context in a browser is "noder".</span>
+    <span class="comment">// There is no default for other contexts than the default one.</span>
+    <span class="comment">// If it is null or contains an empty string, noderJS does not expose any global variable.</span>
+
+    scriptsType: <span class="string">'noder'</span>, <span class="comment">// Type of scripts to execute as CommonJS modules.</span>
+    <span class="comment">// The default is to use the same value as varName.</span>
+    <span class="comment">// If it contains an empty string, noderJS does not look for scripts to execute as modules.</span>
+
+    main: <span class="string">"lib/myMainModule"</span>, <span class="comment">// Main module to load when starting</span>
+    <span class="comment">// If this parameter is defined in the configuration object of the default context,</span>
+    <span class="comment">// it overrides the value defined after the question mark in the noderJS script tag.</span>
+    <span class="comment">// A module loaded this way is considered the main module, available through require.main.</span>
+
+    failFast: <span class="literal">false</span>, <span class="comment">// Whether to fail fast when a dependency cannot be loaded</span>
+    <span class="comment">// If this parameter is false, noderJS waits for all other dependencies to be loaded before</span>
+    <span class="comment">// raising the error.</span>
+    <span class="comment">// If this parameter is true, noderJS raises the error as soon as possible.</span>
+    <span class="comment">// The default value is true.</span>
+
+    onstart : <span class="function"><span class="keyword">function</span> <span class="params">(mainModule)</span> {</span>
+      <span class="comment">// Function to be executed when the main module has been loaded.</span>
+      <span class="comment">// The reference to the exported object is given as a parameter.</span>
+    },
+
+    resolver: {
+      <span class="string">"default"</span> : {
+        <span class="comment">// Default configuration for the resolver.</span>
+        <span class="comment">// This object describes the tree of modules.</span>
+        <span class="comment">// An object value means that a directory with that name exists.</span>
+        <span class="comment">// A string value means a redirection to some other file/directory</span>
+        <span class="comment">// The special '.' key specifies the file to use when requiring the directory.</span>
+
+        <span class="string">"underscore"</span> : {}, <span class="comment">// require.resolve("underscore") will return "underscore/index.js"</span>
+        <span class="string">"uglify-js"</span> : {
+          <span class="string">"."</span> : <span class="string">"uglify-js.js"</span> <span class="comment">// require.resolve("uglify-js") will return "uglify-js/uglify-js.js"</span>
+        },
+        <span class="string">"markdown"</span> : {
+          <span class="string">"lib"</span> : {
+            <span class="string">"."</span> : <span class="string">"markdown.js"</span> <span class="comment">// require.resolve("markdown/lib") will return "markdown/lib/markdown.js"</span>
+          },
+          <span class="string">"."</span> : <span class="string">"lib"</span>, <span class="comment">// require.resolve("markdown") will also return "markdown/lib/markdown.js"</span>
+        }
+        <span class="comment">// require.resolve("otherLib") will return "otherLib.js"</span>
+        <span class="comment">// require.resolve("otherLib/myFile") will return "otherLib/myFile.js"</span>
+      }
+    },
+
+    packaging: {
+      baseUrl: <span class="string">""</span>, <span class="comment">// Base URL which is prepended to every path when requesting files to the server.</span>
+      <span class="comment">// It can be either absolute or relative to the current page location.</span>
+      requestConfig: {
+        <span class="comment">// Options passed to the noder-js/request module when requesting files to the server.</span>
+        <span class="comment">// Here are some useful properties:</span>
+        sync: <span class="literal">false</span>, <span class="comment">// whether requests are synchronous (true) or asynchronous (false, default value).</span>
+        headers: {} <span class="comment">// map of http headers and their values</span>
+      },
+      preprocessors: [
+        <span class="comment">// Items defined in this array define preprocessors which are called before the content of a module</span>
+        <span class="comment">// is evaluated, allowing each preprocessor to change the content.</span>
+        <span class="comment">// Preprocessors are called in the order defined here.</span>
+        <span class="comment">// Pre-processing only applies to unpackaged files.</span>
+        <span class="comment">// A preprocessor module must export a function in module.export.</span>
+        <span class="comment">// It is passed 2 arguments: the file content and the file name.</span>
+        <span class="comment">// Additional arguments can be specified with the options property, which can be</span>
+        <span class="comment">// either an array (for multiple extra arguments) or any other value (for a single</span>
+        <span class="comment">// extra argument).</span>
+        <span class="comment">// The preprocessor is supposed to return the modified file content, or a promise resolving</span>
+        <span class="comment">// to the modified file content.</span>
+        {
+          pattern: <span class="regexp">/\.coffee$/</span>,
+          module: <span class="string">"preprocessors/coffeeScript.js"</span>
+        },
+        {
+          pattern: <span class="regexp">/\.yml$/</span>,
+          module: <span class="string">"preprocessors/yaml.js"</span>
+        },
+        {
+          pattern: <span class="regexp">/\.js$/</span>,
+          module: <span class="string">"preprocessors/myJSPreprocessor.js"</span>,
+          options: {
+            <span class="comment">// This options object will be passed to myJSPreprocessor as its 3rd argument</span>
+            specialFeature: <span class="literal">true</span>
+          }
+        }
+      ],
+      packagesMap: {
+        <span class="comment">// This section specifies how files are packaged.</span>
+        <span class="comment">// Any file not included in a package is processed in unpackaged mode.</span>
+        <span class="string">"markdown"</span> : {
+          <span class="comment">// Include all files in the markdown folder (including files in sub-folders):</span>
+          <span class="string">"**"</span> : <span class="string">"markdown.js"</span>
+        },
+        <span class="string">"underscore"</span> : {
+          <span class="comment">// Include all files in the underscore folder (not including files in sub-folders):</span>
+          <span class="string">"*"</span> : <span class="string">"myPackage1.js"</span>,
+          <span class="string">"exception.js"</span> : <span class="string">"myPackage2.js"</span> <span class="comment">// exception.js is not in myPackage1.js but in myPackage2.js</span>
+        },
+        <span class="string">"myFolder"</span> : {
+          <span class="string">"a.js"</span> : <span class="string">"myPackage1.js"</span>,
+          <span class="string">"b.js"</span> : <span class="string">"myPackage1.js"</span>,
+          <span class="string">"c.js"</span> : <span class="string">"myPackage2.js"</span>
+        }
+      }
+    }
+  }</code></pre></div>
+<p>The <code>resolver</code> is used to converts the paramenter of require into an absolute file name. It accepts 3 different values: an object, a string and a special value.</p>
+<p>When the value is an object, it means that a directory with that name exists.
+When the value is a string, it means a redirection to some other file or directory.
+The &#39;.&#39; is the special value and defines the file to use when requiring the directory.</p>
+<p>The <code>packaging</code> allows you to define a base URL to prepend to every path when requesting files to the server, to add some configuration when requesting files, to use preprocessors to change modules content and to specify how files are packaged.</p>
+</article>
+				</div>
+			</div>
+		</section>
+	</div>
+	<footer id="footer">
+		<section class="content legal">
+			© 2012 Aria Templates is licensed under Apache 2.0 license. See our <a
+				href="http://ariatemplates.com/license">licensing page</a>
+		</section>
+	</footer>
+</body>
+</html>
