@@ -6,7 +6,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_SECURE_ENV_VARS" = "true" 
     mkdir -p "dist/${TRAVIS_BRANCH}" &&
     find ../dist -name "*.gz" -delete &&
     cp -rf ../dist/browser/* "dist/${TRAVIS_BRANCH}/" &&
-    git add dist &&
+    cp -rf ../dist/doc/* . &&
+    git add . &&
     git commit -m "Build ${TRAVIS_COMMIT} (${TRAVIS_BRANCH})" &&
     git push --quiet "https://${GH_CREDENTIALS}@github.com/${TRAVIS_REPO_SLUG}.git" gh-pages &> /dev/null &&
     echo "Successfully published to https://github.com/${TRAVIS_REPO_SLUG}/tree/gh-pages/dist/${TRAVIS_BRANCH}"
