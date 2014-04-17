@@ -31,7 +31,7 @@ This allows to easily import dependencies with ``var myModule = require("myModul
 
 * Even if it is intended to be run on web browsers, a node.js version of Noder is also available.
 
-* It has many configuration options (check the [documentation](doc/index.md)).
+* It has many configuration options (check the [documentation](http://noder-js.ariatemplates.com/)).
 
 ## Why using Noder ?
 
@@ -81,4 +81,4 @@ before executing the code of the module.
 By default, the module is looked for in the same directory as the HTML page, but it is possible to change it through configuration options.
 When the page is loaded, ``firstModule.js`` will automatically be loaded and executed.
 
-* Noder has many more features. Please check the [documentation](doc/index.md).
+* Noder has many more features. Please check the [documentation](http://noder-js.ariatemplates.com/).
