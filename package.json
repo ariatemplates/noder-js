@@ -10,7 +10,7 @@
     },
     "devDependencies": {
         "acorn": "0.2.0",
-        "atpackager": "0.2.2",
+        "atpackager": "0.2.4",
         "expect.js": "0.2.0",
         "grunt": "0.4.2",
         "grunt-contrib-clean": "0.4.1",
