@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.2.1 - 16 Apr 2014
+ * Noder-js 1.3.0 - 23 Apr 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -19,7 +19,7 @@
 /*jshint undef:true, -W069, -W055*/
 (function(global, callEval, packagedConfig) {
     "use strict";
-    var type$module, merge$module, nextTick$module, uncaughtError$module, asyncCall$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, bind$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, scriptConfig$module, defaultConfig$module, main$module;
+    var type$module, nextTick$module, uncaughtError$module, asyncCall$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, bind$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, merge$module, scriptConfig$module, defaultConfig$module, main$module;
         (function() {
         var toString = Object.prototype.toString;
         var isString = function(str) {
@@ -40,22 +40,6 @@
             isString: isString,
             isPlainObject: isPlainObject
         };
-    })();
-        (function() {
-        var merge = function(dst, src, rec) {
-            for (var key in src) {
-                if (src.hasOwnProperty(key)) {
-                    var srcValue = src[key];
-                    var dstValue;
-                    if (rec && /*typeUtils*/ type$module.isPlainObject(srcValue) && /*typeUtils*/ type$module.isPlainObject(dstValue = dst[key])) {
-                        merge(dstValue, srcValue, rec);
-                    } else {
-                        dst[key] = srcValue;
-                    }
-                }
-            }
-        };
-        merge$module = merge;
     })();
         (function() {
         var setTimeout = global.setTimeout;
@@ -114,6 +98,7 @@
         (function() {
         var isFunction = type$module.isFunction;
         var concat = Array.prototype.concat;
+        var empty = function() {};
         var chainAnswer = function(obj, resolve, reject) {
             if (obj) {
                 var then = obj.thenSync || obj.then;
@@ -141,82 +126,68 @@
             };
         };
         var Promise = function() {};
-        var createPromise = function() {
-            var deferred = new Promise();
-            var promise = new Promise();
-            var state = /*PENDING_STATE*/ "pending";
+        var defer = function() {
+            var deferred = {};
+            var promise = deferred.promise = new Promise();
+            var state;
+            // undefined, "resolve" or "reject"
             var result = null;
-            var listeners = {};
-            var createMethods = function(doneOrFail, resolveOrReject, newState) {
-                var addCb = function(sync, applyFunction) {
-                    promise[doneOrFail + sync] = function() {
-                        var curListeners;
-                        if (state === /*PENDING_STATE*/ "pending") {
-                            curListeners = listeners[newState] || [];
-                            listeners[newState] = concat.apply(curListeners, arguments);
-                        } else if (state === newState) {
-                            curListeners = concat.apply([], arguments);
-                            applyFunction(curListeners, result);
-                        }
-                        return this;
-                    };
-                };
-                addCb("", /*asyncCall*/ asyncCall$module.nextTickApply);
-                addCb("Sync", /*asyncCall*/ asyncCall$module.syncApply);
-                deferred[resolveOrReject] = function() {
-                    if (state !== /*PENDING_STATE*/ "pending") {
-                        return;
+            var listeners = {
+                resolve: [],
+                reject: []
+            };
+            var createThen = function(sync, applyFunction) {
+                promise["then" + sync] = function(onResolve, onReject) {
+                    var res = defer();
+                    onResolve = isFunction(onResolve) ? propagateResults(onResolve, res) : res.resolve;
+                    onReject = isFunction(onReject) ? propagateResults(onReject, res) : res.reject;
+                    if (listeners) {
+                        // register listeners
+                        listeners.resolve.push(onResolve);
+                        listeners.reject.push(onReject);
+                    } else {
+                        // result already known
+                        applyFunction([ state == "resolve" ? onResolve : onReject ], result);
                     }
-                    result = arguments;
-                    state = newState;
-                    var myListeners = listeners[newState];
-                    listeners = null;
-                    /*asyncCall*/ asyncCall$module.nextTickApply(myListeners, result);
+                    return res.promise;
                 };
             };
-            createMethods("done", "resolve", /*RESOLVED_STATE*/ "resolved");
-            createMethods("fail", "reject", /*REJECTED_STATE*/ "rejected");
-            promise.state = function() {
-                return state;
+            createThen("", /*asyncCall*/ asyncCall$module.nextTickApply);
+            createThen("Sync", /*asyncCall*/ asyncCall$module.syncApply);
+            var createResolveReject = function(resolveOrReject) {
+                deferred[resolveOrReject] = function() {
+                    if (listeners) {
+                        result = arguments;
+                        state = resolveOrReject;
+                        var myListeners = listeners[resolveOrReject];
+                        listeners = null;
+                        /*asyncCall*/ asyncCall$module.nextTickApply(myListeners, result);
+                    }
+                };
+                return function() {
+                    return state == resolveOrReject;
+                };
             };
-            promise.promise = function() {
-                return promise;
-            };
+            promise.isResolved = createResolveReject("resolve");
+            promise.isRejected = createResolveReject("reject");
             promise.result = function() {
                 return result && result[0];
             };
-            /*merge*/ merge$module(deferred, promise);
             return deferred;
         };
-        var promiseProto = createPromise.prototype = Promise.prototype = {
+        Promise.prototype = {
             end: function() {
-                return this.thenSync(createPromise.empty, /*uncaughtError*/ uncaughtError$module);
+                /*uncaughtError*/
+                return this.thenSync(empty, uncaughtError$module);
+            },
+            always: function(cb) {
+                this.then(cb, cb);
+                return this;
             }
         };
-        var createThenAndAlways = function(sync) {
-            var doneMethodName = "done" + sync;
-            var failMethodName = "fail" + sync;
-            promiseProto["then" + sync] = function(done, fail) {
-                var res = createPromise();
-                this[doneMethodName](isFunction(done) ? propagateResults(done, res) : res.resolve);
-                this[failMethodName](isFunction(fail) ? propagateResults(fail, res) : res.reject);
-                return res.promise();
-            };
-            promiseProto["always" + sync] = function() {
-                this[doneMethodName].apply(this, arguments);
-                this[failMethodName].apply(this, arguments);
-                return this;
-            };
-        };
-        createThenAndAlways("Sync");
-        createThenAndAlways("");
-        var done = createPromise();
+        var done = defer();
         done.resolve();
-        createPromise.done = done.promise();
-        createPromise.empty = function() {};
-        createPromise.noop = function() {
-            return done;
-        };
+        done = done.promise;
         var countDown = function(state, index) {
             return function(ok) {
                 return function(result) {
@@ -237,11 +208,11 @@
                     }
                     state[/*STATE_COUNTER*/ 1]--;
                     if (!state[/*STATE_COUNTER*/ 1]) {
-                        var promise = state[/*STATE_PROMISE*/ 0];
+                        var defer = state[/*STATE_DEFERRED*/ 0];
                         var endResult = state[/*STATE_RESULT*/ 2];
                         // clean closure variables:
-                        state[/*STATE_PROMISE*/ 0] = state[/*STATE_RESULT*/ 2] = null;
-                        (state[/*STATE_OK*/ 3] ? promise.resolve : promise.reject).apply(promise, endResult);
+                        state[/*STATE_DEFERRED*/ 0] = state[/*STATE_RESULT*/ 2] = null;
+                        (state[/*STATE_OK*/ 3] ? defer.resolve : defer.reject).apply(defer, endResult);
                     }
                     // prevent another call with the same index
                     state = null;
@@ -252,20 +223,24 @@
             return function() {
                 var array = concat.apply([], arguments);
                 if (!array.length) {
-                    return createPromise.done;
+                    return done;
                 }
-                var promise = createPromise();
-                var state = [ promise, array.length, array, true, failFast ];
+                var deferred = defer();
+                var state = [ deferred, array.length, array, true, failFast ];
                 for (var i = 0, l = array.length; i < l; i++) {
                     var fn = countDown(state, i);
                     chainAnswer(array[i], fn(true), fn(false));
                 }
-                return promise.promise();
+                return deferred.promise;
             };
         };
-        createPromise.when = createWhen(true);
-        createPromise.whenAll = createWhen(false);
-        promise$module = createPromise;
+        promise$module = {
+            defer: defer,
+            when: createWhen(true),
+            whenAll: createWhen(false),
+            empty: empty,
+            done: done
+        };
     })();
     packagedConfig$module = packagedConfig;
         (function() {
@@ -331,7 +306,7 @@
         };
         request$module = function(url, options) {
             options = options || {};
-            var deferred = /*promise*/ promise$module();
+            var deferred = /*promise*/ promise$module.defer();
             var xhr = newHttpRequestObject();
             var headers = options.headers || {};
             xhr.open(options.method || "GET", url, !options.sync);
@@ -347,7 +322,7 @@
                 // (i.e. the response is not available synchronously)
                 xhr.onreadystatechange = checkState;
             }
-            return deferred.promise();
+            return deferred.promise;
         };
     })();
     eval$module = function(code, fileName) {
@@ -364,9 +339,11 @@
     };
     jsEval$module = function(jsCode, url, lineDiff) {
         try {
-            return /*exec*/ eval$module(jsCode, url);
+            /*exec*/
+            return eval$module(jsCode, url);
         } catch (error) {
-            throw /*noderError*/ noderError$module("jsEval", [ jsCode, url, lineDiff ], error);
+            /*noderError*/
+            throw noderError$module("jsEval", [ jsCode, url, lineDiff ], error);
         }
     };
         (function() {
@@ -429,12 +406,14 @@
         var next = function(content) {
             args[0] = content;
             if (!items.length) {
-                return /*promise*/ promise$module.when(content);
+                /*promise*/
+                return promise$module.when(content);
             }
             var currentFilter = items.shift();
             if (currentFilter.pattern && currentFilter.pattern.test(filename)) {
                 return context.moduleAsyncRequire(context.rootModule, [ currentFilter.module ]).thenSync(function(processor) {
-                    return /*promise*/ promise$module.when(processor.apply(this, args.concat(currentFilter.options))).thenSync(next);
+                    /*promise*/
+                    return promise$module.when(processor.apply(this, args.concat(currentFilter.options))).thenSync(next);
                 });
             } else {
                 return next(args[0]);
@@ -478,14 +457,18 @@
         };
         loaderProto.loadUnpackaged = function(module) {
             module.url = this.baseUrl + module.filename;
-            return /*request*/ request$module(module.url, this.config.requestConfig).thenSync(/*bind1*/ bind$module(this.preprocessUnpackaged, this, module));
+            /*request*/
+            /*bind1*/
+            return request$module(module.url, this.config.requestConfig).thenSync(bind$module(this.preprocessUnpackaged, this, module));
         };
         loaderProto.preprocessUnpackaged = function(module, code) {
             var preprocessors = this.config.preprocessors;
             if (!preprocessors || !preprocessors.length) {
                 return this.defineUnpackaged(module, code);
             } else {
-                return /*filters*/ filters$module(this.context, preprocessors, module.filename, [ code, module.filename ]).thenSync(/*bind1*/ bind$module(this.defineUnpackaged, this, module));
+                /*filters*/
+                /*bind1*/
+                return filters$module(this.context, preprocessors, module.filename, [ code, module.filename ]).thenSync(bind$module(this.defineUnpackaged, this, module));
             }
         };
         loaderProto.defineUnpackaged = function(module, code) {
@@ -508,7 +491,8 @@
         };
         loaderProto.jsPackageEval = function(jsCode, url) {
             var code = [ "(function(define){\n", jsCode, "\n})" ];
-            return /*jsEval*/ jsEval$module(code.join(""), url, 1);
+            /*jsEval*/
+            return jsEval$module(code.join(""), url, 1);
         };
         loader$module = Loader;
     })();
@@ -579,10 +563,12 @@
             var curValue = terms.join("/");
             while (curValue !== lastValue) {
                 if (terms[0] == "..") {
-                    throw /*noderError*/ noderError$module("resolverRoot", [ terms ]);
+                    /*noderError*/
+                    throw noderError$module("resolverRoot", [ terms ]);
                 }
                 if (allValues[curValue]) {
-                    throw /*noderError*/ noderError$module("resolverLoop", [ terms ]);
+                    /*noderError*/
+                    throw noderError$module("resolverLoop", [ terms ]);
                 } else {
                     allValues[curValue] = lastValue;
                 }
@@ -621,9 +607,10 @@
             var document = global.document;
             if (!document || document.readyState === "complete") {
                 // in this simple case, avoid creating a new promise, just use promise.done
-                return /*promise*/ promise$module.done;
+                /*promise*/
+                return promise$module.done;
             }
-            var res = /*promise*/ promise$module();
+            var res = /*promise*/ promise$module.defer();
             var callback = function() {
                 if (res) {
                     res.resolve();
@@ -633,7 +620,7 @@
                 document.addEventListener("DOMContentLoaded", callback, false);
                 // Fallback in case the browser does not support DOMContentLoaded:
                 global.addEventListener("load", callback, false);
-                res.always(function() {
+                res.promise.always(function() {
                     // clean the closure and listeners
                     document.removeEventListener("DOMContentLoaded", callback, false);
                     global.removeEventListener("load", callback, false);
@@ -644,7 +631,7 @@
             } else if (document.attachEvent) {
                 // Fallback to the onload event on IE:
                 global.attachEvent("onload", callback);
-                res.always(function() {
+                res.promise.always(function() {
                     // clean the closure and listeners
                     global.detachEvent("onload", callback);
                     document = null;
@@ -652,7 +639,7 @@
                     res = null;
                 });
             }
-            return res.promise();
+            return res.promise;
         };
         domReady$module = function() {
             if (!domReadyPromise) {
@@ -671,7 +658,8 @@
             };
         };
         execScripts$module = function(context, scriptType) {
-            return /*domReady*/ domReady$module().then(function() {
+            /*domReady*/
+            return domReady$module().then(function() {
                 var document = global.document;
                 var executePromise = /*promise*/ promise$module.done;
                 if (document) {
@@ -948,7 +936,8 @@
             this.exports = {};
         };
         var getModuleProperty = function(module, property) {
-            return module[/*noderPropertiesKey*/ "_noder"][property];
+            /*noderPropertiesKey*/
+            return module["_noder"][property];
         };
         var setModuleProperty = function(module, property, value) {
             module[/*noderPropertiesKey*/ "_noder"][property] = value;
@@ -968,7 +957,8 @@
             var scriptsType = config.scriptsType;
             if (scriptsType) {
                 actions = actions.thenSync(function() {
-                    return /*execScripts*/ execScripts$module(context, scriptsType);
+                    /*execScripts*/
+                    return execScripts$module(context, scriptsType);
                 });
             }
             return actions.always(function() {
@@ -1023,7 +1013,8 @@
         // dependencies)
         contextProto.modulePreload = function(module, parent) {
             if (module.preloaded) {
-                return /*promise*/ promise$module.done;
+                /*promise*/
+                return promise$module.done;
             }
             var preloading = getModuleProperty(module, /*PROPERTY_PRELOADING*/ 3);
             var preloadingParents = getModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5);
@@ -1031,12 +1022,14 @@
                 // If we get here, it may be because of a circular dependency
                 if (parent) {
                     if (checkCircularDependency(module, parent)) {
-                        return /*promise*/ promise$module.done;
+                        /*promise*/
+                        return promise$module.done;
                     }
                     preloadingParents.push(parent);
                 }
                 if (!preloading) {
-                    throw /*noderError*/ noderError$module("modulePreloadRec", [ module ]);
+                    /*noderError*/
+                    throw noderError$module("modulePreloadRec", [ module ]);
                 }
                 return preloading;
             }
@@ -1049,14 +1042,17 @@
                 module.require.main = module;
             }
             setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5, parent ? [ parent ] : []);
-            return setModuleProperty(module, /*PROPERTY_PRELOADING*/ 3, self.moduleLoadDefinition(module).thenSync(function() {
-                return self.modulePreloadDependencies(module, getModuleProperty(module, /*PROPERTY_DEPENDENCIES*/ 1));
+            /*PROPERTY_PRELOADING*/
+            return setModuleProperty(module, 3, self.moduleLoadDefinition(module).thenSync(function() {
+                /*PROPERTY_DEPENDENCIES*/
+                return self.modulePreloadDependencies(module, getModuleProperty(module, 1));
             }).thenSync(function() {
                 module.preloaded = true;
                 setModuleProperty(module, /*PROPERTY_PRELOADING*/ 3, false);
                 setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5, null);
             }, function(error) {
-                throw /*noderError*/ noderError$module("modulePreload", [ module ], error);
+                /*noderError*/
+                throw noderError$module("modulePreload", [ module ], error);
             }).always(function() {
                 // clean up
                 module = null;
@@ -1066,7 +1062,8 @@
         };
         contextProto.moduleLoadDefinition = function(module) {
             if (getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
-                return /*promise*/ promise$module.done;
+                /*promise*/
+                return promise$module.done;
             }
             var res = getModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4);
             if (!res) {
@@ -1082,7 +1079,8 @@
                         if (getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
                             asyncOrError = false;
                         } else {
-                            throw /*noderError*/ noderError$module("moduleLoadDefinition", [ module ], error);
+                            /*noderError*/
+                            throw noderError$module("moduleLoadDefinition", [ module ], error);
                         }
                     };
                     res = this.loader.moduleLoad(module).thenSync(checkResult, checkResult);
@@ -1116,7 +1114,8 @@
                     return method.apply(plugin, parameters);
                 }
             }).thenSync(null, function(error) {
-                throw /*noderError*/ noderError$module("moduleProcessPlugin", [ module, pluginDef ], error);
+                /*noderError*/
+                throw noderError$module("moduleProcessPlugin", [ module, pluginDef ], error);
             });
         };
         contextProto.modulePreloadDependencies = function(module, dependencies) {
@@ -1134,8 +1133,9 @@
                 return module.exports;
             }
             var preloadPromise = this.modulePreload(module);
-            if (preloadPromise.state() != "resolved") {
-                throw /*noderError*/ noderError$module("notPreloaded", [ module ], preloadPromise.result());
+            if (!preloadPromise.isResolved()) {
+                /*noderError*/
+                throw noderError$module("notPreloaded", [ module ], preloadPromise.result());
             }
             var exports = module.exports;
             setModuleProperty(module, /*PROPERTY_EXECUTING*/ 2, true);
@@ -1189,7 +1189,7 @@
         };
         contextProto.moduleAsyncRequire = function(module, dependencies) {
             return this.modulePreloadDependencies(module, dependencies).thenSync(function() {
-                var defer = /*promise*/ promise$module();
+                var defer = /*promise*/ promise$module.defer();
                 var result = [];
                 for (var i = 0, l = dependencies.length; i < l; i++) {
                     var item = dependencies[i];
@@ -1198,7 +1198,7 @@
                     }
                 }
                 defer.resolve.apply(defer, result);
-                return defer.promise();
+                return defer.promise;
             }).always(function() {
                 module = null;
                 dependencies = null;
@@ -1214,7 +1214,8 @@
         };
         contextProto.jsModuleEval = function(jsCode, url, lineDiff) {
             var code = [ "(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n", jsCode, "\n\n})" ];
-            return /*jsEval*/ jsEval$module(code.join(""), url, (lineDiff || 0) + 3);
+            /*jsEval*/
+            return jsEval$module(code.join(""), url, (lineDiff || 0) + 3);
         };
         contextProto.execModuleCall = function(moduleFilename) {
             return this.moduleExecute(this.getModule(this.moduleResolve(this.rootModule, moduleFilename)));
@@ -1248,6 +1249,22 @@
             };
         };
         context$module = Context;
+    })();
+        (function() {
+        var merge = function(dst, src, rec) {
+            for (var key in src) {
+                if (src.hasOwnProperty(key)) {
+                    var srcValue = src[key];
+                    var dstValue;
+                    if (rec && /*typeUtils*/ type$module.isPlainObject(srcValue) && /*typeUtils*/ type$module.isPlainObject(dstValue = dst[key])) {
+                        merge(dstValue, srcValue, rec);
+                    } else {
+                        dst[key] = srcValue;
+                    }
+                }
+            }
+        };
+        merge$module = merge;
     })();
         (function() {
         var config = {};
