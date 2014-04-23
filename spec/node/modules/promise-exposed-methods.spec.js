@@ -18,8 +18,8 @@ describe('Promises/Exposed methods', function() {
     var promise = require("../../../promise.js");
 
     it("resolve/reject", function() {
-        var instance = promise();
-        var res = instance.promise();
+        var instance = promise.defer();
+        var res = instance.promise;
         expect(instance.resolve).to.be.a("function");
         expect(instance.reject).to.be.a("function");
         expect(res.resolve).to.be.an("undefined");

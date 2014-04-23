@@ -36,7 +36,7 @@ var pluginMethod = function() {
 };
 
 pluginMethod.$preload = function() {
-    var deferred = promise();
+    var deferred = promise.defer();
     var item = {
         args: slice.call(arguments, 0),
         resolved: false
@@ -46,7 +46,7 @@ pluginMethod.$preload = function() {
         deferred.resolve();
     }, 20);
     preloadCalls.push(item);
-    return deferred.promise();
+    return deferred.promise;
 };
 
 module.exports = {

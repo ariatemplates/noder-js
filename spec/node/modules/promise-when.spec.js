@@ -40,11 +40,11 @@ describe('Promises/When', function() {
     });
 
     it("Fail fast (when)", function(done) {
-        var unresolvedDefer = promise();
-        var errorDefer = promise();
+        var unresolvedDefer = promise.defer();
+        var errorDefer = promise.defer();
         var myError = {};
         errorDefer.reject(myError);
-        promise.when([unresolvedDefer.promise(), errorDefer.promise()]).then(function() {
+        promise.when([unresolvedDefer.promise, errorDefer.promise]).then(function() {
             done(new Error("The success callback should not be called."));
         }, function(raisedError) {
             expect(raisedError).to.equal(myError);
@@ -63,11 +63,11 @@ describe('Promises/When', function() {
 
     it("Fail slow (whenAll)", function(done) {
         var later = false;
-        var resolveLaterDefer = promise();
-        var errorDefer = promise();
+        var resolveLaterDefer = promise.defer();
+        var errorDefer = promise.defer();
         var myError = {};
         errorDefer.reject(myError);
-        promise.whenAll([resolveLaterDefer.promise(), errorDefer.promise()]).then(function() {
+        promise.whenAll([resolveLaterDefer.promise, errorDefer.promise]).then(function() {
             done(new Error("The success callback should not be called."));
         }, function(raisedError) {
             expect(later).to.equal(true);

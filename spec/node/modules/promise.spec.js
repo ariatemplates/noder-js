@@ -14,14 +14,14 @@
  */
 
 describe("Promises/A+ Tests", function() {
-    var Deferred = require('../../../promise.js');
+    var defer = require('../../../promise.js').defer;
 
     require("promises-aplus-tests").mocha({
         pending: function() {
-            var deferred = Deferred();
+            var deferred = defer();
 
             return {
-                promise: deferred.promise(),
+                promise: deferred.promise,
                 fulfill: deferred.resolve,
                 reject: deferred.reject
             };
