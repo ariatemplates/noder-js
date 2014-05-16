@@ -1,3 +1,6 @@
+title: Configuring noderJS
+page: configuration
+---
 # Configuring noderJS
 
 ## How to configure noderJS

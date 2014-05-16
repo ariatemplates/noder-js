@@ -15,6 +15,7 @@
 
 module.exports = function(grunt) {
     var pkg = require('./package.json');
+    var doc = require('./build/doc');
 
     var licenseLong = grunt.file.read('tasks/templates/LICENSE-long');
     var licenseSmall = grunt.file.read('tasks/templates/LICENSE-small');
@@ -286,36 +287,10 @@ module.exports = function(grunt) {
             doc: {
                 options: {
                     template: "tasks/templates/documentation.html",
-                    preCompile: function(src, context) {
-                        context.config = "";
-                        context.start = "";
-                        context.build = "";
-                        context.api = "";
-                        context.pack = "";
-                        if (src.match(/# Configuring noderJS/)) {
-                            context.title = "Configuring noderJS";
-                            context.config = "selected";
-                        } else if (src.match(/# Getting Started with noderJS/)) {
-                            context.title = "Getting Started";
-                            context.start = "selected";
-                        } else if (src.match(/# Contribute to noderJS/)) {
-                            context.title = "Contribute to noderJS";
-                            context.build = "selected";
-                        } else if (src.match(/# noderJS API Doc/)) {
-                            context.title = "noder JS API Doc";
-                            context.api = "selected";
-                        } else if (src.match(/# Packaging noderJS/)) {
-                            context.title = "Packaging noderJS";
-                            context.pack = "selected";
-                        }
-                        return src.replace(/\(([^()]*)\.md\)/g, "($1.html)");
-                    },
+                    preCompile: doc.preCompile,
+                    postCompile: doc.postCompile,
                     markdownOptions: {
                         highlight: "manual"
-                    },
-                    postCompile: function(src) {
-                        var tmp = src.replace(/<pre><code/g, "<div class='snippet'><pre><code");
-                        return tmp.replace(/<\/code><\/pre>/g, "</code></pre></div>");
                     }
                 },
                 files: [{

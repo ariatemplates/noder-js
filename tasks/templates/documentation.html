@@ -31,11 +31,11 @@
       </h5>
     </div>
     <nav>
-      <a class="getstarted <%=start%>" href="./getstarted.html">Get started</a>
-      <a class="configuration <%=config%>" href="./configuration.html">Configuration options</a>
-      <a class="api <%=api%>" href="./api.html">API</a>
-      <a class="build <%=build%>" href="./build.html">Contribute</a>
-      <a class="packaging <%=pack%>" href="./packaging.html">Packaging</a>
+      <a class="getstarted <%=page=='getstarted'?'selected':''%>" href="./getstarted.html">Get started</a>
+      <a class="configuration <%=page=='configuration'?'selected':''%>" href="./configuration.html">Configuration options</a>
+      <a class="api <%=page=='api'?'selected':''%>" href="./api.html">API</a>
+      <a class="build <%=page=='build'?'selected':''%>" href="./build.html">Contribute</a>
+      <a class="packaging <%=page=='packaging'?'selected':''%>" href="./packaging.html">Packaging</a>
     </nav>
   </header>
 	<div class="content-wrapper">

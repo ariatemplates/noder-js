@@ -1,3 +1,6 @@
+title: Getting started with noderJS
+page: getstarted
+---
 # Getting Started with noderJS
 
 Noder supports CommonJS Modules/1.0, as specified [here](http://www.commonjs.org/specs/modules/1.0/).

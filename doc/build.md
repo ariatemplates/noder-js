@@ -1,4 +1,7 @@
-# Contribute to noderJS
+title: Contributing to noderJS
+page: build
+---
+# Contributing to noderJS
 
 This page explains how to build Noder from sources. This is especially useful if you are planning to
 contribute to this project. Note that if you only intend to use Noder, you can use the already

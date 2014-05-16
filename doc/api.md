@@ -1,3 +1,6 @@
+title: API Documentation
+page: api
+---
 # noderJS API Docs - UNDER CONSTRUCTION
 
 noderJS exposes different APIs that you can find listed and documented here in this page.
