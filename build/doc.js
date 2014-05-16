@@ -14,7 +14,20 @@
  */
 
 var yaml = require("js-yaml");
+var hljs = require("highlight.js");
 var yamlHeaderRegExp = /^([\s\S]*?)\n\s*\-+\s*\n/;
+
+hljs.configure({
+    classPrefix: ""
+});
+
+exports.highlight = function(content, language) {
+    if (language) {
+        return hljs.highlight(language, content).value;
+    } else {
+        return content;
+    }
+};
 
 exports.preCompile = function(src, context) {
     context.title = "";

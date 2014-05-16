@@ -26,7 +26,7 @@ Method to perform XHR calls
 * ``options : Object``
 
 ```js
-options :	{
+options : {
 	headers : {}, // Object - Header of the request
 	data : "My Request is...", // String - Body of the request
 	sync : true, // Boolean - It specifies if the request is synchronous or not (default: false)

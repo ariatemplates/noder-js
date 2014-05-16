@@ -290,7 +290,8 @@ module.exports = function(grunt) {
                     preCompile: doc.preCompile,
                     postCompile: doc.postCompile,
                     markdownOptions: {
-                        highlight: "manual"
+                        highlight: doc.highlight,
+                        gfm: true
                     }
                 },
                 files: [{
