@@ -16,23 +16,26 @@
 var defer = require('./promise').defer;
 var typeUtils = require('./src/modules/type');
 
-module.exports = {
-    create: function(module) {
-        return function() {
-            var deferred = defer();
-            var result = [];
-            try {
-                for (var i = 0, l = arguments.length; i < l; i++) {
-                    var item = arguments[i];
-                    if (typeUtils.isString(item)) {
-                        result[i] = module.require(item);
-                    }
+var create = function(module) {
+    var res = function() {
+        var deferred = defer();
+        var result = [];
+        try {
+            for (var i = 0, l = arguments.length; i < l; i++) {
+                var item = arguments[i];
+                if (typeUtils.isString(item)) {
+                    result[i] = module.require(item);
                 }
-                deferred.resolve.apply(deferred, result);
-            } catch (e) {
-                deferred.reject(e);
             }
-            return deferred.promise;
-        };
-    }
+            deferred.resolve.apply(deferred, result);
+        } catch (e) {
+            deferred.reject(e);
+        }
+        return deferred.promise;
+    };
+    res.create = create;
+    return res;
 };
+
+
+module.exports = create(module);
