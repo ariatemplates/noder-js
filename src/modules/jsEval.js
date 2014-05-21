@@ -16,10 +16,10 @@
 var exec = require('../node-modules/eval.js');
 var noderError = require('./noderError.js');
 
-module.exports = function(jsCode, url, lineDiff) {
+module.exports = function(jsCode, url, prefix, suffix) {
     try {
-        return exec(jsCode, url);
+        return exec((prefix || "") + jsCode + (suffix || ""), url);
     } catch (error) {
-        throw noderError("jsEval", [jsCode, url, lineDiff], error);
+        throw noderError("jsEval", [jsCode, url, prefix, suffix], error);
     }
 };

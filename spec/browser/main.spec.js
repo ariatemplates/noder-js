@@ -97,7 +97,43 @@ describe("Main", function() {
         expect(file2.test2()).to.equal('ok2');
     });
 
-    var checkSyntaxErrorMsg = function(error) {
+    var itChecksError = function(fileName, checkError) {
+        it("Checks error in " + fileName + " synchronously", function() {
+            var newRootModule = noder.createContext({
+                packaging: {
+                    requestConfig: {
+                        sync: true
+                    },
+                    baseUrl: directory + '/main-tests/error/'
+                }
+            });
+
+            var error = false;
+            try {
+                newRootModule.require(fileName);
+            } catch (e) {
+                error = true;
+                checkError(e);
+            }
+            expect(error).to.equal(true);
+        });
+        it("Checks error in " + fileName + " asynchronously", function(done) {
+            var newRootModule = noder.createContext({
+                packaging: {
+                    requestConfig: {
+                        sync: true
+                    },
+                    baseUrl: directory + '/main-tests/error/'
+                }
+            });
+
+            newRootModule.asyncRequire(fileName).then(function() {
+                expect().fail("No error while loading " + fileName);
+            }, checkError).then(done, fail(done));
+        });
+    };
+
+    itChecksError("syntax.error.js", function(error) {
         if (error.logDetails) {
             error.logDetails();
         }
@@ -106,40 +142,15 @@ describe("Main", function() {
         expect(errorMsg).to.contain("syntax.error.js");
         expect(errorMsg).to.contain("line 2,");
         expect(errorMsg).to.contain("something: wrong)");
-    };
-
-    it("Syntax error asynchronous", function(done) {
-        var newRootModule = noder.createContext({
-            packaging: {
-                requestConfig: {
-                    sync: true
-                },
-                baseUrl: directory + '/main-tests/error/'
-            }
-        });
-
-        newRootModule.asyncRequire('syntax.error.js').then(function() {
-            expect().fail("No error while loading syntax.error.js");
-        }, checkSyntaxErrorMsg).then(done, fail(done));
     });
 
-    it("Syntax error synchronous", function() {
-        var newRootModule = noder.createContext({
-            packaging: {
-                requestConfig: {
-                    sync: true
-                },
-                baseUrl: directory + '/main-tests/error/'
-            }
-        });
-
-        var error = false;
-        try {
-            newRootModule.require('syntax.error.js');
-        } catch (e) {
-            error = true;
-            checkSyntaxErrorMsg(e);
+    itChecksError("syntax-end.error.js", function(error) {
+        if (error.logDetails) {
+            error.logDetails();
         }
-        expect(error).to.equal(true);
+        var errorMsg = error.message || error.description;
+        expect(errorMsg).to.contain("Unexpected token in");
+        expect(errorMsg).to.contain("syntax-end.error.js");
+        expect(errorMsg).to.contain("line 7,");
     });
 });

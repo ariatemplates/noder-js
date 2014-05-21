@@ -349,9 +349,9 @@ contextProto.moduleAsyncRequire = function(module, dependencies) {
     });
 };
 
-contextProto.jsModuleDefine = function(jsCode, moduleFilename, url, lineDiff) {
+contextProto.jsModuleDefine = function(jsCode, moduleFilename, url) {
     var dependencies = findRequires(jsCode, true);
-    var body = this.jsModuleEval(jsCode, url || moduleFilename, lineDiff);
+    var body = this.jsModuleEval(jsCode, url || moduleFilename);
     return this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
 };
 
@@ -359,9 +359,8 @@ contextProto.jsModuleExecute = function(jsCode, moduleFilename, url) {
     return this.moduleExecute(this.jsModuleDefine(jsCode, moduleFilename, url));
 };
 
-contextProto.jsModuleEval = function(jsCode, url, lineDiff) {
-    var code = ['(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n', jsCode, '\n\n})'];
-    return jsEval(code.join(''), url, (lineDiff || 0) + 3 /* we are adding 3 lines compared to url */ );
+contextProto.jsModuleEval = function(jsCode, url) {
+    return jsEval(jsCode, url, '(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n', '\n\n})');
 };
 
 contextProto.execModuleCall = function(moduleFilename) {
