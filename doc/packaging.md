@@ -1,5 +1,6 @@
 title: Packaging
 page: packaging
 ---
-# Packaging noderJS - UNDER CONSTRUCTION
+# Packaging noderJS
 
+**Note: this page is still in construction**

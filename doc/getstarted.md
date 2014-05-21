@@ -1,7 +1,7 @@
-title: Getting started with noderJS
+title: Getting started
 page: getstarted
 ---
-# Getting Started with noderJS
+# Getting started
 
 Noder supports CommonJS Modules/1.0, as specified [here](http://www.commonjs.org/specs/modules/1.0/).
 This basically allows a module to export its API through exports and to use the exported API from other modules through
@@ -12,119 +12,93 @@ This page describes how to use Noder to load modules in a web browser.
 
 ## Including noderJS in the page
 
-First of all you need to load noderJS inside your page and you can do it adding this script tag:
+### Script tag
+
+First of all you need to load noderJS inside your page. The simplest way is to use a direct reference to <code>noder-js.ariatemplates.com</code>,
+as shown below:
 
 ```html
-<script type="text/javascript" src="noder.js"></script>
+<script type="text/javascript" src="http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noder.dev.js"></script>
 ```
 
-This creates a ``noder`` global variable which is a reference to a special module which can then be used everywhere just
-like the module variable in a module (note that the name of the variable is [configurable](configuration.md)).
+Note that [`noder.dev.js`](http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noder.dev.js) is a development version of
+noderJS. It is easy to use when debugging, as the code is not minified and the file includes error messages. However, it is not
+recommended to be used in a production environment, as it is quite big so it is slow to download.
 
-When noder starts, it reads all the script tags whose type attribute is ``noder`` (this is configurable) and considers
-them as modules to be executed.
+Alternatively, you can use one of the following files:
+
+* [`noder.dev.min.js`](http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noder.dev.min.js): minified version of `noder.dev.js`
+(with error messages)
+* [`noder.js`](http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noder.js): not minified, without error messages.
+In case an error occurs, the following extra files are automatically downloaded to display a readable error message:
+[`noderError/error.js`](http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noderError/error.js),
+[`noderError/evalError.js`](http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noderError/evalError.js),
+and [`noderError/acorn.js`](http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noderError/acorn.js).
+* [`noder.min.js`](http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noder.min.js): minified version of `noder.js` (without error messages).
+This is the recommended version to use on a production environment, unless you want to create your own custom packaging of noderJS,
+as described [here](packaging.md).
+
+### Downloading noderJS
+
+You can use noderJS directly from <code>noder-js.ariatemplates.com</code>. Alternatively, if you want to work with noderJS offline,
+or if you want to host it on your own server, you can get the full set of files either as a downloadable zip file or through the
+npm repository.
+
+#### ZIP file
+
+<a class="btn btn-lg btn-white" href="https://github.com/ariatemplates/noder-js/releases/download/v%NODERJSVERSION%/noder-browser.zip" target="_blank">
+<i class="fa fa-download"></i> Download zip (%NODERJSVERSION%)
+</a>
+
+#### NPM repository
+
+To install noderJS through [npm](https://www.npmjs.org/), you can use the following command:
+
+```
+npm install noder-js@%NODERJSVERSION%
+```
+
+This will install client-side files in `node_modules/noder-js/dist/browser`, for example: `node_modules/noder-js/dist/browser/noder.dev.js`.
+
+## Loading your first module
+
+When the document is ready, noderJS reads all the script tags whose type attribute is `noder`
+(this is [configurable](configuration.md)) and considers them as modules to be executed.
 
 For example:
 
 ```html
-<script type="text/javascript" src="noder.js"></script>
+<script type="text/javascript" src="http://noder-js.ariatemplates.com/dist/%NODERJSVERSION%/noder.dev.js"></script>
 <script type="noder">
     // This is executed as a module.
     require('lib/myMainModule').start('myParam1', document.getElementById('myItem'));
 </script>
 ```
 
-It is also possible to both load Noder and a specific module with a single line:
+It is also possible to both load noderJS and a specific module with a single line:
 
 ```html
-<!-- The following script tag loads Noder and then loads lib/myMainModule -->
-<script type="text/javascript" src="noder.js?lib/myMainModule"></script>
+<!-- The following script tag loads noderJS and then loads lib/myMainModule -->
+<script type="text/javascript" src="http://noder-js.ariatemplates.com/dist/%NODERJSVERSION%/noder.dev.js?lib/myMainModule"></script>
 ```
 
 A module loaded this way is considered the main module, available through ``require.main`` (as it is done in Node.js), so
 a module can check if it is the main module with: ``module === require.main``.
 
-A configuration object can be specified inside the script tag to change the behavior of Noder
+A configuration object can be specified inside the script tag to change the behavior of noderJS
 (check the [configuration options](configuration.md) for more details about available parameters):
 
 ```html
-<script type="text/javascript" src="noder.js">
+<script type="text/javascript" src="http://noder-js.ariatemplates.com/dist/v%NODERJSVERSION%/noder.dev.js">
 {
     varName : 'myNoder' // Name of the global variable exposed by noder, the default is "noder"
 }
 </script>
 ```
 
-Here another example of how noderJS allows you to write modules based on CommonJS specifications and use them inside the browser:
+You can find below a small hello world example (using [Plunker](http://plnkr.co/)) that shows how to load a module.
+You can click on the "Code" button to see the different files and on the "Preview" button to run the example.
+You can also click on the "Edit" button to open an online editor. This will allow you to change the files and
+try all the [features](api.md) of noderJS.
 
-```html
-// a.js - first javascript file
-
-var b = require("./b");
-
-b.myFunction();
-
-
-// b.js - second javascript file
-
-exports.myFunction = function () {
-	// ...
-}
-
-// inside the browser
-<script type="text/javascript" src="noder.js"></script>
-<script type="noder">
-	require("a");
-</script>
-```
-
-## Compatibility with node.js
-
-To provide compatibility with the Node.js implementation of CommonJS, the following global objects are available in modules
-(check [here](http://nodejs.org/api/globals.html) for Node documentation):
-
-* [global](http://nodejs.org/api/globals.html#globals_global)
-* [require.resolve](http://nodejs.org/api/globals.html#globals_require_resolve)
-* [require.cache](http://nodejs.org/api/globals.html#globals_require_cache)
-* [require.main](http://nodejs.org/api/globals.html#globals_require)
-* [exports and module.exports](http://nodejs.org/api/globals.html#globals_exports)
-* [module.filename](http://nodejs.org/api/modules.html#modules_module_filename)
-* [module.id](http://nodejs.org/api/modules.html#modules_module_id) (most of the time equal to module.filename)
-* [module.loaded](http://nodejs.org/api/modules.html#modules_module_loaded)
-* [module.require](http://nodejs.org/api/modules.html#modules_module_require_id)
-* [module.parent](http://nodejs.org/api/modules.html#modules_module_parent)
-* [module.children](http://nodejs.org/api/modules.html#modules_module_children)
-* [__filename](http://nodejs.org/api/globals.html#globals_filename)
-* [__dirname](http://nodejs.org/api/globals.html#globals_dirname)
-
-
-## Asynchronous module loading
-
-In addition to the basic synchronous version of require (which is equivalent to a static dependency), noderJS supports
-a built-in asynchronous promise-based version.
-
-* The ``asyncRequire`` method is available on the global ``noder`` variable, so that it is easy to load
-one (or more) module(s) asynchronously from any Javascript file (even if this file is not using the module format):
-
-```html
-// preloads and executes lib/myModule:
-noder.asyncRequire('lib/myModule').then(function(myModule){
-    // myModule can be used here
-});
-```
-
-* From a module, it is better to use ``require('noder-js/asyncRequire')`` as shown in the following sample.
-In that case, the path of the current module is taken into account when resolving the module name (as when using
-the synchronous ``require`` method).
-
-```html
-// Create an asyncRequire function for this module.
-var asyncRequire = require('noder-js/asyncRequire').create(module);
-
-// asyncRequire preloads and executes the modules given as parameters and returns a promise.
-asyncRequire("myFirstModule", "./mySecondModule").then(function (myFirstModule, mySecondModule){
-    // Do something with myFirstModule and mySecondModule
-}, function (error) {
-    // Do something in case of failure
-});
-```
+<div class="snippet"><pre><iframe src="http://embed.plnkr.co/UNTr3J/index.html" style="height:350px;"></iframe></pre></div>

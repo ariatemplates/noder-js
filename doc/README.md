@@ -1,2 +1,3 @@
-This directory contains the documentation of Noder.
-Please have a look at the [index.md file](index.md).
+This directory contains the set of markdown files which are used to generate the
+documentation of noderJS available at
+[noder-js.ariatemplates.com](http://noder-js.ariatemplates.com).

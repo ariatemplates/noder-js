@@ -27,7 +27,7 @@ var newNoder = noder.createContext({
 });
 ```
 
-Then, ``newNoder`` is a new context, completely independent from ``noder``. The possibility to have multiple contexts could be useful during testing.
+Then, ``newNoder`` is a new context, completely independent from ``noder``. The possibility to have multiple contexts is useful for tests.
 
 ## Configuration options
 
@@ -143,7 +143,7 @@ noderJS supports the following configuration options:
   }
 ```
 
-The ``resolver`` is used to converts the paramenter of require into an absolute file name. It accepts 3 different values: an object, a string and a special value.
+The ``resolver`` is used to convert the parameter of require into an absolute file name. It accepts 3 different values: an object, a string and a special value.
 
 When the value is an object, it means that a directory with that name exists.
 When the value is a string, it means a redirection to some other file or directory.
