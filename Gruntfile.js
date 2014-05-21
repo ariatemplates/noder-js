@@ -274,11 +274,24 @@ module.exports = function(grunt) {
             }
         },
         copy: {
-            doc: {
+            docData: {
                 files: [{
                     expand: true,
                     cwd: 'doc',
-                    src: ['**', '!**/*.md'],
+                    src: ['**', '!**/*.md', '!**/*.html'],
+                    dest: 'dist/doc'
+                }]
+            },
+            docHtml: {
+                options: {
+                    process: function(content /*, path*/ ) {
+                        return content.replace(/\%NODERJSVERSION\%/g, pkg.version);
+                    }
+                },
+                files: [{
+                    expand: true,
+                    cwd: 'doc',
+                    src: ['**/*.html'],
                     dest: 'dist/doc'
                 }]
             }
@@ -313,7 +326,7 @@ module.exports = function(grunt) {
     grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip', 'doc']);
     grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:unit']);
     grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci']);
-    grunt.registerTask('doc', ['copy:doc', 'markdown:doc']);
+    grunt.registerTask('doc', ['copy:docData', 'copy:docHtml', 'markdown:doc']);
     grunt.registerTask('beautify', ['jsbeautifier:update']);
     grunt.registerTask('dev', ['beautify', 'build', 'jshint']);
     grunt.registerTask('default', ['build', 'test']);

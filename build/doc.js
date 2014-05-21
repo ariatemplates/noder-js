@@ -16,6 +16,7 @@
 var yaml = require("js-yaml");
 var hljs = require("highlight.js");
 var yamlHeaderRegExp = /^([\s\S]*?)\n\s*\-+\s*\n/;
+var pkg = require("../package.json");
 
 hljs.configure({
     classPrefix: ""
@@ -49,6 +50,9 @@ exports.preCompile = function(src, context) {
 };
 
 exports.postCompile = function(src) {
-    var tmp = src.replace(/<pre><code/g, "<div class='snippet'><pre><code");
-    return tmp.replace(/<\/code><\/pre>/g, "</code></pre></div>");
+    var tmp = src;
+    tmp = tmp.replace(/<pre><code/g, "<div class='snippet'><pre><code");
+    tmp = tmp.replace(/<\/code><\/pre>/g, "</code></pre></div>");
+    tmp = tmp.replace(/\%NODERJSVERSION\%/g, pkg.version);
+    return tmp;
 };
