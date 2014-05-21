@@ -912,10 +912,15 @@
                 return fn.apply(scope, arguments);
             };
         };
-        var bindAsyncRequire = function(context, module) {
-            return function() {
-                return context.moduleAsyncRequire(module, arguments);
+        var createAsyncRequire = function(context) {
+            var create = function(module) {
+                var res = function() {
+                    return context.moduleAsyncRequire(module, arguments);
+                };
+                res.create = create;
+                return res;
             };
+            return create;
         };
         var Module = function(context, filename) {
             if (filename) {
@@ -982,7 +987,7 @@
             rootModule.preloaded = true;
             rootModule.loaded = true;
             rootModule.define = this.define = bind(this.define, this);
-            rootModule.asyncRequire = bindAsyncRequire(this, rootModule);
+            rootModule.asyncRequire = createAsyncRequire(this)(rootModule);
             rootModule.execute = bind(this.jsModuleExecute, this);
             rootModule.createContext = Context.createContext;
             this.rootModule = rootModule;
@@ -1222,11 +1227,7 @@
         Context.builtinModules = BuiltinModules.prototype = {
             "/noder-js/asyncRequire.js": function(context) {
                 return function(module) {
-                    module.exports = {
-                        create: function(module) {
-                            return bindAsyncRequire(context, module);
-                        }
-                    };
+                    module.exports = context.rootModule.asyncRequire;
                 };
             },
             "/noder-js/currentContext.js": function(context) {
