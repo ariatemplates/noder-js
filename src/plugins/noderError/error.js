@@ -45,9 +45,9 @@ var errorsList = {
         out.unshift("cannot execute module '", module.filename, "' as it is not preloaded.\n");
         return this.cause ? unshiftErrorInfo(this.cause, out) : promise.done;
     },
-    "jsEval": function(out, jsCode, url, lineDiff) {
+    "jsEval": function(out, jsCode, url /*, prefix, suffix*/ ) {
         return asyncRequire('./evalError.js').thenSync(function(evalError) {
-            var syntaxError = evalError(out, jsCode, url, lineDiff);
+            var syntaxError = evalError(out, jsCode, url);
             if (!syntaxError) {
                 out.unshift("error while evaluating '" + url + "'\n");
                 return unshiftErrorInfo(this.cause, out);

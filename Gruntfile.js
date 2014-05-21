@@ -97,7 +97,10 @@ module.exports = function(grunt) {
         uglify: {
             options: {
                 banner: licenseSmall,
-                preserveComments: "some"
+                preserveComments: "some",
+                beautify: {
+                    ascii_only: true
+                }
             },
             browser: {
                 src: ['dist/browser/noder.js'],
