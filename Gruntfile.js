@@ -134,6 +134,19 @@ module.exports = function(grunt) {
                 }
             }
         },
+        compress: {
+            noderBrowserZip: {
+                options: {
+                    archive: "dist/noder-browser.zip"
+                },
+                files: [{
+                    expand: true,
+                    cwd: 'dist/browser',
+                    src: ['**/*.js']
+                }]
+
+            }
+        },
         jshint: {
             sources: ['package.json', '*.js', 'tasks/**/*.js', 'build/**/*.js', 'src/**/*.js', 'spec/**/*.js', '!spec/**/*.error.js', '!spec/browser/json2.js'],
             dist: ['dist/*/noder.js'],
@@ -323,7 +336,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('atpackager');
     require('atpackager').loadPlugin('./atpackager');
 
-    grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip', 'doc']);
+    grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip', 'compress', 'doc']);
     grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:unit']);
     grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci']);
     grunt.registerTask('doc', ['copy:docData', 'copy:docHtml', 'markdown:doc']);
