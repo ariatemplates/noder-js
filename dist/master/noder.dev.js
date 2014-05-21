@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.3.0 - 23 Apr 2014
+ * Noder-js 1.3.0 - 21 May 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -337,13 +337,13 @@
         // callEval is defined outside of any closure
         return res.res;
     };
-    jsEval$module = function(jsCode, url, lineDiff) {
+    jsEval$module = function(jsCode, url, prefix, suffix) {
         try {
             /*exec*/
-            return eval$module(jsCode, url);
+            return eval$module((prefix || "") + jsCode + (suffix || ""), url);
         } catch (error) {
             /*noderError*/
-            throw noderError$module("jsEval", [ jsCode, url, lineDiff ], error);
+            throw noderError$module("jsEval", [ jsCode, url, prefix, suffix ], error);
         }
     };
         (function() {
@@ -1204,18 +1204,17 @@
                 dependencies = null;
             });
         };
-        contextProto.jsModuleDefine = function(jsCode, moduleFilename, url, lineDiff) {
+        contextProto.jsModuleDefine = function(jsCode, moduleFilename, url) {
             var dependencies = /*findRequires*/ findRequires$module(jsCode, true);
-            var body = this.jsModuleEval(jsCode, url || moduleFilename, lineDiff);
+            var body = this.jsModuleEval(jsCode, url || moduleFilename);
             return this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
         };
         contextProto.jsModuleExecute = function(jsCode, moduleFilename, url) {
             return this.moduleExecute(this.jsModuleDefine(jsCode, moduleFilename, url));
         };
-        contextProto.jsModuleEval = function(jsCode, url, lineDiff) {
-            var code = [ "(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n", jsCode, "\n\n})" ];
+        contextProto.jsModuleEval = function(jsCode, url) {
             /*jsEval*/
-            return jsEval$module(code.join(""), url, (lineDiff || 0) + 3);
+            return jsEval$module(jsCode, url, "(function(module, global){\nvar require = module.require, exports = module.exports, __filename = module.filename, __dirname = module.dirname;\n\n", "\n\n})");
         };
         contextProto.execModuleCall = function(moduleFilename) {
             return this.moduleExecute(this.getModule(this.moduleResolve(this.rootModule, moduleFilename)));
@@ -1349,9 +1348,9 @@
                                 out.unshift("cannot execute module '", module.filename, "' as it is not preloaded.\n");
                                 return this.cause ? unshiftErrorInfo(this.cause, out) : promise.done;
                             },
-                            jsEval: function(out, jsCode, url, lineDiff) {
+                            jsEval: function(out, jsCode, url) {
                                 return asyncRequire("./evalError.js").thenSync(function(evalError) {
-                                    var syntaxError = evalError(out, jsCode, url, lineDiff);
+                                    var syntaxError = evalError(out, jsCode, url);
                                     if (!syntaxError) {
                                         out.unshift("error while evaluating '" + url + "'\n");
                                         return unshiftErrorInfo(this.cause, out);
@@ -3266,7 +3265,7 @@ licences.
                                 column: err.loc ? err.loc.column : -1
                             };
                         }
-                        module.exports = function(out, sourceCode, url, lineDiff) {
+                        module.exports = function(out, sourceCode, url) {
                             try {
                                 acorn.parse(sourceCode, {
                                     ecmaVersion: 3,
@@ -3276,9 +3275,6 @@ licences.
                                 });
                             } catch (ex) {
                                 var errorInfo = formatError(ex, sourceCode);
-                                if (lineDiff) {
-                                    errorInfo.line -= lineDiff;
-                                }
                                 out.unshift(errorInfo.description, " in '", url, "' (line ", errorInfo.line, ", column ", errorInfo.column, "): \n", errorInfo.lineInfoTxt, "\n");
                                 return true;
                             }

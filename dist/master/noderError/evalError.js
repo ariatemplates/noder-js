@@ -45,7 +45,7 @@ function formatError(err, input) {
     };
 }
 
-module.exports = function(out, sourceCode, url, lineDiff) {
+module.exports = function(out, sourceCode, url) {
     try {
         acorn.parse(sourceCode, {
             ecmaVersion: 3,
@@ -55,9 +55,6 @@ module.exports = function(out, sourceCode, url, lineDiff) {
         });
     } catch (ex) {
         var errorInfo = formatError(ex, sourceCode);
-        if (lineDiff) {
-            errorInfo.line -= lineDiff;
-        }
         out.unshift(errorInfo.description, " in '", url, "' (line ", errorInfo.line, ", column ", errorInfo.column, "): \n", errorInfo.lineInfoTxt, "\n");
         return true;
     }
