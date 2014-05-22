@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>noderJS - noder JS API Doc</title>
+<title>noderJS - API Documentation</title>
 <meta charset="utf-8">
 <link href="images/favicon.ico" type="image/ico"
 	rel="shortcut icon">
@@ -56,22 +56,22 @@
 <li><code>url : String</code></li>
 <li><code>options : Object</code></li>
 </ul>
-<div class='snippet'><pre><code class="lang-js">options :    {
-    headers : {}, <span class="regexp">//</span> Object - Header <span class="keyword">of</span> the request
-    data : <span class="string">"My Request is..."</span>, <span class="regexp">//</span> String - Body <span class="keyword">of</span> the request
-    sync : <span class="literal">true</span>, <span class="regexp">//</span> Boolean - It specifies <span class="keyword">if</span> the request <span class="keyword">is</span> synchronous <span class="keyword">or</span> <span class="keyword">not</span> (<span class="reserved">default</span>: <span class="literal">false</span>)
-    method : <span class="string">"GET"</span> <span class="regexp">//</span> String - Type <span class="keyword">of</span> request (<span class="reserved">default</span>: GET)
+<div class='snippet'><pre><code class="lang-js">options : {
+    headers : {}, <span class="comment">// Object - Header of the request</span>
+    data : <span class="string">"My Request is..."</span>, <span class="comment">// String - Body of the request</span>
+    sync : <span class="literal">true</span>, <span class="comment">// Boolean - It specifies if the request is synchronous or not (default: false)</span>
+    method : <span class="string">"GET"</span> <span class="comment">// String - Type of request (default: GET)</span>
 }</code></pre></div>
 <p><strong>Return Value:</strong> <code>promise</code></p>
 <ul>
 <li>Example:</li>
 </ul>
-<div class='snippet'><pre><code class="lang-js">// <span class="variable">How</span> to use the return value:
-<span class="function"><span class="title">request</span><span class="params">(url, options)</span>.<span class="title">then</span><span class="params">(function (response<span class="variable">Text</span>, xhr<span class="variable">Object</span>) <span class="tuple">{
-    // success callback
-}</span>, <span class="keyword">fun</span><span class="function_name">ction</span>(error) <span class="tuple">{
-    // error callback
-}</span>);</code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="comment">// How to use the return value:</span>
+request(url, options).then(<span class="function"><span class="keyword">function</span> <span class="params">(responseText, xhrObject)</span> {</span>
+    <span class="comment">// success callback</span>
+}, <span class="function"><span class="keyword">function</span><span class="params">(error)</span> {</span>
+    <span class="comment">// error callback</span>
+});</code></pre></div>
 <h2 id="async-call">async call</h2>
 <h2 id="current-context">current context</h2>
 <h2 id="async-require">async require</h2>
@@ -86,5 +86,14 @@
 				href="http://ariatemplates.com/license">licensing page</a>
 		</section>
 	</footer>
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-29575860-4', 'ariatemplates.com');
+		ga('send', 'pageview');
+	</script>
 </body>
 </html>

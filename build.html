@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>noderJS - Contribute to noderJS</title>
+<title>noderJS - Contributing to noderJS</title>
 <meta charset="utf-8">
 <link href="images/favicon.ico" type="image/ico"
 	rel="shortcut icon">
@@ -42,7 +42,7 @@
 		<section class="content">
 			<div class="wrapper">
 				<div class="columns main-page one">
-					<article class="column"><h1 id="contribute-to-noderjs">Contribute to noderJS</h1>
+					<article class="column"><h1 id="contributing-to-noderjs">Contributing to noderJS</h1>
 <p>This page explains how to build Noder from sources. This is especially useful if you are planning to
 contribute to this project. Note that if you only intend to use Noder, you can use the already
 built version available in the <a href="https://github.com/ariatemplates/noder-js/releases">releases section</a>.</p>
@@ -54,16 +54,16 @@ built version available in the <a href="https://github.com/ariatemplates/noder-j
 <li><p>Then, get the sources of Noder with git:</p>
 </li>
 </ul>
-<div class='snippet'><pre><code><span class="title">git</span> clone <span class="url">https://github.com/ariatemplates/noder-js.git</span> noder
+<div class='snippet'><pre><code>git clone https://github.com/ariatemplates/noder-js.git noder
 cd noder</code></pre></div>
 <ul>
 <li>Download and install development dependencies with npm:</li>
 </ul>
-<div class='snippet'><pre><code><span class="title">npm</span> install</code></pre></div>
+<div class='snippet'><pre><code>npm install</code></pre></div>
 <ul>
 <li>Noder can then be built with <a href="http://gruntjs.com/">grunt</a>:</li>
 </ul>
-<div class='snippet'><pre><code><span class="title">node</span> node_modules/grunt/bin/grunt build</code></pre></div>
+<div class='snippet'><pre><code>node node_modules/grunt/bin/grunt build</code></pre></div>
 <p>After the grunt command is finished you can find the built version in the dist directory:</p>
 <ul>
 <li><code>dist/browser/noder.js</code> : uncompressed version of Noder for web browsers</li>
@@ -72,11 +72,11 @@ cd noder</code></pre></div>
 <li><code>dist/node/noder.min.js</code> : minified version of Noder for node.js</li>
 </ul>
 <p>Remember to beautify your code after adding or editing source files running the command:</p>
-<div class='snippet'><pre><code><span class="title">grunt</span> beautify</code></pre></div>
+<div class='snippet'><pre><code>grunt beautify</code></pre></div>
 <p>at the root of the repo in order to beautify all files.</p>
 <h2 id="running-the-test-suite">Running the test suite</h2>
 <p>To run the test suite, you can use:</p>
-<div class='snippet'><pre><code><span class="title">npm</span> test</code></pre></div>
+<div class='snippet'><pre><code>npm test</code></pre></div>
 <p>Whit this command in fact you are doing more than just execute a test suite, you are performing a list of different actions like executing the build, checking all the <code>.js</code> and <code>.json</code> files using <a href="http://www.jshint.com/">JSHint</a>, running the whole test suite inside node.js and running the tests inside Firefox using <a href="http://karma-runner.github.io">karma</a>.</p>
 </article>
 				</div>
@@ -89,5 +89,14 @@ cd noder</code></pre></div>
 				href="http://ariatemplates.com/license">licensing page</a>
 		</section>
 	</footer>
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-29575860-4', 'ariatemplates.com');
+		ga('send', 'pageview');
+	</script>
 </body>
 </html>

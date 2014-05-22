@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>noderJS - Getting Started</title>
+<title>noderJS - Getting started with noderJS</title>
 <meta charset="utf-8">
 <link href="images/favicon.ico" type="image/ico"
 	rel="shortcut icon">
@@ -59,7 +59,7 @@ them as modules to be executed.</p>
 <div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
 <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"noder"</span>&gt;</span><span class="javascript">
     <span class="comment">// This is executed as a module.</span>
-    require(<span class="string">'lib/myMainModule'</span>).start(<span class="string">'myParam1'</span>, document.getElementById(<span class="string">'myItem'</span>));
+    <span class="built_in">require</span>(<span class="string">'lib/myMainModule'</span>).start(<span class="string">'myParam1'</span>, document.getElementById(<span class="string">'myItem'</span>));
 </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
 <p>It is also possible to both load Noder and a specific module with a single line:</p>
 <div class='snippet'><pre><code class="lang-html"><span class="comment">&lt;!-- The following script tag loads Noder and then loads lib/myMainModule --&gt;</span>
@@ -74,24 +74,24 @@ a module can check if it is the main module with: <code>module === require.main<
 }
 </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
 <p>Here another example of how noderJS allows you to write modules based on CommonJS specifications and use them inside the browser:</p>
-<div class='snippet'><pre><code class="lang-html"><span class="comment">// a.js - first javascript file</span>
+<div class='snippet'><pre><code class="lang-html">// a.js - first javascript file
 
-<span class="keyword">var</span> b = require(<span class="string">"./b"</span>);
+var b = require("./b");
 
 b.myFunction();
 
 
-<span class="comment">// b.js - second javascript file</span>
+// b.js - second javascript file
 
-exports.myFunction = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
-    <span class="comment">// ...</span>
+exports.myFunction = function () {
+    // ...
 }
 
-<span class="comment">// inside the browser</span>
-&lt;script type=<span class="string">"text/javascript"</span> src=<span class="string">"noder.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+// inside the browser
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
 <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"noder"</span>&gt;</span><span class="javascript">
-    require(<span class="string">"a"</span>);
-</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></span></code></pre></div>
+    <span class="built_in">require</span>(<span class="string">"a"</span>);
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
 <h2 id="compatibility-with-node-js">Compatibility with node.js</h2>
 <p>To provide compatibility with the Node.js implementation of CommonJS, the following global objects are available in modules
 (check <a href="http://nodejs.org/api/globals.html">here</a> for Node documentation):</p>
@@ -117,23 +117,23 @@ a built-in asynchronous promise-based version.</p>
 <li>The <code>asyncRequire</code> method is available on the global <code>noder</code> variable, so that it is easy to load
 one (or more) module(s) asynchronously from any Javascript file (even if this file is not using the module format):</li>
 </ul>
-<div class='snippet'><pre><code class="lang-html"><span class="regexp">//</span> preloads <span class="keyword">and</span> executes lib/myModule:
-noder.asyncRequire(<span class="string">'lib/myModule'</span>).<span class="keyword">then</span>(<span class="reserved">function</span>(myModule){
-    <span class="regexp">//</span> myModule can be used here
+<div class='snippet'><pre><code class="lang-html">// preloads and executes lib/myModule:
+noder.asyncRequire(&#39;lib/myModule&#39;).then(function(myModule){
+    // myModule can be used here
 });</code></pre></div>
 <ul>
 <li>From a module, it is better to use <code>require(&#39;noder-js/asyncRequire&#39;)</code> as shown in the following sample.
 In that case, the path of the current module is taken into account when resolving the module name (as when using
 the synchronous <code>require</code> method).</li>
 </ul>
-<div class='snippet'><pre><code class="lang-html">// Create an asyncRequire <span class="function"><span class="keyword">function</span> <span class="title">for</span> <span class="title">this</span> <span class="title">module</span>.
-<span class="title">var</span> <span class="title">asyncRequire</span> = <span class="title">require</span><span class="params">('noder-js/asyncRequire')</span></span>.create(<span class="built_in">module</span>);
+<div class='snippet'><pre><code class="lang-html">// Create an asyncRequire function for this module.
+var asyncRequire = require(&#39;noder-js/asyncRequire&#39;).create(module);
 
-// asyncRequire preloads <span class="keyword">and</span> executes the modules given as parameters <span class="keyword">and</span> returns a promise.
-asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"./mySecondModule"</span>).<span class="keyword">then</span>(<span class="function"><span class="keyword">function</span> <span class="params">(myFirstModule, mySecondModule)</span></span>{
-    // Do something with myFirstModule <span class="keyword">and</span> mySecondModule
-}, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span></span> {
-    // Do something <span class="keyword">in</span> case of failure
+// asyncRequire preloads and executes the modules given as parameters and returns a promise.
+asyncRequire(&quot;myFirstModule&quot;, &quot;./mySecondModule&quot;).then(function (myFirstModule, mySecondModule){
+    // Do something with myFirstModule and mySecondModule
+}, function (error) {
+    // Do something in case of failure
 });</code></pre></div>
 </article>
 				</div>
@@ -146,5 +146,14 @@ asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"
 				href="http://ariatemplates.com/license">licensing page</a>
 		</section>
 	</footer>
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-29575860-4', 'ariatemplates.com');
+		ga('send', 'pageview');
+	</script>
 </body>
 </html>
