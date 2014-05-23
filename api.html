@@ -118,13 +118,14 @@ some modules asynchronously, even from code which was not loaded through noderJS
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);</code></pre></div>
 <p>Here is a description of each property available on this object:</p>
 <h3 id="promise-defer-">promise.defer()</h3>
+<p><strong>promise.defer () : Defer</strong></p>
 <p>Creates a new defer. A defer is an object with 3 properties:</p>
 <div class='snippet'><pre><code class="lang-js">{
    promise: promise, <span class="comment">/* Promise instance object (with the 'then' method) */</span>
    resolve: resolve, <span class="comment">/* Function to resolve the promise, with the specified arguments. */</span>
    reject: reject <span class="comment">/* Function to reject the promise, with the specified arguments. */</span>
 }</code></pre></div>
-<p>Here is an sample implementing a promise-based version of <code>setTimeout</code>:</p>
+<p>Here is a sample implementing a promise-based version of <code>setTimeout</code>:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
 <span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> {</span>
@@ -150,7 +151,7 @@ console.log(<span class="string">"After calling setTimeoutWithPromise"</span>);
 <p><strong>promise.whenAll (promiseOrValue1, promiseOrValue2...) : Promise</strong></p>
 <p>Both <code>promise.when</code> and <code>promise.whenAll</code> accept any number of promises or simple values as parameters and return
 a promise that is resolved when all the given promises are resolved.</p>
-<p><code>promise.when</code> is the fail-fast version of <code>promise.when</code>:</p>
+<p><code>promise.when</code> is the fail-fast version of <code>promise.whenAll</code>:</p>
 <ul>
 <li>the promise returned by <code>promise.whenAll</code> is rejected only when all promises are either resolved or rejected.</li>
 <li>the promise returned by <code>promise.when</code> is rejected as soon as any promise given in the parameters is rejected, without waiting for other
