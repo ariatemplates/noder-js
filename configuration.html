@@ -62,7 +62,7 @@ the following code creates a new context with the specified configuration:</li>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> newNoder = noder.createContext({
   <span class="comment">// put the configuration here</span>
 });</code></pre></div>
-<p>Then, <code>newNoder</code> is a new context, completely independent from <code>noder</code>. The possibility to have multiple contexts could be useful during testing.</p>
+<p>Then, <code>newNoder</code> is a new context, completely independent from <code>noder</code>. The possibility to have multiple contexts is useful for tests.</p>
 <h2 id="configuration-options">Configuration options</h2>
 <p>noderJS supports the following configuration options:</p>
 <div class='snippet'><pre><code class="lang-javascript">  {
@@ -172,7 +172,7 @@ the following code creates a new context with the specified configuration:</li>
       }
     }
   }</code></pre></div>
-<p>The <code>resolver</code> is used to converts the paramenter of require into an absolute file name. It accepts 3 different values: an object, a string and a special value.</p>
+<p>The <code>resolver</code> is used to convert the parameter of require into an absolute file name. It accepts 3 different values: an object, a string and a special value.</p>
 <p>When the value is an object, it means that a directory with that name exists.
 When the value is a string, it means a redirection to some other file or directory.
 The &#39;.&#39; is the special value and defines the file to use when requiring the directory.</p>

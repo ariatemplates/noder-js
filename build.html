@@ -48,11 +48,13 @@ contribute to this project. Note that if you only intend to use Noder, you can u
 built version available in the <a href="https://github.com/ariatemplates/noder-js/releases">releases section</a>.</p>
 <h2 id="cloning-and-building-noderjs">Cloning and building noderJS</h2>
 <ul>
-<li><p>First, ensure that you have <a href="http://git-scm.com/">git</a>, the latest <a href="http://nodejs.org">node.js</a> and npm installed
-(npm is bundled with the node.js installer).</p>
-</li>
-<li><p>Then, get the sources of Noder with git:</p>
-</li>
+<li>First, ensure that you have <a href="http://git-scm.com/">git</a>, the latest <a href="http://nodejs.org">node.js</a> and npm installed
+(npm is bundled with the node.js installer).</li>
+<li>Then, install <code>grunt-cli</code> globally (if it is not already installed):</li>
+</ul>
+<div class='snippet'><pre><code>npm install -g grunt-cli</code></pre></div>
+<ul>
+<li>Get the sources of noderJS with git:</li>
 </ul>
 <div class='snippet'><pre><code>git clone https://github.com/ariatemplates/noder-js.git noder
 cd noder</code></pre></div>
@@ -63,21 +65,29 @@ cd noder</code></pre></div>
 <ul>
 <li>Noder can then be built with <a href="http://gruntjs.com/">grunt</a>:</li>
 </ul>
-<div class='snippet'><pre><code>node node_modules/grunt/bin/grunt build</code></pre></div>
+<div class='snippet'><pre><code>grunt build</code></pre></div>
 <p>After the grunt command is finished you can find the built version in the dist directory:</p>
 <ul>
-<li><code>dist/browser/noder.js</code> : uncompressed version of Noder for web browsers</li>
-<li><code>dist/browser/noder.min.js</code> : minified version of Noder for web browsers</li>
-<li><code>dist/node/noder.js</code> : uncompressed version of Noder for node.js (useful for testing purposes)</li>
-<li><code>dist/node/noder.min.js</code> : minified version of Noder for node.js</li>
+<li><code>dist/browser/noder.js</code> : uncompressed version of Noder for web browsers, without error messages</li>
+<li><code>dist/browser/noder.min.js</code> : minified version of Noder for web browsers, without error messages</li>
+<li><code>dist/browser/noder.dev.js</code> : uncompressed version of Noder for web browsers, with error messages</li>
+<li><code>dist/browser/noder.dev.min.js</code> : minified version of Noder for web browsers, with error messages</li>
+<li><code>dist/node/noder.js</code> : uncompressed version of Noder for node.js, without error messages (useful for testing purposes)</li>
+<li><code>dist/node/noder.min.js</code> : minified version of Noder for node.js, without error messages</li>
+<li><code>dist/node/noder.dev.js</code> : uncompressed version of Noder for node.js, with error messages</li>
+<li><code>dist/node/noder.dev.min.js</code> : minified version of Noder for node.js, with error messages</li>
 </ul>
-<p>Remember to beautify your code after adding or editing source files running the command:</p>
+<h2 id="beautifying-files">Beautifying files</h2>
+<p>After adding or editing source files, you can beautify all the JavaScript files with the following command:</p>
 <div class='snippet'><pre><code>grunt beautify</code></pre></div>
-<p>at the root of the repo in order to beautify all files.</p>
 <h2 id="running-the-test-suite">Running the test suite</h2>
 <p>To run the test suite, you can use:</p>
 <div class='snippet'><pre><code>npm test</code></pre></div>
-<p>Whit this command in fact you are doing more than just execute a test suite, you are performing a list of different actions like executing the build, checking all the <code>.js</code> and <code>.json</code> files using <a href="http://www.jshint.com/">JSHint</a>, running the whole test suite inside node.js and running the tests inside Firefox using <a href="http://karma-runner.github.io">karma</a>.</p>
+<p>With this command in fact you are doing more than just executing a test suite,
+you are performing a list of different actions like executing the build,
+checking all the <code>.js</code> and <code>.json</code> files using <a href="http://www.jshint.com/">JSHint</a>,
+running the whole test suite inside node.js and running the tests inside Firefox
+and PhantomJS using <a href="http://karma-runner.github.io">karma</a>.</p>
 </article>
 				</div>
 			</div>

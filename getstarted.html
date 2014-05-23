@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>noderJS - Getting started with noderJS</title>
+<title>noderJS - Getting started</title>
 <meta charset="utf-8">
 <link href="images/favicon.ico" type="image/ico"
 	rel="shortcut icon">
@@ -42,99 +42,71 @@
 		<section class="content">
 			<div class="wrapper">
 				<div class="columns main-page one">
-					<article class="column"><h1 id="getting-started-with-noderjs">Getting Started with noderJS</h1>
+					<article class="column"><h1 id="getting-started">Getting started</h1>
 <p>Noder supports CommonJS Modules/1.0, as specified <a href="http://www.commonjs.org/specs/modules/1.0/">here</a>.
 This basically allows a module to export its API through exports and to use the exported API from other modules through
 a synchronous require function. For information about how to write a module, you can refer to the
 <a href="http://nodejs.org/docs/latest/api/modules.html">documentation of node.js</a>.</p>
 <p>This page describes how to use Noder to load modules in a web browser.</p>
 <h2 id="including-noderjs-in-the-page">Including noderJS in the page</h2>
-<p>First of all you need to load noderJS inside your page and you can do it adding this script tag:</p>
-<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
-<p>This creates a <code>noder</code> global variable which is a reference to a special module which can then be used everywhere just
-like the module variable in a module (note that the name of the variable is <a href="configuration.html">configurable</a>).</p>
-<p>When noder starts, it reads all the script tags whose type attribute is <code>noder</code> (this is configurable) and considers
-them as modules to be executed.</p>
+<h3 id="script-tag">Script tag</h3>
+<p>First of all you need to load noderJS inside your page. The simplest way is to use a direct reference to <code>noder-js.ariatemplates.com</code>,
+as shown below:</p>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.3.1/noder.dev.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<p>Note that <a href="http://noder-js.ariatemplates.com/dist/v1.3.1/noder.dev.js"><code>noder.dev.js</code></a> is a development version of
+noderJS. It is easy to use when debugging, as the code is not minified and the file includes error messages. However, it is not
+recommended to be used in a production environment, as it is quite big so it is slow to download.</p>
+<p>Alternatively, you can use one of the following files:</p>
+<ul>
+<li><a href="http://noder-js.ariatemplates.com/dist/v1.3.1/noder.dev.min.js"><code>noder.dev.min.js</code></a>: minified version of <code>noder.dev.js</code>
+(with error messages)</li>
+<li><a href="http://noder-js.ariatemplates.com/dist/v1.3.1/noder.js"><code>noder.js</code></a>: not minified, without error messages.
+In case an error occurs, the following extra files are automatically downloaded to display a readable error message:
+<a href="http://noder-js.ariatemplates.com/dist/v1.3.1/noderError/error.js"><code>noderError/error.js</code></a>,
+<a href="http://noder-js.ariatemplates.com/dist/v1.3.1/noderError/evalError.js"><code>noderError/evalError.js</code></a>,
+and <a href="http://noder-js.ariatemplates.com/dist/v1.3.1/noderError/acorn.js"><code>noderError/acorn.js</code></a>.</li>
+<li><a href="http://noder-js.ariatemplates.com/dist/v1.3.1/noder.min.js"><code>noder.min.js</code></a>: minified version of <code>noder.js</code> (without error messages).
+This is the recommended version to use on a production environment, unless you want to create your own custom packaging of noderJS,
+as described <a href="packaging.html">here</a>.</li>
+</ul>
+<h3 id="downloading-noderjs">Downloading noderJS</h3>
+<p>You can use noderJS directly from <code>noder-js.ariatemplates.com</code>. Alternatively, if you want to work with noderJS offline,
+or if you want to host it on your own server, you can get the full set of files either as a downloadable zip file or through the
+npm repository.</p>
+<h4 id="zip-file">ZIP file</h4>
+<p><a class="btn btn-lg btn-white" href="https://github.com/ariatemplates/noder-js/releases/download/v1.3.1/noder-browser.zip" target="_blank">
+<i class="fa fa-download"></i> Download zip (1.3.1)
+</a></p>
+<h4 id="npm-repository">NPM repository</h4>
+<p>To install noderJS through <a href="https://www.npmjs.org/">npm</a>, you can use the following command:</p>
+<div class='snippet'><pre><code>npm install noder-js@1.3.1</code></pre></div>
+<p>This will install client-side files in <code>node_modules/noder-js/dist/browser</code>, for example: <code>node_modules/noder-js/dist/browser/noder.dev.js</code>.</p>
+<h2 id="loading-your-first-module">Loading your first module</h2>
+<p>When the document is ready, noderJS reads all the script tags whose type attribute is <code>noder</code>
+(this is <a href="configuration.html">configurable</a>) and considers them as modules to be executed.</p>
 <p>For example:</p>
-<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/1.3.1/noder.dev.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
 <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"noder"</span>&gt;</span><span class="javascript">
     <span class="comment">// This is executed as a module.</span>
     <span class="built_in">require</span>(<span class="string">'lib/myMainModule'</span>).start(<span class="string">'myParam1'</span>, document.getElementById(<span class="string">'myItem'</span>));
 </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
-<p>It is also possible to both load Noder and a specific module with a single line:</p>
-<div class='snippet'><pre><code class="lang-html"><span class="comment">&lt;!-- The following script tag loads Noder and then loads lib/myMainModule --&gt;</span>
-<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js?lib/myMainModule"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<p>It is also possible to both load noderJS and a specific module with a single line:</p>
+<div class='snippet'><pre><code class="lang-html"><span class="comment">&lt;!-- The following script tag loads noderJS and then loads lib/myMainModule --&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/1.3.1/noder.dev.js?lib/myMainModule"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
 <p>A module loaded this way is considered the main module, available through <code>require.main</code> (as it is done in Node.js), so
 a module can check if it is the main module with: <code>module === require.main</code>.</p>
-<p>A configuration object can be specified inside the script tag to change the behavior of Noder
+<p>A configuration object can be specified inside the script tag to change the behavior of noderJS
 (check the <a href="configuration.html">configuration options</a> for more details about available parameters):</p>
-<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript">
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.3.1/noder.dev.js"</span>&gt;</span><span class="javascript">
 {
     varName : <span class="string">'myNoder'</span> <span class="comment">// Name of the global variable exposed by noder, the default is "noder"</span>
 }
 </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
-<p>Here another example of how noderJS allows you to write modules based on CommonJS specifications and use them inside the browser:</p>
-<div class='snippet'><pre><code class="lang-html">// a.js - first javascript file
-
-var b = require("./b");
-
-b.myFunction();
-
-
-// b.js - second javascript file
-
-exports.myFunction = function () {
-    // ...
-}
-
-// inside the browser
-<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"noder.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
-<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"noder"</span>&gt;</span><span class="javascript">
-    <span class="built_in">require</span>(<span class="string">"a"</span>);
-</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
-<h2 id="compatibility-with-node-js">Compatibility with node.js</h2>
-<p>To provide compatibility with the Node.js implementation of CommonJS, the following global objects are available in modules
-(check <a href="http://nodejs.org/api/globals.html">here</a> for Node documentation):</p>
-<ul>
-<li><a href="http://nodejs.org/api/globals.html#globals_global">global</a></li>
-<li><a href="http://nodejs.org/api/globals.html#globals_require_resolve">require.resolve</a></li>
-<li><a href="http://nodejs.org/api/globals.html#globals_require_cache">require.cache</a></li>
-<li><a href="http://nodejs.org/api/globals.html#globals_require">require.main</a></li>
-<li><a href="http://nodejs.org/api/globals.html#globals_exports">exports and module.exports</a></li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_filename">module.filename</a></li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_id">module.id</a> (most of the time equal to module.filename)</li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_loaded">module.loaded</a></li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_require_id">module.require</a></li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_parent">module.parent</a></li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_children">module.children</a></li>
-<li><a href="http://nodejs.org/api/globals.html#globals_filename">__filename</a></li>
-<li><a href="http://nodejs.org/api/globals.html#globals_dirname">__dirname</a></li>
-</ul>
-<h2 id="asynchronous-module-loading">Asynchronous module loading</h2>
-<p>In addition to the basic synchronous version of require (which is equivalent to a static dependency), noderJS supports
-a built-in asynchronous promise-based version.</p>
-<ul>
-<li>The <code>asyncRequire</code> method is available on the global <code>noder</code> variable, so that it is easy to load
-one (or more) module(s) asynchronously from any Javascript file (even if this file is not using the module format):</li>
-</ul>
-<div class='snippet'><pre><code class="lang-html">// preloads and executes lib/myModule:
-noder.asyncRequire(&#39;lib/myModule&#39;).then(function(myModule){
-    // myModule can be used here
-});</code></pre></div>
-<ul>
-<li>From a module, it is better to use <code>require(&#39;noder-js/asyncRequire&#39;)</code> as shown in the following sample.
-In that case, the path of the current module is taken into account when resolving the module name (as when using
-the synchronous <code>require</code> method).</li>
-</ul>
-<div class='snippet'><pre><code class="lang-html">// Create an asyncRequire function for this module.
-var asyncRequire = require(&#39;noder-js/asyncRequire&#39;).create(module);
-
-// asyncRequire preloads and executes the modules given as parameters and returns a promise.
-asyncRequire(&quot;myFirstModule&quot;, &quot;./mySecondModule&quot;).then(function (myFirstModule, mySecondModule){
-    // Do something with myFirstModule and mySecondModule
-}, function (error) {
-    // Do something in case of failure
-});</code></pre></div>
+<p>You can find below a small hello world example (using <a href="http://plnkr.co/">Plunker</a>) that shows how to load a module.
+You can click on the &quot;Code&quot; button to see the different files and on the &quot;Preview&quot; button to run the example.
+You can also click on the &quot;Edit&quot; button to open an online editor. This will allow you to change the files and
+try all the <a href="api.html">features</a> of noderJS.</p>
+<div class="snippet"><pre><iframe src="http://embed.plnkr.co/UNTr3J/index.html" style="height:350px;"></iframe></pre></div>
 </article>
 				</div>
 			</div>
