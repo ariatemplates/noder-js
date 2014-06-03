@@ -100,6 +100,61 @@ some modules asynchronously, even from code which was not loaded through noderJS
 noder.asyncRequire("myModule").spread(function (myModule){ /* ... */ }, function (error) { /* ... */ });
 ```
 
+## Loader plugins
+
+Before a module can be executed in noderJS, it has to be preloaded. The preload process consists in downloading the
+module file, parsing it to detect its static dependencies, and preloading those dependencies. The preload process is usually
+asynchronous, as it usually involves one or more XHR requests (which, by default, are configured to be asynchronous).
+
+noderJS provides the ability to add custom actions to the preload process, by implementing a loader plugin.
+This is especially useful to preload additional dependencies which cannot be automatically detected because they are
+not static. These include, for example, language-dependent resources or browser-dependent code.
+
+For example, let's consider our `sample.js` module which depends on a language-dependent resource.
+The code could look like the following example:
+
+```js
+var language = require("resourcesManager").language;
+var myResources = require("./myRes_"+language);
+// ...
+```
+
+When parsing this file, noderJS will find `resourcesManager` as a static dependency, but will be unable know the other file to preload
+as it depends on the `language` variable, whose value is unknown at the time the file is parsed (as it is not executed yet).
+As a result, when later executing this file, the second require will probably fail because the dependency will not have been preloaded
+and it will most likely not be possible to preload it synchronously (if XHR requests are configured to be asynchronous).
+
+To solve this kind of issues, or to execute any other custom actions asynchronously, support for loader plugins was implemented.
+The parser detects the pattern `require("loaderPluginPath/$loaderPluginName").methodName(arg1, arg2...)` in the file to be preloaded,
+and executes the loader plugin module at preloading time. It calls the `$preload` method on the `methodName` property of the object
+exported by the loader plugin and executes it with the parsed arguments (which must be either string literals or the special `__dirname`,
+`__filename` and `module` variable, or `null`). The `$preload` method can return a promise. If it is the case, the preload process will
+wait for the promise to be fulfilled before marking the module as preloaded.
+
+Now our `sample.js` module depending on a language-dependent resource can be re-written in the following way:
+
+```js
+var myResources = require("$resourcesLoader").getResource(__dirname, "./myRes");
+// ...
+```
+
+The loader plugin, called `$resourcesLoader.js` could look like this:
+
+```js
+var asyncRequire = require("noder-js/asyncRequire");
+var language = require("resourcesManager").language;
+exports.getResource = function(directory, resource) {
+   // this method is executed when sample.js is executed
+   // it is synchronous
+   return require(directory + "/" + resource);
+};
+exports.getResource.$preload = function(directory, resource) {
+   // this method is automatically executed when sample.js is preloaded
+   // it can be asynchronous by returning a promise
+   return asyncRequire(directory + "/" + resource);
+};
+```
+
 ## Promises library
 
 <a href="http://promisesaplus.com/">
@@ -188,7 +243,7 @@ var setTimeoutWithPromise = function (delay) {
 If `valueOrPromise` is a noder-js promise, `Promise.resolve` returns it directly.
 
 If `valueOrPromise` is an object or a function with a `thenSync` or `then`  method, it is considered as a promise and
-`Promise.resolve` returns an equivalent noder-js promise.
+`Promise.resolve` returns an equivalent noderJS promise.
 
 Otherwise, `Promise.resolve` returns an already fulfilled promise, whose fulfillment value is `valueOrPromise`.
 
@@ -217,6 +272,20 @@ var Promise = require("noder-js/promise");
 
 Promise.reject("error").catch(function (reason) { /* here, reason == "error" */ });
 ```
+
+### Promise.done
+
+**Promise.done : Promise**
+
+`Promise.done` is a reference to an already resolved promise, whose fulfillment value is `undefined`.
+
+It is defined by:
+
+```js
+Promise.done = Promise.resolve();
+```
+
+It can be used instead of `Promise.resolve(undefined)` to avoid creating a new promise instance.
 
 ### Promise.all() and Promise.allSettled()
 
@@ -328,10 +397,10 @@ Following the [Promises/A+ specifications](http://promises-aplus.github.io/promi
 calls its handlers synchronously. The same applies to the associated `spread`, `catch`, `finally` and `done` shortcuts.
 
 However, in some cases, it can be useful to avoid code duplication by handling both the asynchronous and the synchronous cases with
-the same code. For example, noder-js itself can be configured to use either synchronous or asynchronous XHR requests and uses the same
+the same code. For example, noderJS itself can be configured to use either synchronous or asynchronous XHR requests and uses the same
 code to handle both cases, without adding asynchronism uselessly.
 
-For this to be possible, noder-js provides the `thenSync`, `spreadSync`, `catchSync`, `finallySync` and `doneSync` methods which behave
+For this to be possible, noderJS provides the `thenSync`, `spreadSync`, `catchSync`, `finallySync` and `doneSync` methods which behave
 exactly as their `then`, `spread`, `catch`, `finally` and `done` counterparts, except that, in case the promise is already fulfilled or
 rejected at the time the `xSync` method is called, the corresponding handler is called synchronously.
 
@@ -470,8 +539,209 @@ request("/api/", {
 });
 ```
 
-**Note: this page is still in construction, the following sections are planned to be added:**
+## Context
 
-* Loader plugins
-* Context
+A noderJS context is automatically created when noderJS is loaded. noderJS also provides an API to create new contexts.
+Each noderJS context has its own [configuration](configuration.md) and its own cache of modules.
 
+Inside the same context, when the same module is required twice, the corresponding module is in fact loaded only once and the
+reference is shared.
+
+However, if the same module is required from two different contexts, two different instances of the module will be loaded and
+will be independent from one another.
+
+It can be useful to create a new context when testing a module. The tested module can be put in a mocked environment by exposing
+mocks in the new context, so that the tested module will access mocks instead of the original modules when calling the usual
+`require` method.
+
+### Getting a context instance
+
+#### New context
+
+Here is how to create a new context:
+
+```js
+var Context = require("noder-js/context");
+var contextInstance = new Context({
+   /* context configuration */
+});
+```
+
+The context configuration object is described in the [configuration page](configuration.md).
+
+#### Current context
+
+Here is how to get a reference to the current context:
+
+```js
+var contextInstance = require("noder-js/currentContext");
+```
+
+### Context instance methods
+
+**contextInstance.expose(path: String, object: Object)**
+
+Exposes the given object at the given path. This means that, the next time a module with that path
+has to be loaded in the context, the usual loading method will be bypassed and the given object
+will be used as the export object.
+
+Note that this method does not unload any already loaded module at the given path. If a module with the
+given path is already loaded when this method is called, it is still accessible until it is deleted
+from the cache.
+
+For example:
+
+```js
+var myObject = {};
+contextInstance.expose("myModule.js", myObject);
+
+var myModule = contextInstance.require("myModule");
+delete contextInstance.require.cache["myModule.js"];
+var myReloadedModule = contextInstance.require("myModule");
+
+// Here, we always have:
+// myObject === myReloadedModule
+
+// We can also have:
+// myObject === myModule
+// but only if myModule.js was not loaded before the call to the expose method.
+```
+
+### Context instance properties
+
+**contextInstance.config**
+
+A reference to the configuration of the context.
+
+**contextInstance.cache**
+
+The same object as the one available in `require.cache` from modules loaded from this context.
+
+**contextInstance.builtinModules**
+
+An object containing all built-in modules (also including modules exposed through the `expose` method).
+
+**contextInstance.rootModule**
+
+A special module created when the context is created.
+
+## asyncCall
+
+noder-js exposes an `asyncCall` module with some utility functions to call functions asynchronously or synchronously.
+
+```js
+var asyncCall = require("noder-js/asyncCall");
+```
+
+**asyncCall.nextTick(f : function())**
+
+Registers a function to be executed asynchronously.
+The function is called with no scope and no argument.
+Functions are executed in the same order as they are registered.
+
+The implementation of this function in the browser version of noderJS relies on `setTimeout`.
+To improve performance, multiple consecutive calls to `asyncCall.nextTick` in the same event loop turn lead to at most one call to `setTimeout`.
+Calling `async.nextTick` from a function called with `asyncCall.nextTick` simply adds the new function to the list of functions to be executed,
+without any call to `setTimeout`, and the function is executed at the end of the same event loop turn.
+
+```js
+var asyncCall = require("noder-js/asyncCall");
+var myCounter = 0;
+asyncCall.nextTick(function () {
+  myCounter++;
+  console.log("First function: " + myCounter);
+});
+asyncCall.nextTick(function () {
+  myCounter++;
+  console.log("Second function: " + myCounter);
+});
+console.log("Main: " + myCounter);
+
+// The console will have the following output:
+// Main: 0
+// First function: 1
+// Second function: 2
+```
+
+**asyncCall.syncCall(f : function())**
+
+Executes the given function synchronously. In case an error happens in the callback, it is thrown again asynchronously, so that the caller
+of `asyncCall.syncCall` is not affected.
+
+This function has the same signature as `asyncCall.nextTick`. This way, it is possible to parameterize an algorithm with a reference to a callback
+executor, which can be set to be either `asyncCall.nextTick` to call callbacks asynchronously, or `asyncCall.syncCall` to call callbacks
+synchronously. This is done internally for the implementation of the `then` and `thenSync` promise methods.
+
+**asyncCall.nextTickCalls(arrayOfFunctions : Array)**
+
+Registers an array of functions to be executed later asynchronously. The functions are called in the order in which they appear in the array.
+
+Note that this function modifies the array: the first item of the array is removed, then the corresponding function is executed, then
+the new first item of the array is removed, ... until there is no remaining item in the array.
+Also note that, if the array is changed outside of `asyncCall.nextTickCalls` before the execution of all array items is finished, it has
+an impact on the functions which are actually executed.
+
+**asyncCall.syncCalls(arrayOfFunctions : Array)**
+
+Synchronous version of `asyncCall.nextTickCalls`. Executes each function in the array, in order, synchronously.
+
+**asyncCall.syncTick()**
+
+Executes synchronously all the functions currently planned to be executed asynchronously (and registered with `asyncCall.nextTick`).
+Note that this method should __never__ be called from application code.
+However, it can be useful to use it from tests to execute asynchronous code synchronously and improve performance for tests execution.
+
+```js
+var asyncCall = require("noder-js/asyncCall");
+var methodCalled = false;
+asyncCall.nextTick(function () {
+   methodCalled = true;
+});
+// here, methodCalled = false
+asyncCall.syncTick(); // this calls ALL the functions previously registered with asyncCall.nextTick and not yet executed
+// here, methodCalled = true
+```
+
+## findRequires parser
+
+noderJS includes a small parser for JavaScript code which extracts calls to the `require` method. It is exposed as `noder-js/findRequires`:
+
+```js
+var findRequires = require("noder-js/findRequires");
+```
+
+**findRequires(jsCode : String, detectLoaderPlugins : Boolean)**
+
+* `jsCode`: JavaScript code to be parsed.
+* `detectLoaderPlugins`: whether to return information about loader plugins.
+
+`findRequires` returns an array. Each item in the array can be:
+* a string, which is the string literal used in a call to require.
+* (only if `detectLoaderPlugins` is `true`) an object with the `module` (string), `method` (string) and `args` (array) properties, corresponding
+to a call to a loader plugin.
+Note that for each loader plugin detected, a string entry is also present in the array in addition to the object. Each item in the args properties
+is either a string (corresponding to a string literal argument), or an array with a single string element (corresponding to a non-quoted argument
+like `module` or `null`).
+
+Each string corresponds to a call to require in the source code.
+
+```js
+var findRequires = require("noder-js/findRequires");
+
+findRequires("var myModule = require('myModule')"); // returns ["myModule"]
+findRequires("var myModule = require( /* comment1 */ 'myModule' /* 'comment2' */ )"); // returns ["myModule"]
+
+// The following 3 calls all return [] (an empty array)
+findRequires("var myModule = require('my' + 'Module')"); // expressions are not included
+findRequires("var myModule = module.require('myModule')"); // calls to module.require are not included
+findRequires("var myString = \"require('myModule')\""); // the content of string literals is not included
+
+// Loader plugins:
+findRequires("require('$loaderPlugin').myMethod('arg1', module)"); // returns ['$loaderPlugin']
+findRequires("require('$loaderPlugin').myMethod('arg1', module)", true);
+// The previous line returns:
+[ '$loaderPlugin',
+  { module: '$loaderPlugin',
+    method: 'myMethod',
+    args: [ 'arg1', ["module"] ] } ]
+```

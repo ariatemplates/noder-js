@@ -27,7 +27,9 @@ var newNoder = noder.createContext({
 });
 ```
 
-Then, ``newNoder`` is a new context, completely independent from ``noder``. The possibility to have multiple contexts is useful for tests.
+Then, ``newNoder`` is a new context, completely independent from ``noder``.
+The possibility to have multiple contexts is useful for tests.
+See [the API page](api.md) for more information about noderJS contexts.
 
 ## Configuration options
 
@@ -63,7 +65,10 @@ noderJS supports the following configuration options:
     resolver: {
       "default" : {
         // Default configuration for the resolver.
-        // This object describes the tree of modules.
+        // The resolver is called when using `require` or `require.resolve`,
+        // in order to convert the parameter into an absolute file name.
+
+        // This configuration object describes the tree of modules.
         // An object value means that a directory with that name exists.
         // A string value means a redirection to some other file/directory
         // The special '.' key specifies the file to use when requiring the directory.
@@ -84,6 +89,12 @@ noderJS supports the following configuration options:
     },
 
     packaging: {
+      // The `packaging` configuration is related to how files are loaded from the server.
+
+      // It allows you to define a base URL, to add some HTTP headers when requesting files,
+      // to use preprocessors to change modules content before they are executed, and to specify how files
+      // are packaged together.
+
       baseUrl: "", // Base URL which is prepended to every path when requesting files to the server.
       // It can be either absolute or relative to the current page location.
       requestConfig: {
@@ -142,12 +153,3 @@ noderJS supports the following configuration options:
     }
   }
 ```
-
-The ``resolver`` is used to convert the parameter of require into an absolute file name. It accepts 3 different values: an object, a string and a special value.
-
-When the value is an object, it means that a directory with that name exists.
-When the value is a string, it means a redirection to some other file or directory.
-The '.' is the special value and defines the file to use when requiring the directory.
-
-
-The ``packaging`` allows you to define a base URL to prepend to every path when requesting files to the server, to add some configuration when requesting files, to use preprocessors to change modules content and to specify how files are packaged.
