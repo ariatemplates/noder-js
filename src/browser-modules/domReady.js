@@ -13,44 +13,38 @@
  * limitations under the License.
  */
 
-var promise = require('../modules/promise.js');
+var Promise = require('../modules/promise.js');
 var domReadyPromise;
 var createDomReadyPromise = function() {
-    var document = global.document;
-    if (!document || document.readyState === "complete") {
-        // in this simple case, avoid creating a new promise, just use promise.done
-        return promise.done;
-    }
-    var res = promise.defer();
-    var callback = function() {
-        if (res) {
-            res.resolve(); // resolve with no parameter
+    return new Promise(function(fulfill) {
+        var document = global.document;
+        if (!document || document.readyState === "complete") {
+            return fulfill();
         }
-    };
-    if (document.addEventListener) {
-        document.addEventListener("DOMContentLoaded", callback, false);
-        // Fallback in case the browser does not support DOMContentLoaded:
-        global.addEventListener("load", callback, false);
-        res.promise.always(function() {
-            // clean the closure and listeners
-            document.removeEventListener("DOMContentLoaded", callback, false);
-            global.removeEventListener("load", callback, false);
-            document = null;
-            callback = null;
-            res = null;
-        });
-    } else if (document.attachEvent) {
-        // Fallback to the onload event on IE:
-        global.attachEvent("onload", callback);
-        res.promise.always(function() {
-            // clean the closure and listeners
-            global.detachEvent("onload", callback);
-            document = null;
-            callback = null;
-            res = null;
-        });
-    }
-    return res.promise;
+        var cleanUp;
+        var callback = function() {
+            fulfill(); // call fulfill with no parameter
+            cleanUp();
+            document = cleanUp = callback = null;
+        };
+        if (document.addEventListener) {
+            cleanUp = function() {
+                // clean the closure and listeners
+                document.removeEventListener("DOMContentLoaded", callback, false);
+                global.removeEventListener("load", callback, false);
+            };
+            document.addEventListener("DOMContentLoaded", callback, false);
+            // Fallback in case the browser does not support DOMContentLoaded:
+            global.addEventListener("load", callback, false);
+        } else if (document.attachEvent) {
+            cleanUp = function() {
+                // clean the closure and listeners
+                global.detachEvent("onload", callback);
+            };
+            // Fallback to the onload event on IE:
+            global.attachEvent("onload", callback);
+        }
+    });
 };
 
 module.exports = function() {

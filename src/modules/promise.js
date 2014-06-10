@@ -13,173 +13,194 @@
  * limitations under the License.
  */
 
-var isFunction = require("./type.js").isFunction;
+var typeUtils = require("./type.js");
+var isFunction = typeUtils.isFunction;
+var isObject = typeUtils.isObject;
 var asyncCall = require("./asyncCall.js");
 var uncaughtError = require("./uncaughtError.js");
+var bind1 = require("./bind1");
 
-var concat = Array.prototype.concat;
-
-var empty = function() {};
-
-var chainAnswer = function(obj, resolve, reject) {
-    if (obj) {
-        var then = obj.thenSync || obj.then;
-        if (isFunction(then)) {
-            then.call(obj, resolve, reject);
+var wrapResolutionFn = function(resFn, promiseError) {
+    var called;
+    var checkCalls = function(fn, value) {
+        if (!called) {
+            called = true;
+            fn(value);
+        }
+    };
+    return [bind1(checkCalls, null, function(value) {
+        if (promiseError && value === promiseError) {
+            resFn[1](new TypeError());
             return;
         }
-    }
-    resolve(obj);
+        chainAnswer(value, resFn);
+    }), bind1(checkCalls, null, resFn[1])];
 };
 
-var propagateResults = function(callback, deferred) {
-    return function() {
-        try {
-            // the try...catch here is essential for a correct promises implementation
-            // see: https://gist.github.com/3889970
-            var res = callback.apply(null, arguments);
-            // call thenSync if present, otherwise then
-            chainAnswer(res, deferred.resolve, deferred.reject);
-        } catch (e) {
-            deferred.reject(e);
-        } finally {
-            callback = null;
-            deferred = null;
-        }
-    };
-};
-
-var Promise = function() {};
-
-var defer = function() {
-    var deferred = {};
-    var promise = deferred.promise = new Promise();
-    var state; // undefined, "resolve" or "reject"
-    var result = null;
-    var listeners = {
-        resolve: [],
-        reject: []
-    };
-
-    var createThen = function(sync, applyFunction) {
-        promise["then" + sync] = function(onResolve, onReject) {
-            var res = defer();
-            onResolve = isFunction(onResolve) ? propagateResults(onResolve, res) : res.resolve;
-            onReject = isFunction(onReject) ? propagateResults(onReject, res) : res.reject;
-            if (listeners) {
-                // register listeners
-                listeners.resolve.push(onResolve);
-                listeners.reject.push(onReject);
-            } else {
-                // result already known
-                applyFunction([state == "resolve" ? onResolve : onReject], result);
-            }
-            return res.promise;
-        };
-    };
-    createThen("", asyncCall.nextTickApply);
-    createThen("Sync", asyncCall.syncApply);
-
-    var createResolveReject = function(resolveOrReject) {
-        deferred[resolveOrReject] = function() {
-            if (listeners) {
-                result = arguments;
-                state = resolveOrReject;
-                var myListeners = listeners[resolveOrReject];
-                listeners = null;
-                asyncCall.nextTickApply(myListeners, result);
-            }
-        };
-        return function() {
-            return state == resolveOrReject;
-        };
-    };
-    promise.isResolved = createResolveReject("resolve");
-    promise.isRejected = createResolveReject("reject");
-    promise.result = function() {
-        return result && result[0];
-    };
-    return deferred;
-};
-
-Promise.prototype = {
-    end: function() {
-        return this.thenSync(empty, uncaughtError);
-    },
-    always: function(cb) {
-        this.then(cb, cb);
-        return this;
-    }
-};
-
-var done = defer();
-done.resolve();
-done = done.promise;
-
-var STATE_DEFERRED = 0;
-var STATE_COUNTER = 1;
-var STATE_RESULT = 2;
-var STATE_OK = 3;
-var STATE_FAILFAST = 4;
-
-var countDown = function(state, index) {
-    return function(ok) {
-        return function(result) {
-            if (!state) {
-                // already called with this index
+var chainAnswer = function(value, resFn) {
+    try {
+        if (isFunction(value) || isObject(value)) {
+            var then = value.thenSync || value.then;
+            if (isFunction(then)) {
+                resFn = wrapResolutionFn(resFn);
+                then.call(value, resFn[0], resFn[1]);
                 return;
             }
-            if (state[STATE_OK]) {
-                if (ok) {
-                    state[STATE_RESULT][index] = result;
-                } else {
-                    state[STATE_OK] = false;
-                    state[STATE_RESULT] = arguments;
-                    if (state[STATE_FAILFAST]) {
-                        state[STATE_COUNTER] = 1;
+        }
+        resFn[0](value);
+    } catch (ex) {
+        resFn[1](ex);
+    }
+};
+
+var Promise = function(callback) {
+    var promise = this;
+    var state; // undefined = pending, 1 fulfilled, 2 rejected
+    var result;
+    var listeners = [];
+
+    var createThen = function(sync, callFunction) {
+        promise["then" + sync] = function(onFulfilled, onRejected) {
+            onFulfilled = isFunction(onFulfilled) ? onFulfilled : null;
+            onRejected = isFunction(onRejected) ? onRejected : null;
+            if (!onFulfilled && !onRejected) {
+                return promise; // skips the creation of a useless promise
+            }
+            return new Promise(function(fulfill, reject) {
+                var callback = function() {
+                    var fn = state == 1 ? onFulfilled : onRejected;
+                    if (fn) {
+                        try {
+                            fulfill(fn(result));
+                        } catch (e) {
+                            reject(e);
+                        }
+                    } else {
+                        (state == 1 ? fulfill : reject)(result);
                     }
+                };
+                if (listeners) {
+                    listeners.push(callback);
+                } else {
+                    callFunction(callback);
                 }
-            }
-            state[STATE_COUNTER]--;
-            if (!state[STATE_COUNTER]) {
-                var defer = state[STATE_DEFERRED];
-                var endResult = state[STATE_RESULT];
-                // clean closure variables:
-                state[STATE_DEFERRED] = state[STATE_RESULT] = null;
-                (state[STATE_OK] ? defer.resolve : defer.reject).apply(defer, endResult);
-            }
-            // prevent another call with the same index
-            state = null;
+            });
         };
     };
+    createThen("", asyncCall.nextTick);
+    createThen("Sync", asyncCall.syncCall);
+
+    var isX = function(refState) {
+        return state == refState;
+    };
+    promise.isFulfilled = bind1(isX, null, 1);
+    promise.isRejected = bind1(isX, null, 2);
+    promise.result = function() {
+        return result;
+    };
+
+    var resolve = function(newState, value) {
+        if (listeners) {
+            result = value;
+            state = newState;
+            var myListeners = listeners;
+            listeners = null;
+            asyncCall.nextTickCalls(myListeners);
+        }
+    };
+    var resFn = [bind1(resolve, null, 1), bind1(resolve, null, 2)];
+    resFn = wrapResolutionFn(resFn, promise);
+    try {
+        callback(resFn[0], resFn[1]);
+    } catch (e) {
+        resFn[1](e);
+    }
 };
 
-var createWhen = function(failFast) {
-    return function() {
-        var array = concat.apply([], arguments);
-        if (!array.length) {
-            return done;
-        }
-        var deferred = defer();
-        var state = [
-            deferred /* STATE_DEFERRED */ ,
-            array.length /* STATE_COUNTER */ ,
-            array /* STATE_RESULT */ ,
-            true /* STATE_OK */ ,
-            failFast /* STATE_FAILFAST */
-        ];
-        for (var i = 0, l = array.length; i < l; i++) {
-            var fn = countDown(state, i);
-            chainAnswer(array[i], fn(true), fn(false));
-        }
-        return deferred.promise;
+Promise.resolve = function(value) {
+    if (value instanceof Promise) {
+        return value;
+    }
+    return new Promise(function(fulfill) {
+        fulfill(value);
+    });
+};
+
+Promise.reject = function(reason) {
+    return new Promise(function(fulfill, reject) {
+        reject(reason);
+    });
+};
+
+Promise.defer = function() {
+    var res = {};
+    res.promise = new Promise(function(fulfill, reject) {
+        res.resolve = fulfill;
+        res.reject = reject;
+    });
+    return res;
+};
+
+Promise.done = Promise.resolve();
+
+var promiseProto = Promise.prototype = {};
+
+var wrapForSpread = function(onFulfilled, res) {
+    return onFulfilled.apply(null, res);
+};
+
+var createProtoMethods = function(sync) {
+    var thenSync = "then" + sync;
+    promiseProto["spread" + sync] = function(onFulfilled, onRejected) {
+        return this[thenSync](bind1(wrapForSpread, null, onFulfilled), onRejected);
+    };
+    promiseProto["catch" + sync] = function(onRejected) {
+        return this[thenSync](null, onRejected);
+    };
+    promiseProto["finally" + sync] = function(handler) {
+        return this[thenSync](handler, handler);
+    };
+    promiseProto["done" + sync] = function(onFulfilled, onRejected) {
+        this[thenSync](onFulfilled, onRejected).thenSync(null, uncaughtError);
     };
 };
 
-module.exports = {
-    defer: defer,
-    when: createWhen(true),
-    whenAll: createWhen(false),
-    empty: empty,
-    done: done
+createProtoMethods("");
+createProtoMethods("Sync");
+
+var createAll = function(failFast) {
+    return function(array) {
+        return new Promise(function(fulfill, reject) {
+            if (array.length === 0) {
+                return fulfill([]);
+            }
+            array = array.slice(0); // make a copy of the array (to be able to change it)
+            var globalOk = true;
+            var globalResult = array;
+            var remainingPromisesCount = array.length;
+            var handler = function(success, result) {
+                array[this[0]] = result;
+                if (globalOk && !success) {
+                    globalOk = false;
+                    globalResult = result;
+                    if (failFast) {
+                        remainingPromisesCount = 1;
+                    }
+                }
+                remainingPromisesCount--;
+                if (!remainingPromisesCount) {
+                    (globalOk ? fulfill : reject).call(null, globalResult);
+                }
+            };
+            for (var i = remainingPromisesCount - 1; i >= 0; i--) {
+                var scope = [i];
+                chainAnswer(array[i], [bind1(handler, scope, true), bind1(handler, scope, false)]);
+            }
+        });
+    };
 };
+
+Promise.all = createAll(true);
+Promise.allSettled = createAll(false);
+
+module.exports = Promise;

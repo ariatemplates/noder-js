@@ -25,6 +25,10 @@ var isFunction = function(fn) {
     return (typeof fn == "function");
 };
 
+var isObject = function(obj) {
+    return obj && (typeof obj == "object");
+};
+
 var isPlainObject = function(obj) {
     return obj ? toString.call(obj) === '[object Object]' : false;
 };
@@ -33,5 +37,6 @@ module.exports = {
     isFunction: isFunction,
     isArray: isArray,
     isString: isString,
+    isObject: isObject,
     isPlainObject: isPlainObject
 };

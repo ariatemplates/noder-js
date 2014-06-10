@@ -42,7 +42,7 @@ describe("Preprocessors", function() {
             });
             var isSync = true;
 
-            newRootModule.asyncRequire("originalFile").thenSync(function(result) {
+            newRootModule.asyncRequire("originalFile").spreadSync(function(result) {
                 expect(result).to.eql(expectedResult);
                 expect(isSync).to.equal(sync);
                 if (sync) {

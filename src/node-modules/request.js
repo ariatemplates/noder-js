@@ -14,7 +14,7 @@
  */
 
 var fs = require('fs');
-var promise = require('../modules/promise.js');
+var Promise = require('../modules/promise.js');
 
 var readFileSync = function(file, encoding, callback) {
     try {
@@ -25,14 +25,16 @@ var readFileSync = function(file, encoding, callback) {
 };
 
 module.exports = function(url, options) {
-    var deferred = promise.defer();
-    var readFile = options && options.sync ? readFileSync : fs.readFile;
-    readFile(url, 'utf-8', function(err, data) {
-        if (err) {
-            deferred.reject(err);
-        } else {
-            deferred.resolve(data);
-        }
+    return new Promise(function(fulfill, reject) {
+        var readFile = options && options.sync ? readFileSync : fs.readFile;
+        readFile(url, 'utf-8', function(err, data) {
+            if (err) {
+                reject(err);
+            } else {
+                fulfill({
+                    responseText: data
+                });
+            }
+        });
     });
-    return deferred.promise;
 };

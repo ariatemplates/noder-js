@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-var promise = require("./promise");
+var Promise = require("./promise");
 
 module.exports = function(context, filterConfig, filename, args) {
     var items = (filterConfig || []).slice(0);
     var next = function(content) {
         args[0] = content;
         if (!items.length) {
-            return promise.when(content);
+            return Promise.resolve(content);
         }
         var currentFilter = items.shift();
         if (currentFilter.pattern && currentFilter.pattern.test(filename)) {
-            return context.moduleAsyncRequire(context.rootModule, [currentFilter.module]).thenSync(function(processor) {
-                return promise.when(processor.apply(this, args.concat(currentFilter.options))).thenSync(next);
+            return context.moduleAsyncRequire(context.rootModule, [currentFilter.module]).spreadSync(function(processor) {
+                return Promise.resolve(processor.apply(null, args.concat(currentFilter.options))).thenSync(next);
             });
         } else {
             return next(args[0]);

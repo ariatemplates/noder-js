@@ -13,25 +13,22 @@
  * limitations under the License.
  */
 
-var defer = require('./promise').defer;
+var Promise = require('./promise');
 var typeUtils = require('./src/modules/type');
 
 var create = function(module) {
     var res = function() {
-        var deferred = defer();
-        var result = [];
-        try {
-            for (var i = 0, l = arguments.length; i < l; i++) {
-                var item = arguments[i];
+        var args = arguments;
+        return new Promise(function(fulfill) {
+            var result = [];
+            for (var i = 0, l = args.length; i < l; i++) {
+                var item = args[i];
                 if (typeUtils.isString(item)) {
                     result[i] = module.require(item);
                 }
             }
-            deferred.resolve.apply(deferred, result);
-        } catch (e) {
-            deferred.reject(e);
-        }
-        return deferred.promise;
+            fulfill(result);
+        });
     };
     res.create = create;
     return res;

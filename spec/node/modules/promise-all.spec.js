@@ -15,7 +15,7 @@
 
 describe('Promises/When', function() {
     var expect = require("expect.js");
-    var promise = require("../../../promise.js");
+    var Promise = require("../../../promise.js");
 
     var myValue = {};
     var myFunction = function() {
@@ -23,7 +23,7 @@ describe('Promises/When', function() {
     };
 
     var checkResult = function(promiseValue, done) {
-        promiseValue.then(function(value) {
+        promiseValue.spread(function(value) {
             expect(value).to.equal(myValue);
             done();
         }, function() {
@@ -31,49 +31,49 @@ describe('Promises/When', function() {
         });
     };
 
-    it("Direct value (when)", function(done) {
-        checkResult(promise.when([myFunction()]), done);
+    it("Direct value (all)", function(done) {
+        checkResult(Promise.all([myFunction()]), done);
     });
 
-    it("Chaining promises (when)", function(done) {
-        checkResult(promise.when([promise.done.then(myFunction)]), done);
+    it("Chaining promises (all)", function(done) {
+        checkResult(Promise.all([Promise.done.then(myFunction)]), done);
     });
 
-    it("Fail fast (when)", function(done) {
-        var unresolvedDefer = promise.defer();
-        var errorDefer = promise.defer();
+    it("Fail fast (all)", function(done) {
+        var unresolvedDefer = Promise.defer();
+        var errorDefer = Promise.defer();
         var myError = {};
         errorDefer.reject(myError);
-        promise.when([unresolvedDefer.promise, errorDefer.promise]).then(function() {
+        Promise.all([unresolvedDefer.promise, errorDefer.promise]).then(function() {
             done(new Error("The success callback should not be called."));
         }, function(raisedError) {
             expect(raisedError).to.equal(myError);
             done();
-        }).end();
+        }).done();
     });
 
 
-    it("Direct value (whenAll)", function(done) {
-        checkResult(promise.whenAll([myFunction()]), done);
+    it("Direct value (allSettled)", function(done) {
+        checkResult(Promise.allSettled([myFunction()]), done);
     });
 
-    it("Chaining promises (whenAll)", function(done) {
-        checkResult(promise.whenAll([promise.done.then(myFunction)]), done);
+    it("Chaining promises (allSettled)", function(done) {
+        checkResult(Promise.allSettled([Promise.done.then(myFunction)]), done);
     });
 
-    it("Fail slow (whenAll)", function(done) {
+    it("Fail slow (allSettled)", function(done) {
         var later = false;
-        var resolveLaterDefer = promise.defer();
-        var errorDefer = promise.defer();
+        var resolveLaterDefer = Promise.defer();
+        var errorDefer = Promise.defer();
         var myError = {};
         errorDefer.reject(myError);
-        promise.whenAll([resolveLaterDefer.promise, errorDefer.promise]).then(function() {
+        Promise.allSettled([resolveLaterDefer.promise, errorDefer.promise]).then(function() {
             done(new Error("The success callback should not be called."));
         }, function(raisedError) {
             expect(later).to.equal(true);
             expect(raisedError).to.equal(myError);
             done();
-        }).end();
+        }).done();
         setTimeout(function() {
             later = true;
             resolveLaterDefer.resolve();

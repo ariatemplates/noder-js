@@ -18,21 +18,24 @@ var uncaughtError = require("./uncaughtError.js");
 var handlers = [];
 var insideSyncTick = false;
 
-var apply = function(callbacks, params, scope) {
+var syncCall = function(method) {
+    try {
+        method();
+    } catch (e) {
+        uncaughtError(e);
+    }
+};
+
+var syncCalls = function(callbacks) {
     while (callbacks.length > 0) {
-        var method = callbacks.shift();
-        try {
-            method.apply(scope, params);
-        } catch (e) {
-            uncaughtError(e);
-        }
+        syncCall(callbacks.shift());
     }
 };
 
 var syncTick = function() {
     insideSyncTick = true;
     try {
-        apply(handlers, []);
+        syncCalls(handlers);
     } finally {
         insideSyncTick = false;
     }
@@ -48,12 +51,13 @@ var improvedNextTick = function(fn) {
 module.exports = {
     syncTick: syncTick,
     nextTick: improvedNextTick,
-    nextTickApply: function(callbacks, params, scope) {
+    nextTickCalls: function(callbacks) {
         if (callbacks && callbacks.length > 0) {
             improvedNextTick(function() {
-                apply(callbacks, params, scope);
+                syncCalls(callbacks);
             });
         }
     },
-    syncApply: apply
+    syncCalls: syncCalls,
+    syncCall: syncCall
 };

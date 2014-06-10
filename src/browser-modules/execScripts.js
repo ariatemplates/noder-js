@@ -13,23 +13,19 @@
  * limitations under the License.
  */
 
-var promise = require('../modules/promise.js');
+var Promise = require('../modules/promise.js');
 var uncaughtError = require("../modules/uncaughtError.js");
 var domReady = require('./domReady.js');
+var bind1 = require("../modules/bind1.js");
 
-var createModuleExecuteFunction = function(context, module) {
-    return function() {
-        // calling .end() here allows to go on with the execution of script tags
-        // even if one has an execution error, and makes sure the error is reported
-        // on the console of the browser
-        return context.moduleExecute(module).end();
-    };
+var logErrorsAndContinue = function(p) {
+    return p.thenSync(function() {}, uncaughtError);
 };
 
 module.exports = function(context, scriptType) {
-    return domReady().then(function() {
+    return logErrorsAndContinue(domReady().then(function() {
         var document = global.document;
-        var executePromise = promise.done;
+        var executePromise = Promise.done;
         if (document) {
             var scripts = document.getElementsByTagName('script');
             var i, l;
@@ -43,7 +39,7 @@ module.exports = function(context, scriptType) {
                         // all scripts are defined before any is executed
                         // so that it is possible to require one script tag from another (in any order)
                         var curModule = context.jsModuleDefine(curScript.innerHTML, filename);
-                        executePromise = executePromise.then(createModuleExecuteFunction(context, curModule));
+                        executePromise = logErrorsAndContinue(executePromise.then(bind1(context.moduleExecute, context, curModule)));
                     } catch (error) {
                         uncaughtError(error);
                     }
@@ -51,5 +47,5 @@ module.exports = function(context, scriptType) {
             }
         }
         return executePromise;
-    }).end();
+    }));
 };

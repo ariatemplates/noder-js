@@ -37,7 +37,7 @@ describe("Loader plugins", function() {
                 }
             });
 
-            newRootModule.asyncRequire(fileName).then(function(pluginUsage1) {
+            newRootModule.asyncRequire(fileName).spread(function(pluginUsage1) {
                 var cache = newRootModule.require.cache;
                 var pluginUsage1Module = cache[fileName];
                 var pluginModule = cache["$plugin.js"];
@@ -67,7 +67,7 @@ describe("Loader plugins", function() {
                 }
             });
 
-            newRootModule.asyncRequire(fileName).then(function(pluginUsage2) {
+            newRootModule.asyncRequire(fileName).spread(function(pluginUsage2) {
                 var cache = newRootModule.require.cache;
                 var pluginUsage2Module = cache[fileName];
                 var pluginModule = cache["$plugin.js"];

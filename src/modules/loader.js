@@ -22,6 +22,10 @@ var scriptBaseUrl = require('../node-modules/scriptBaseUrl');
 var filters = require('./filters');
 var bind1 = require('./bind1');
 
+var xhrContent = function(xhr) {
+    return xhr.responseText;
+};
+
 var Loader = function(context) {
     var config = context.config.packaging || emptyObject;
     this.config = config;
@@ -53,7 +57,7 @@ loaderProto.moduleLoad = function(module) {
 
 loaderProto.loadUnpackaged = function(module) {
     module.url = this.baseUrl + module.filename;
-    return request(module.url, this.config.requestConfig).thenSync(bind1(this.preprocessUnpackaged, this, module));
+    return request(module.url, this.config.requestConfig).thenSync(xhrContent).thenSync(bind1(this.preprocessUnpackaged, this, module));
 };
 
 loaderProto.preprocessUnpackaged = function(module, code) {
@@ -74,10 +78,10 @@ loaderProto.loadPackaged = function(packageName) {
     var url = self.baseUrl + packageName;
     var res = self.currentLoads[url];
     if (!res) {
-        self.currentLoads[url] = res = request(url, self.config.requestConfig).thenSync(function(jsCode) {
-            var body = self.jsPackageEval(jsCode, url);
+        self.currentLoads[url] = res = request(url, self.config.requestConfig).thenSync(xhrContent).thenSync(function(content) {
+            var body = self.jsPackageEval(content, url);
             body(self.context.define);
-        }).always(function() {
+        })["finally"](function() {
             delete self.currentLoads[url];
             self = null;
         });
@@ -86,8 +90,7 @@ loaderProto.loadPackaged = function(packageName) {
 };
 
 loaderProto.jsPackageEval = function(jsCode, url) {
-    var code = ['(function(define){\n', jsCode, '\n})'];
-    return jsEval(code.join(''), url, 1 /* we are adding 1 line compared to url */ );
+    return jsEval(jsCode, url, "(function(define){\n", "\n})");
 };
 
 module.exports = Loader;

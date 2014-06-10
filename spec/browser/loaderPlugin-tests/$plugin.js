@@ -14,7 +14,7 @@
  */
 
 // ./$plugin.js and ./notPlugin are supposed to be and stay exactly identical.
-var promise = require("noder-js/promise");
+var Promise = require("noder-js/promise");
 var preloadCalls = [];
 var slice = Array.prototype.slice;
 
@@ -36,7 +36,7 @@ var pluginMethod = function() {
 };
 
 pluginMethod.$preload = function() {
-    var deferred = promise.defer();
+    var deferred = Promise.defer();
     var item = {
         args: slice.call(arguments, 0),
         resolved: false

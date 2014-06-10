@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var promise = require("./promise.js");
+var Promise = require("./promise.js");
 var Loader = require('./loader.js');
 var Resolver = require('./resolver.js');
 var execScripts = require('../node-modules/execScripts.js');
@@ -79,12 +79,12 @@ var setModuleProperty = function(module, property, value) {
 
 var start = function(context) {
     var config = context.config;
-    var actions = promise.done;
+    var actions = Promise.done;
 
     var main = config.main;
     actions = actions.thenSync(main ? function() {
         return context.execModuleCall(main);
-    } : promise.empty /* if there is no main module, an empty parameter should be passed to onstart */ );
+    } : function() {} /* if there is no main module, an empty parameter should be passed to onstart */ );
 
     actions = actions.thenSync(config.onstart);
 
@@ -98,11 +98,7 @@ var start = function(context) {
         });
     }
 
-    return actions.always(function() {
-        context = null;
-        config = null;
-        actions = null;
-    });
+    return actions;
 };
 
 var BuiltinModules = function() {};
@@ -117,7 +113,7 @@ var Context = function(config) {
     this.config = config;
     this.cache = {};
     this.builtinModules = new BuiltinModules();
-    this.when = config.failFast === false ? promise.whenAll : promise.when;
+    this.allSettled = config.failFast === false ? Promise.allSettled : Promise.all;
 
     var rootModule = new Module(this);
     rootModule.preloaded = true;
@@ -136,7 +132,7 @@ var Context = function(config) {
         global[globalVarName] = rootModule;
     }
 
-    start(this).end();
+    start(this).done();
 };
 
 var contextProto = Context.prototype = {};
@@ -160,7 +156,7 @@ var checkCircularDependency = function(module, lookInside) {
 // dependencies)
 contextProto.modulePreload = function(module, parent) {
     if (module.preloaded) {
-        return promise.done;
+        return Promise.done;
     }
     var preloading = getModuleProperty(module, PROPERTY_PRELOADING);
     var preloadingParents = getModuleProperty(module, PROPERTY_PRELOADING_PARENTS);
@@ -168,7 +164,7 @@ contextProto.modulePreload = function(module, parent) {
         // If we get here, it may be because of a circular dependency
         if (parent) {
             if (checkCircularDependency(module, parent)) {
-                return promise.done;
+                return Promise.done;
             }
             preloadingParents.push(parent);
         }
@@ -194,17 +190,12 @@ contextProto.modulePreload = function(module, parent) {
         setModuleProperty(module, PROPERTY_PRELOADING_PARENTS, null);
     }, function(error) {
         throw noderError("modulePreload", [module], error);
-    }).always(function() {
-        // clean up
-        module = null;
-        self = null;
-        parent = null;
     }));
 };
 
 contextProto.moduleLoadDefinition = function(module) {
     if (getModuleProperty(module, PROPERTY_DEFINITION)) {
-        return promise.done;
+        return Promise.done;
     }
     var res = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
     if (!res) {
@@ -212,7 +203,7 @@ contextProto.moduleLoadDefinition = function(module) {
         var builtin = this.builtinModules["/" + filename];
         if (builtin) {
             this.moduleDefine(module, [], builtin(this));
-            res = promise.done;
+            res = Promise.done;
         } else {
             var asyncOrError = true;
             var checkResult = function(error) {
@@ -236,7 +227,8 @@ contextProto.moduleProcessPlugin = function(module, pluginDef) {
     var allowedParameters = {
         "module": module,
         "__dirname": module.dirname,
-        "__filename": module.filename
+        "__filename": module.filename,
+        "null": null
     };
     var parameters = pluginDef.args.slice(0);
     for (var i = 0, l = parameters.length; i < l; i++) {
@@ -268,7 +260,7 @@ contextProto.modulePreloadDependencies = function(module, dependencies) {
             this.moduleProcessPlugin(module, curDependency);
         promises.push(curPromise);
     }
-    return this.when(promises);
+    return this.allSettled(promises);
 };
 
 contextProto.moduleExecuteSync = function(module) {
@@ -276,7 +268,7 @@ contextProto.moduleExecuteSync = function(module) {
         return module.exports;
     }
     var preloadPromise = this.modulePreload(module);
-    if (!preloadPromise.isResolved()) {
+    if (!preloadPromise.isFulfilled()) {
         throw noderError("notPreloaded", [module], preloadPromise.result());
     }
     var exports = module.exports;
@@ -330,15 +322,11 @@ contextProto.moduleExecute = function(module) {
     var self = this;
     return self.modulePreload(module).thenSync(function() {
         return self.moduleExecuteSync(module);
-    }).always(function() {
-        self = null;
-        module = null;
     });
 };
 
 contextProto.moduleAsyncRequire = function(module, dependencies) {
     return this.modulePreloadDependencies(module, dependencies).thenSync(function() {
-        var defer = promise.defer();
         var result = [];
         for (var i = 0, l = dependencies.length; i < l; i++) {
             var item = dependencies[i];
@@ -346,11 +334,7 @@ contextProto.moduleAsyncRequire = function(module, dependencies) {
                 result[i] = module.require(item);
             }
         }
-        defer.resolve.apply(defer, result);
-        return defer.promise;
-    }).always(function() {
-        module = null;
-        dependencies = null;
+        return result;
     });
 };
 

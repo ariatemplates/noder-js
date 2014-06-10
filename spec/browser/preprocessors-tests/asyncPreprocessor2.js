@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var promise = require("noder-js/promise");
+var Promise = require("noder-js/promise");
 
 module.exports = function(code, fileName) {
-    var defer = promise.defer();
+    var defer = Promise.defer();
     setTimeout(function() {
         var res = code.replace(/<PREPROCESSOR2-FILENAME>/g, fileName);
         res = res.replace(/<PREPROCESSOR2-CHANGE1>/g, "<PREPROCESSOR1-CHANGE2>");

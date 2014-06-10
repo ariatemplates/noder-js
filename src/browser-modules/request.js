@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-var promise = require("../modules/promise.js");
+var Promise = require("../modules/promise.js");
 var noderError = require("../modules/noderError.js");
 var HttpRequestObject = global.XMLHttpRequest;
 var newHttpRequestObject;
@@ -29,39 +29,39 @@ if (HttpRequestObject) {
     };
 }
 
-var createCallback = function(url, xhr, deferred) {
+var createCallback = function(url, xhr, fulfill, reject) {
     return function() {
         if (xhr && xhr.readyState == 4) {
             var error = (xhr.status != 200);
             if (error) {
-                deferred.reject(noderError('XMLHttpRequest', [url, xhr]));
+                reject(noderError('XMLHttpRequest', [url, xhr]));
             } else {
-                deferred.resolve(xhr.responseText, xhr);
+                fulfill(xhr);
             }
             // clean the closure:
-            url = xhr = deferred = null;
+            url = xhr = fulfill = reject = null;
             return true;
         }
     };
 };
 
 module.exports = function(url, options) {
-    options = options || {};
-    var deferred = promise.defer();
-    var xhr = newHttpRequestObject();
-    var headers = options.headers || {};
-    xhr.open(options.method || 'GET', url, !options.sync);
-    for (var key in headers) {
-        if (headers.hasOwnProperty(key)) {
-            xhr.setRequestHeader(key, headers[key]);
+    return new Promise(function(fulfill, reject) {
+        options = options || {};
+        var xhr = newHttpRequestObject();
+        var headers = options.headers || {};
+        xhr.open(options.method || 'GET', url, !options.sync);
+        for (var key in headers) {
+            if (headers.hasOwnProperty(key)) {
+                xhr.setRequestHeader(key, headers[key]);
+            }
         }
-    }
-    xhr.send(options.data);
-    var checkState = createCallback(url, xhr, deferred);
-    if (!checkState()) {
-        // only set onreadystatechange if it is useful
-        // (i.e. the response is not available synchronously)
-        xhr.onreadystatechange = checkState;
-    }
-    return deferred.promise;
+        xhr.send(options.data);
+        var checkState = createCallback(url, xhr, fulfill, reject);
+        if (!checkState()) {
+            // only set onreadystatechange if it is useful
+            // (i.e. the response is not available synchronously)
+            xhr.onreadystatechange = checkState;
+        }
+    });
 };
