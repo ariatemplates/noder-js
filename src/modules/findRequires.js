@@ -19,7 +19,7 @@ var quoteRegExp = /^['"]$/;
 var operatorRegExp = /^(\w{2,}|[!%&\(*+,\-\/:;<=>?\[\^])$/;
 var firstNonSpaceCharRegExp = /^\s*(\S)/;
 var lastNonSpaceCharRegExp = /(\b(return|throw|new|in)|\S)\s*$/;
-var pluginBeginRegExp = /\s*\)\s*\.\s*([_$a-zA-Z][_$a-zA-Z0-9]*)\s*\(\s*/g;
+var pluginBeginRegExp = /\s*\)\s*\.\s*([_$a-zA-Z][_$a-zA-Z0-9]*)\s*\(\s*(?=(.?))/g;
 var pluginParamRegExp = /[_$a-zA-Z][_$a-zA-Z0-9]*/g;
 var pluginParamSepRegExp = /\s*(\)|,)\s*/g;
 
@@ -212,7 +212,8 @@ module.exports = function(source, includePlugins) {
                     var method = match[1];
                     var args = [];
                     var nextString = ++strIndex < nbStrings && posConverter(stringsPositions[strIndex]);
-                    do {
+                    match[1] = match[2];
+                    while (match && match[1] != ")") {
                         var curPos = match.index + match[0].length;
                         if (nextString && curPos + 1 === nextString[0]) {
                             args.push(getString(stripComment, nextString));
@@ -227,7 +228,7 @@ module.exports = function(source, includePlugins) {
                             args.push([match[0]]);
                         }
                         match = regExpExecPosition(pluginParamSepRegExp, stripComment, curPos);
-                    } while (match && match[1] == ",");
+                    }
                     if (match) {
                         // this means the call is properly finished with a closing parenthesis
                         res.push({

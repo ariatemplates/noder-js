@@ -26,15 +26,15 @@ describe('Dependencies extraction', function() {
         }
     };
 
-    var expectDepsSimple = function(source, expected) {
-        var res = extractDeps(source);
+    var expectDepsSimple = function(source, expected, includePlugins) {
+        var res = extractDeps(source, includePlugins);
         expect(res).to.eql(expected);
     };
 
-    var expectDeps = function(source, expected) {
-        expectDepsSimple(source, expected);
+    var expectDeps = function(source, expected, includePlugins) {
+        expectDepsSimple(source, expected, includePlugins);
         // all tests with simple quotes should work the same when exchanging simple and double quotes:
-        expectDepsSimple(source.replace(quoteRegExp, quoteReplacer), expected);
+        expectDepsSimple(source.replace(quoteRegExp, quoteReplacer), expected, includePlugins);
     };
 
     it('Comments', function() {
@@ -108,5 +108,45 @@ describe('Dependencies extraction', function() {
         expectDeps('var expressionRequire = require(require("innerRequire").value);', ["innerRequire"]);
         expectDeps('var expressionRequire = require(1 + "firstExpression");', []);
         expectDeps('var expressionRequire = require("dynamicRequire" /* here is a comment */ + 1);', []);
+    });
+
+    it('Plugins', function() {
+        expectDeps('var e = require("$myPlugin").something.myMethod()', ["$myPlugin"], true);
+        expectDeps('var e = require("$myPlugin").myMethod("something")', ["$myPlugin", {
+            module: "$myPlugin",
+            method: "myMethod",
+            args: ["something"] // test with a string parameter
+        }], true);
+        expectDeps('var e = require("$myPlugin").myMethod(module)', ["$myPlugin", {
+            module: "$myPlugin",
+            method: "myMethod",
+            args: [ // test with a variable parameter
+                ["module"]
+            ]
+        }], true);
+        expectDeps('var e = require("$myPlugin").myMethod( /* comment */ "some /* thing */ else" /* other */ )', ["$myPlugin", {
+            module: "$myPlugin",
+            method: "myMethod",
+            args: ["some /* thing */ else"] // test with comments in the middle:
+        }], true);
+        expectDeps('var e = require("$myPlugin").myMethod("something", "other element")', ["$myPlugin", {
+            module: "$myPlugin",
+            method: "myMethod",
+            args: ["something", "other element"] // test with 2 string parameters
+        }], true);
+        expectDeps('var e = require("$myPlugin").myMethod(__dirname, null)', ["$myPlugin", {
+            module: "$myPlugin",
+            method: "myMethod",
+            args: [
+                ["__dirname"],
+                ["null"]
+            ] // test with 2 variable parameters
+        }], true);
+        expectDeps('var e = require("$myPlugin").myMethod()', ["$myPlugin", {
+            module: "$myPlugin",
+            method: "myMethod",
+            args: [] // test with no parameter
+        }], true);
+
     });
 });
