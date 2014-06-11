@@ -18,7 +18,7 @@ var logDetails = function() {
     var async = false;
     var self = this;
     var res = getHandler().thenSync(function(syncLogDetails) {
-        return syncLogDetails.call(self, async);
+        return syncLogDetails(self, async);
     });
     async = true;
     return res;
