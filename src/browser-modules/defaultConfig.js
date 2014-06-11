@@ -15,6 +15,21 @@
 
 var merge = require("../modules/merge");
 var config = require("../unpackaged-modules/packagedConfig")().mainContext;
-merge(config, require('./scriptConfig.js'), true);
-
+var scriptTag = require('./scriptTag.js');
+var src = scriptTag.src;
+if (src) {
+    // only read the script config if the script tag has an src attribute
+    var configContent = scriptTag.innerHTML;
+    if (!/^\s*$/.test(configContent || "")) {
+        var exec = require('./eval.js');
+        var scriptConfig = exec(configContent);
+        merge(config, scriptConfig, true);
+    }
+    if (!config.main) {
+        var questionMark = src.indexOf('?');
+        if (questionMark > -1) {
+            config.main = decodeURIComponent(src.substring(questionMark + 1));
+        }
+    }
+}
 module.exports = config;
