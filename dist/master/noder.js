@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.3.1 - 23 May 2014
+ * Noder-js 1.3.1 - 11 Jun 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -19,7 +19,7 @@
 /*jshint undef:true, -W069, -W055*/
 (function(global, callEval, packagedConfig) {
     "use strict";
-    var type$module, nextTick$module, uncaughtError$module, asyncCall$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, bind$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, merge$module, scriptConfig$module, defaultConfig$module, main$module;
+    var type$module, nextTick$module, uncaughtError$module, asyncCall$module, bind$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, merge$module, scriptConfig$module, defaultConfig$module, main$module;
         (function() {
         var toString = Object.prototype.toString;
         var isString = function(str) {
@@ -31,6 +31,9 @@
         var isFunction = function(fn) {
             return typeof fn == "function";
         };
+        var isObject = function(obj) {
+            return obj && typeof obj == "object";
+        };
         var isPlainObject = function(obj) {
             return obj ? toString.call(obj) === "[object Object]" : false;
         };
@@ -38,6 +41,7 @@
             isFunction: isFunction,
             isArray: isArray,
             isString: isString,
+            isObject: isObject,
             isPlainObject: isPlainObject
         };
     })();
@@ -58,20 +62,22 @@
         (function() {
         var handlers = [];
         var insideSyncTick = false;
-        var apply = function(callbacks, params, scope) {
+        var syncCall = function(method) {
+            try {
+                method();
+            } catch (e) {
+                /*uncaughtError*/ uncaughtError$module(e);
+            }
+        };
+        var syncCalls = function(callbacks) {
             while (callbacks.length > 0) {
-                var method = callbacks.shift();
-                try {
-                    method.apply(scope, params);
-                } catch (e) {
-                    /*uncaughtError*/ uncaughtError$module(e);
-                }
+                syncCall(callbacks.shift());
             }
         };
         var syncTick = function() {
             insideSyncTick = true;
             try {
-                apply(handlers, []);
+                syncCalls(handlers);
             } finally {
                 insideSyncTick = false;
             }
@@ -85,162 +91,196 @@
         asyncCall$module = {
             syncTick: syncTick,
             nextTick: improvedNextTick,
-            nextTickApply: function(callbacks, params, scope) {
+            nextTickCalls: function(callbacks) {
                 if (callbacks && callbacks.length > 0) {
                     improvedNextTick(function() {
-                        apply(callbacks, params, scope);
+                        syncCalls(callbacks);
                     });
                 }
             },
-            syncApply: apply
+            syncCalls: syncCalls,
+            syncCall: syncCall
         };
     })();
+    bind$module = function(fn, scope, paramBind) {
+        return function(param) {
+            return fn.call(scope, paramBind, param);
+        };
+    };
         (function() {
-        var isFunction = type$module.isFunction;
-        var concat = Array.prototype.concat;
-        var empty = function() {};
-        var chainAnswer = function(obj, resolve, reject) {
-            if (obj) {
-                var then = obj.thenSync || obj.then;
-                if (isFunction(then)) {
-                    then.call(obj, resolve, reject);
+        var isFunction = /*typeUtils*/ type$module.isFunction;
+        var isObject = /*typeUtils*/ type$module.isObject;
+        var wrapResolutionFn = function(resFn, promiseError) {
+            var called;
+            var checkCalls = function(fn, value) {
+                if (!called) {
+                    called = true;
+                    fn(value);
+                }
+            };
+            return [ /*bind1*/ bind$module(checkCalls, null, function(value) {
+                if (promiseError && value === promiseError) {
+                    resFn[1](new TypeError());
                     return;
                 }
-            }
-            resolve(obj);
+                chainAnswer(value, resFn);
+            }), /*bind1*/ bind$module(checkCalls, null, resFn[1]) ];
         };
-        var propagateResults = function(callback, deferred) {
-            return function() {
-                try {
-                    // the try...catch here is essential for a correct promises implementation
-                    // see: https://gist.github.com/3889970
-                    var res = callback.apply(null, arguments);
-                    // call thenSync if present, otherwise then
-                    chainAnswer(res, deferred.resolve, deferred.reject);
-                } catch (e) {
-                    deferred.reject(e);
-                } finally {
-                    callback = null;
-                    deferred = null;
-                }
-            };
-        };
-        var Promise = function() {};
-        var defer = function() {
-            var deferred = {};
-            var promise = deferred.promise = new Promise();
-            var state;
-            // undefined, "resolve" or "reject"
-            var result = null;
-            var listeners = {
-                resolve: [],
-                reject: []
-            };
-            var createThen = function(sync, applyFunction) {
-                promise["then" + sync] = function(onResolve, onReject) {
-                    var res = defer();
-                    onResolve = isFunction(onResolve) ? propagateResults(onResolve, res) : res.resolve;
-                    onReject = isFunction(onReject) ? propagateResults(onReject, res) : res.reject;
-                    if (listeners) {
-                        // register listeners
-                        listeners.resolve.push(onResolve);
-                        listeners.reject.push(onReject);
-                    } else {
-                        // result already known
-                        applyFunction([ state == "resolve" ? onResolve : onReject ], result);
-                    }
-                    return res.promise;
-                };
-            };
-            createThen("", /*asyncCall*/ asyncCall$module.nextTickApply);
-            createThen("Sync", /*asyncCall*/ asyncCall$module.syncApply);
-            var createResolveReject = function(resolveOrReject) {
-                deferred[resolveOrReject] = function() {
-                    if (listeners) {
-                        result = arguments;
-                        state = resolveOrReject;
-                        var myListeners = listeners[resolveOrReject];
-                        listeners = null;
-                        /*asyncCall*/ asyncCall$module.nextTickApply(myListeners, result);
-                    }
-                };
-                return function() {
-                    return state == resolveOrReject;
-                };
-            };
-            promise.isResolved = createResolveReject("resolve");
-            promise.isRejected = createResolveReject("reject");
-            promise.result = function() {
-                return result && result[0];
-            };
-            return deferred;
-        };
-        Promise.prototype = {
-            end: function() {
-                /*uncaughtError*/
-                return this.thenSync(empty, uncaughtError$module);
-            },
-            always: function(cb) {
-                this.then(cb, cb);
-                return this;
-            }
-        };
-        var done = defer();
-        done.resolve();
-        done = done.promise;
-        var countDown = function(state, index) {
-            return function(ok) {
-                return function(result) {
-                    if (!state) {
-                        // already called with this index
+        var chainAnswer = function(value, resFn) {
+            try {
+                if (isFunction(value) || isObject(value)) {
+                    var then = value.thenSync || value.then;
+                    if (isFunction(then)) {
+                        resFn = wrapResolutionFn(resFn);
+                        then.call(value, resFn[0], resFn[1]);
                         return;
                     }
-                    if (state[/*STATE_OK*/ 3]) {
-                        if (ok) {
-                            state[/*STATE_RESULT*/ 2][index] = result;
-                        } else {
-                            state[/*STATE_OK*/ 3] = false;
-                            state[/*STATE_RESULT*/ 2] = arguments;
-                            if (state[/*STATE_FAILFAST*/ 4]) {
-                                state[/*STATE_COUNTER*/ 1] = 1;
+                }
+                resFn[0](value);
+            } catch (ex) {
+                resFn[1](ex);
+            }
+        };
+        var Promise = function(callback) {
+            var promise = this;
+            var state;
+            // undefined = pending, 1 fulfilled, 2 rejected
+            var result;
+            var listeners = [];
+            var createThen = function(sync, callFunction) {
+                promise["then" + sync] = function(onFulfilled, onRejected) {
+                    onFulfilled = isFunction(onFulfilled) ? onFulfilled : null;
+                    onRejected = isFunction(onRejected) ? onRejected : null;
+                    if (!onFulfilled && !onRejected) {
+                        return promise;
+                    }
+                    return new Promise(function(fulfill, reject) {
+                        var callback = function() {
+                            var fn = state == 1 ? onFulfilled : onRejected;
+                            if (fn) {
+                                try {
+                                    fulfill(fn(result));
+                                } catch (e) {
+                                    reject(e);
+                                }
+                            } else {
+                                (state == 1 ? fulfill : reject)(result);
                             }
+                        };
+                        if (listeners) {
+                            listeners.push(callback);
+                        } else {
+                            callFunction(callback);
                         }
-                    }
-                    state[/*STATE_COUNTER*/ 1]--;
-                    if (!state[/*STATE_COUNTER*/ 1]) {
-                        var defer = state[/*STATE_DEFERRED*/ 0];
-                        var endResult = state[/*STATE_RESULT*/ 2];
-                        // clean closure variables:
-                        state[/*STATE_DEFERRED*/ 0] = state[/*STATE_RESULT*/ 2] = null;
-                        (state[/*STATE_OK*/ 3] ? defer.resolve : defer.reject).apply(defer, endResult);
-                    }
-                    // prevent another call with the same index
-                    state = null;
+                    });
                 };
             };
+            createThen("", /*asyncCall*/ asyncCall$module.nextTick);
+            createThen("Sync", /*asyncCall*/ asyncCall$module.syncCall);
+            var isX = function(refState) {
+                return state == refState;
+            };
+            promise.isFulfilled = /*bind1*/ bind$module(isX, null, 1);
+            promise.isRejected = /*bind1*/ bind$module(isX, null, 2);
+            promise.result = function() {
+                return result;
+            };
+            var resolve = function(newState, value) {
+                if (listeners) {
+                    result = value;
+                    state = newState;
+                    var myListeners = listeners;
+                    listeners = null;
+                    /*asyncCall*/ asyncCall$module.nextTickCalls(myListeners);
+                }
+            };
+            var resFn = [ /*bind1*/ bind$module(resolve, null, 1), /*bind1*/ bind$module(resolve, null, 2) ];
+            resFn = wrapResolutionFn(resFn, promise);
+            try {
+                callback(resFn[0], resFn[1]);
+            } catch (e) {
+                resFn[1](e);
+            }
         };
-        var createWhen = function(failFast) {
-            return function() {
-                var array = concat.apply([], arguments);
-                if (!array.length) {
-                    return done;
-                }
-                var deferred = defer();
-                var state = [ deferred, array.length, array, true, failFast ];
-                for (var i = 0, l = array.length; i < l; i++) {
-                    var fn = countDown(state, i);
-                    chainAnswer(array[i], fn(true), fn(false));
-                }
-                return deferred.promise;
+        Promise.resolve = function(value) {
+            if (value instanceof Promise) {
+                return value;
+            }
+            return new Promise(function(fulfill) {
+                fulfill(value);
+            });
+        };
+        Promise.reject = function(reason) {
+            return new Promise(function(fulfill, reject) {
+                reject(reason);
+            });
+        };
+        Promise.defer = function() {
+            var res = {};
+            res.promise = new Promise(function(fulfill, reject) {
+                res.resolve = fulfill;
+                res.reject = reject;
+            });
+            return res;
+        };
+        Promise.done = Promise.resolve();
+        var promiseProto = Promise.prototype = {};
+        var wrapForSpread = function(onFulfilled, res) {
+            return onFulfilled.apply(null, res);
+        };
+        var createProtoMethods = function(sync) {
+            var thenSync = "then" + sync;
+            promiseProto["spread" + sync] = function(onFulfilled, onRejected) {
+                /*bind1*/
+                return this[thenSync](bind$module(wrapForSpread, null, onFulfilled), onRejected);
+            };
+            promiseProto["catch" + sync] = function(onRejected) {
+                return this[thenSync](null, onRejected);
+            };
+            promiseProto["finally" + sync] = function(handler) {
+                return this[thenSync](handler, handler);
+            };
+            promiseProto["done" + sync] = function(onFulfilled, onRejected) {
+                this[thenSync](onFulfilled, onRejected).thenSync(null, /*uncaughtError*/ uncaughtError$module);
             };
         };
-        promise$module = {
-            defer: defer,
-            when: createWhen(true),
-            whenAll: createWhen(false),
-            empty: empty,
-            done: done
+        createProtoMethods("");
+        createProtoMethods("Sync");
+        var createAll = function(failFast) {
+            return function(array) {
+                return new Promise(function(fulfill, reject) {
+                    if (array.length === 0) {
+                        return fulfill([]);
+                    }
+                    array = array.slice(0);
+                    // make a copy of the array (to be able to change it)
+                    var globalOk = true;
+                    var globalResult = array;
+                    var remainingPromisesCount = array.length;
+                    var handler = function(success, result) {
+                        array[this[0]] = result;
+                        if (globalOk && !success) {
+                            globalOk = false;
+                            globalResult = result;
+                            if (failFast) {
+                                remainingPromisesCount = 1;
+                            }
+                        }
+                        remainingPromisesCount--;
+                        if (!remainingPromisesCount) {
+                            (globalOk ? fulfill : reject).call(null, globalResult);
+                        }
+                    };
+                    for (var i = remainingPromisesCount - 1; i >= 0; i--) {
+                        var scope = [ i ];
+                        chainAnswer(array[i], [ /*bind1*/ bind$module(handler, scope, true), /*bind1*/ bind$module(handler, scope, false) ]);
+                    }
+                });
+            };
         };
+        Promise.all = createAll(true);
+        Promise.allSettled = createAll(false);
+        promise$module = Promise;
     })();
     packagedConfig$module = packagedConfig;
         (function() {
@@ -289,40 +329,41 @@
                 return new HttpRequestObject("Microsoft.XMLHTTP");
             };
         }
-        var createCallback = function(url, xhr, deferred) {
+        var createCallback = function(url, xhr, fulfill, reject) {
             return function() {
                 if (xhr && xhr.readyState == 4) {
                     var error = xhr.status != 200;
                     if (error) {
-                        deferred.reject(/*noderError*/ noderError$module("XMLHttpRequest", [ url, xhr ]));
+                        reject(/*noderError*/ noderError$module("XMLHttpRequest", [ url, xhr ]));
                     } else {
-                        deferred.resolve(xhr.responseText, xhr);
+                        fulfill(xhr);
                     }
                     // clean the closure:
-                    url = xhr = deferred = null;
+                    url = xhr = fulfill = reject = null;
                     return true;
                 }
             };
         };
         request$module = function(url, options) {
-            options = options || {};
-            var deferred = /*promise*/ promise$module.defer();
-            var xhr = newHttpRequestObject();
-            var headers = options.headers || {};
-            xhr.open(options.method || "GET", url, !options.sync);
-            for (var key in headers) {
-                if (headers.hasOwnProperty(key)) {
-                    xhr.setRequestHeader(key, headers[key]);
+            /*Promise*/
+            return new promise$module(function(fulfill, reject) {
+                options = options || {};
+                var xhr = newHttpRequestObject();
+                var headers = options.headers || {};
+                xhr.open(options.method || "GET", url, !options.sync);
+                for (var key in headers) {
+                    if (headers.hasOwnProperty(key)) {
+                        xhr.setRequestHeader(key, headers[key]);
+                    }
                 }
-            }
-            xhr.send(options.data);
-            var checkState = createCallback(url, xhr, deferred);
-            if (!checkState()) {
-                // only set onreadystatechange if it is useful
-                // (i.e. the response is not available synchronously)
-                xhr.onreadystatechange = checkState;
-            }
-            return deferred.promise;
+                xhr.send(options.data);
+                var checkState = createCallback(url, xhr, fulfill, reject);
+                if (!checkState()) {
+                    // only set onreadystatechange if it is useful
+                    // (i.e. the response is not available synchronously)
+                    xhr.onreadystatechange = checkState;
+                }
+            });
         };
     })();
     eval$module = function(code, fileName) {
@@ -406,14 +447,14 @@
         var next = function(content) {
             args[0] = content;
             if (!items.length) {
-                /*promise*/
-                return promise$module.when(content);
+                /*Promise*/
+                return promise$module.resolve(content);
             }
             var currentFilter = items.shift();
             if (currentFilter.pattern && currentFilter.pattern.test(filename)) {
-                return context.moduleAsyncRequire(context.rootModule, [ currentFilter.module ]).thenSync(function(processor) {
-                    /*promise*/
-                    return promise$module.when(processor.apply(this, args.concat(currentFilter.options))).thenSync(next);
+                return context.moduleAsyncRequire(context.rootModule, [ currentFilter.module ]).spreadSync(function(processor) {
+                    /*Promise*/
+                    return promise$module.resolve(processor.apply(null, args.concat(currentFilter.options))).thenSync(next);
                 });
             } else {
                 return next(args[0]);
@@ -421,14 +462,12 @@
         };
         return next(args[0]);
     };
-    bind$module = function(fn, scope, paramBind) {
-        return function(param) {
-            return fn.call(scope, paramBind, param);
-        };
-    };
         (function() {
         var split = path$module.split;
         var emptyObject = {};
+        var xhrContent = function(xhr) {
+            return xhr.responseText;
+        };
         var Loader = function(context) {
             var config = context.config.packaging || emptyObject;
             this.config = config;
@@ -459,7 +498,7 @@
             module.url = this.baseUrl + module.filename;
             /*request*/
             /*bind1*/
-            return request$module(module.url, this.config.requestConfig).thenSync(bind$module(this.preprocessUnpackaged, this, module));
+            return request$module(module.url, this.config.requestConfig).thenSync(xhrContent).thenSync(bind$module(this.preprocessUnpackaged, this, module));
         };
         loaderProto.preprocessUnpackaged = function(module, code) {
             var preprocessors = this.config.preprocessors;
@@ -479,10 +518,10 @@
             var url = self.baseUrl + packageName;
             var res = self.currentLoads[url];
             if (!res) {
-                self.currentLoads[url] = res = /*request*/ request$module(url, self.config.requestConfig).thenSync(function(jsCode) {
-                    var body = self.jsPackageEval(jsCode, url);
+                self.currentLoads[url] = res = /*request*/ request$module(url, self.config.requestConfig).thenSync(xhrContent).thenSync(function(content) {
+                    var body = self.jsPackageEval(content, url);
                     body(self.context.define);
-                }).always(function() {
+                })["finally"](function() {
                     delete self.currentLoads[url];
                     self = null;
                 });
@@ -490,9 +529,8 @@
             return res;
         };
         loaderProto.jsPackageEval = function(jsCode, url) {
-            var code = [ "(function(define){\n", jsCode, "\n})" ];
             /*jsEval*/
-            return jsEval$module(code.join(""), url, 1);
+            return jsEval$module(jsCode, url, "(function(define){\n", "\n})");
         };
         loader$module = Loader;
     })();
@@ -604,42 +642,37 @@
         (function() {
         var domReadyPromise;
         var createDomReadyPromise = function() {
-            var document = global.document;
-            if (!document || document.readyState === "complete") {
-                // in this simple case, avoid creating a new promise, just use promise.done
-                /*promise*/
-                return promise$module.done;
-            }
-            var res = /*promise*/ promise$module.defer();
-            var callback = function() {
-                if (res) {
-                    res.resolve();
+            /*Promise*/
+            return new promise$module(function(fulfill) {
+                var document = global.document;
+                if (!document || document.readyState === "complete") {
+                    return fulfill();
                 }
-            };
-            if (document.addEventListener) {
-                document.addEventListener("DOMContentLoaded", callback, false);
-                // Fallback in case the browser does not support DOMContentLoaded:
-                global.addEventListener("load", callback, false);
-                res.promise.always(function() {
-                    // clean the closure and listeners
-                    document.removeEventListener("DOMContentLoaded", callback, false);
-                    global.removeEventListener("load", callback, false);
-                    document = null;
-                    callback = null;
-                    res = null;
-                });
-            } else if (document.attachEvent) {
-                // Fallback to the onload event on IE:
-                global.attachEvent("onload", callback);
-                res.promise.always(function() {
-                    // clean the closure and listeners
-                    global.detachEvent("onload", callback);
-                    document = null;
-                    callback = null;
-                    res = null;
-                });
-            }
-            return res.promise;
+                var cleanUp;
+                var callback = function() {
+                    fulfill();
+                    // call fulfill with no parameter
+                    cleanUp();
+                    document = cleanUp = callback = null;
+                };
+                if (document.addEventListener) {
+                    cleanUp = function() {
+                        // clean the closure and listeners
+                        document.removeEventListener("DOMContentLoaded", callback, false);
+                        global.removeEventListener("load", callback, false);
+                    };
+                    document.addEventListener("DOMContentLoaded", callback, false);
+                    // Fallback in case the browser does not support DOMContentLoaded:
+                    global.addEventListener("load", callback, false);
+                } else if (document.attachEvent) {
+                    cleanUp = function() {
+                        // clean the closure and listeners
+                        global.detachEvent("onload", callback);
+                    };
+                    // Fallback to the onload event on IE:
+                    global.attachEvent("onload", callback);
+                }
+            });
         };
         domReady$module = function() {
             if (!domReadyPromise) {
@@ -649,19 +682,15 @@
         };
     })();
         (function() {
-        var createModuleExecuteFunction = function(context, module) {
-            return function() {
-                // calling .end() here allows to go on with the execution of script tags
-                // even if one has an execution error, and makes sure the error is reported
-                // on the console of the browser
-                return context.moduleExecute(module).end();
-            };
+        var logErrorsAndContinue = function(p) {
+            /*uncaughtError*/
+            return p.thenSync(function() {}, uncaughtError$module);
         };
         execScripts$module = function(context, scriptType) {
             /*domReady*/
-            return domReady$module().then(function() {
+            return logErrorsAndContinue(domReady$module().then(function() {
                 var document = global.document;
-                var executePromise = /*promise*/ promise$module.done;
+                var executePromise = /*Promise*/ promise$module.done;
                 if (document) {
                     var scripts = document.getElementsByTagName("script");
                     var i, l;
@@ -675,7 +704,7 @@
                                 // all scripts are defined before any is executed
                                 // so that it is possible to require one script tag from another (in any order)
                                 var curModule = context.jsModuleDefine(curScript.innerHTML, filename);
-                                executePromise = executePromise.then(createModuleExecuteFunction(context, curModule));
+                                executePromise = logErrorsAndContinue(executePromise.then(/*bind1*/ bind$module(context.moduleExecute, context, curModule)));
                             } catch (error) {
                                 /*uncaughtError*/ uncaughtError$module(error);
                             }
@@ -683,7 +712,7 @@
                     }
                 }
                 return executePromise;
-            }).end();
+            }));
         };
     })();
         (function() {
@@ -950,11 +979,11 @@
         };
         var start = function(context) {
             var config = context.config;
-            var actions = /*promise*/ promise$module.done;
+            var actions = /*Promise*/ promise$module.done;
             var main = config.main;
             actions = actions.thenSync(main ? function() {
                 return context.execModuleCall(main);
-            } : /*promise*/ promise$module.empty);
+            } : function() {});
             actions = actions.thenSync(config.onstart);
             if (!("scriptsType" in config)) {
                 config.scriptsType = config.varName;
@@ -966,11 +995,7 @@
                     return execScripts$module(context, scriptsType);
                 });
             }
-            return actions.always(function() {
-                context = null;
-                config = null;
-                actions = null;
-            });
+            return actions;
         };
         var BuiltinModules = function() {};
         var createInstance = function(configConstructor, defaultConstructor, param) {
@@ -982,7 +1007,7 @@
             this.config = config;
             this.cache = {};
             this.builtinModules = new BuiltinModules();
-            this.when = config.failFast === false ? /*promise*/ promise$module.whenAll : /*promise*/ promise$module.when;
+            this.allSettled = config.failFast === false ? /*Promise*/ promise$module.allSettled : /*Promise*/ promise$module.all;
             var rootModule = new Module(this);
             rootModule.preloaded = true;
             rootModule.loaded = true;
@@ -997,7 +1022,7 @@
             if (globalVarName) {
                 global[globalVarName] = rootModule;
             }
-            start(this).end();
+            start(this).done();
         };
         var contextProto = Context.prototype = {};
         var checkCircularDependency = function(module, lookInside) {
@@ -1018,7 +1043,7 @@
         // dependencies)
         contextProto.modulePreload = function(module, parent) {
             if (module.preloaded) {
-                /*promise*/
+                /*Promise*/
                 return promise$module.done;
             }
             var preloading = getModuleProperty(module, /*PROPERTY_PRELOADING*/ 3);
@@ -1027,7 +1052,7 @@
                 // If we get here, it may be because of a circular dependency
                 if (parent) {
                     if (checkCircularDependency(module, parent)) {
-                        /*promise*/
+                        /*Promise*/
                         return promise$module.done;
                     }
                     preloadingParents.push(parent);
@@ -1058,16 +1083,11 @@
             }, function(error) {
                 /*noderError*/
                 throw noderError$module("modulePreload", [ module ], error);
-            }).always(function() {
-                // clean up
-                module = null;
-                self = null;
-                parent = null;
             }));
         };
         contextProto.moduleLoadDefinition = function(module) {
             if (getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
-                /*promise*/
+                /*Promise*/
                 return promise$module.done;
             }
             var res = getModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4);
@@ -1076,7 +1096,7 @@
                 var builtin = this.builtinModules["/" + filename];
                 if (builtin) {
                     this.moduleDefine(module, [], builtin(this));
-                    res = /*promise*/ promise$module.done;
+                    res = /*Promise*/ promise$module.done;
                 } else {
                     var asyncOrError = true;
                     var checkResult = function(error) {
@@ -1100,7 +1120,8 @@
             var allowedParameters = {
                 module: module,
                 __dirname: module.dirname,
-                __filename: module.filename
+                __filename: module.filename,
+                "null": null
             };
             var parameters = pluginDef.args.slice(0);
             for (var i = 0, l = parameters.length; i < l; i++) {
@@ -1130,7 +1151,7 @@
                 var curPromise = /*typeUtils*/ type$module.isString(curDependency) ? this.modulePreload(this.getModule(this.moduleResolve(module, curDependency)), module) : this.moduleProcessPlugin(module, curDependency);
                 promises.push(curPromise);
             }
-            return this.when(promises);
+            return this.allSettled(promises);
         };
         contextProto.moduleExecuteSync = function(module) {
             if (module.loaded || getModuleProperty(module, /*PROPERTY_EXECUTING*/ 2)) {
@@ -1138,7 +1159,7 @@
                 return module.exports;
             }
             var preloadPromise = this.modulePreload(module);
-            if (!preloadPromise.isResolved()) {
+            if (!preloadPromise.isFulfilled()) {
                 /*noderError*/
                 throw noderError$module("notPreloaded", [ module ], preloadPromise.result());
             }
@@ -1187,14 +1208,10 @@
             var self = this;
             return self.modulePreload(module).thenSync(function() {
                 return self.moduleExecuteSync(module);
-            }).always(function() {
-                self = null;
-                module = null;
             });
         };
         contextProto.moduleAsyncRequire = function(module, dependencies) {
             return this.modulePreloadDependencies(module, dependencies).thenSync(function() {
-                var defer = /*promise*/ promise$module.defer();
                 var result = [];
                 for (var i = 0, l = dependencies.length; i < l; i++) {
                     var item = dependencies[i];
@@ -1202,11 +1219,7 @@
                         result[i] = module.require(item);
                     }
                 }
-                defer.resolve.apply(defer, result);
-                return defer.promise;
-            }).always(function() {
-                module = null;
-                dependencies = null;
+                return result;
             });
         };
         contextProto.jsModuleDefine = function(jsCode, moduleFilename, url) {
