@@ -85,13 +85,15 @@ and access all modules through <code>noder.require.cache</code>.</p>
 <p>In addition to the basic synchronous standard version of require (which is equivalent to a static dependency), noderJS
 provides a promises-based <code>asyncRequire</code> method to load a module asynchronously:</p>
 <p><strong>asyncRequire (modulePath1, modulePath2...) : Promise</strong></p>
-<p><code>asyncRequire</code> accepts any number of module paths as parameters and returns a promise giving access to the <code>exports</code>
-object of each requested module.</p>
+<p><code>asyncRequire</code> accepts any number of module paths as parameters and returns a promise giving access to the array of
+the <code>exports</code> objects of all requested modules.</p>
 <p>It can be used in the following way:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">'noder-js/asyncRequire'</span>);
 
 <span class="comment">// asyncRequire preloads and executes the modules given as parameters and returns a promise.</span>
-asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"mySecondModule"</span>).then(<span class="function"><span class="keyword">function</span> <span class="params">(myFirstModule, mySecondModule)</span>{</span>
+<span class="comment">// As the promise result is an array, it is possible to use "spread" to get each array item</span>
+<span class="comment">// as a different argument of the given handler function:</span>
+asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"mySecondModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myFirstModule, mySecondModule)</span>{</span>
     <span class="comment">// Do something with myFirstModule and mySecondModule</span>
 }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span>
     <span class="comment">// Do something in case of failure</span>
@@ -103,37 +105,34 @@ or you can create a local version of the <code>asyncRequire</code> method, as sh
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">'noder-js/asyncRequire'</span>);
 
 <span class="comment">// Use require.resolve to convert the relative path into an absolute path:</span>
-asyncRequire(<span class="built_in">require</span>.resolve(<span class="string">"./myRelativeModule"</span>)).then(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
+asyncRequire(<span class="built_in">require</span>.resolve(<span class="string">"./myRelativeModule"</span>)).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
 <div class='snippet'><pre><code class="lang-js"><span class="comment">// Use the create method to create a local version of the asyncRequire method which accepts relative paths:</span>
 <span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">'noder-js/asyncRequire'</span>).create(module);
 
 <span class="comment">// Then relative paths can be used directly:</span>
-asyncRequire(<span class="string">"./myRelativeModule"</span>).then(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
+asyncRequire(<span class="string">"./myRelativeModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
 <h4 id="shortcut">Shortcut</h4>
 <p>For convenience, the <code>asyncRequire</code> method is also available on the <code>noder</code> global variable, so that it is easy to load
 some modules asynchronously, even from code which was not loaded through noderJS:</p>
-<div class='snippet'><pre><code class="lang-js">noder.asyncRequire(<span class="string">"myModule"</span>).then(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span>{</span> <span class="comment">/* ... */</span> }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
+<div class='snippet'><pre><code class="lang-js">noder.asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span>{</span> <span class="comment">/* ... */</span> }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
 <h2 id="promises-library">Promises library</h2>
 <p>noderJS heavily relies on promises. It includes a lightweight promise library which can be accessed through:</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);</code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);</code></pre></div>
 <p>Here is a description of each property available on this object:</p>
-<h3 id="promise-defer-">promise.defer()</h3>
-<p><strong>promise.defer () : Defer</strong></p>
-<p>Creates a new defer. A defer is an object with 3 properties:</p>
-<div class='snippet'><pre><code class="lang-js">{
-   promise: promise, <span class="comment">/* Promise instance object (with the 'then' method) */</span>
-   resolve: resolve, <span class="comment">/* Function to resolve the promise, with the specified arguments. */</span>
-   reject: reject <span class="comment">/* Function to reject the promise, with the specified arguments. */</span>
-}</code></pre></div>
+<h3 id="promise-constructor">Promise constructor</h3>
+<p><strong>new Promise (factoryFunction : function(resolve, reject)) : Promise</strong></p>
+<p>Creates a new promise. The given <code>factoryFunction</code> gets a reference to the <code>resolve</code> and <code>reject</code> methods which
+allow to resolve or reject the promise. If the <code>factoryFunction</code> raises an exception before calling <code>resolve</code>
+or <code>reject</code>, the promise is rejected with the exception as the reason.</p>
 <p>Here is a sample implementing a promise-based version of <code>setTimeout</code>:</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
 <span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> {</span>
-   <span class="keyword">var</span> defer = promise.defer();
-   setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
-      defer.resolve(<span class="number">5</span>);
-   }, delay);
-   <span class="keyword">return</span> defer.promise;
+   <span class="keyword">return</span> <span class="keyword">new</span> Promise(<span class="function"><span class="keyword">function</span><span class="params">(resolve, reject)</span> {</span>
+      setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+         resolve(<span class="number">5</span>);
+      }, delay);
+   });
 };
 
 console.log(<span class="string">"Before calling setTimeoutWithPromise"</span>);
@@ -146,26 +145,47 @@ console.log(<span class="string">"After calling setTimeoutWithPromise"</span>);
 <span class="comment">// Before calling setTimeoutWithPromise</span>
 <span class="comment">// After calling setTimeoutWithPromise</span>
 <span class="comment">// In the callback. The result is: 5</span></code></pre></div>
-<h3 id="promise-when-and-promise-whenall-">promise.when() and promise.whenAll()</h3>
-<p><strong>promise.when (promiseOrValue1, promiseOrValue2...) : Promise</strong></p>
-<p><strong>promise.whenAll (promiseOrValue1, promiseOrValue2...) : Promise</strong></p>
-<p>Both <code>promise.when</code> and <code>promise.whenAll</code> accept any number of promises or simple values as parameters and return
+<p>Using the Promise constructor is the recommended way to create a promise. Alternatively, it is also possible
+to use the <code>Promise.defer</code> method below.</p>
+<h3 id="promise-defer-">Promise.defer()</h3>
+<p><strong>Promise.defer () : Defer</strong></p>
+<p>Creates a new defer. A defer is an object with 3 properties:</p>
+<div class='snippet'><pre><code class="lang-js">{
+   promise: promise, <span class="comment">/* Promise instance object (with the 'then' method) */</span>
+   resolve: resolve, <span class="comment">/* Function to resolve the promise, with the specified value. */</span>
+   reject: reject <span class="comment">/* Function to reject the promise, with the specified reason. */</span>
+}</code></pre></div>
+<p>Here is a sample re-implementing the <code>setTimeoutWithPromise</code> function from the previous section,
+but using <code>Promise.defer()</code> instead of the promise constructor.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+
+<span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> {</span>
+   <span class="keyword">var</span> defer = Promise.defer();
+   setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+      defer.resolve(<span class="number">5</span>);
+   }, delay);
+   <span class="keyword">return</span> defer.promise;
+};</code></pre></div>
+<h3 id="promise-all-and-promise-allsettled-">Promise.all() and Promise.allSettled()</h3>
+<p><strong>Promise.all (promiseOrValue1, promiseOrValue2...) : Promise</strong></p>
+<p><strong>Promise.allSettled (promiseOrValue1, promiseOrValue2...) : Promise</strong></p>
+<p>Both <code>Promise.all</code> and <code>Promise.allSettled</code> accept any number of promises or simple values as parameters and return
 a promise that is resolved when all the given promises are resolved.</p>
-<p><code>promise.when</code> is the fail-fast version of <code>promise.whenAll</code>:</p>
+<p><code>Promise.all</code> is the fail-fast version of <code>Promise.allSettled</code>:</p>
 <ul>
-<li>the promise returned by <code>promise.whenAll</code> is rejected only when all promises are either resolved or rejected.</li>
-<li>the promise returned by <code>promise.when</code> is rejected as soon as any promise given in the parameters is rejected, without waiting for other
+<li>the promise returned by <code>Promise.allSettled</code> is rejected only when all promises are either resolved or rejected.</li>
+<li>the promise returned by <code>Promise.all</code> is rejected as soon as any promise given in the parameters is rejected, without waiting for other
 promises to either be resolved or rejected.</li>
 </ul>
-<p>Apart from that timing difference, <code>promise.when</code> and <code>promise.whenAll</code> are otherwise fully equivalent.</p>
-<p>Here is an example showing how to use <code>promise.when</code>:</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+<p>Apart from that timing difference, <code>Promise.all</code> and <code>Promise.allSettled</code> are otherwise fully equivalent.</p>
+<p>Here is an example showing how to use <code>Promise.all</code>:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 <span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
 
-promise.when(<span class="string">"simple value"</span>, asyncRequire(<span class="string">"myModule1"</span>), asyncRequire(<span class="string">"myModule2"</span>)).then(<span class="function"><span class="keyword">function</span> <span class="params">(simpleValue, myModule1, myModule2)</span> {</span>
+Promise.all(<span class="string">"simple value"</span>, asyncRequire(<span class="string">"myModule1"</span>, <span class="string">"myModule2"</span>)).spread(<span class="function"><span class="keyword">function</span> <span class="params">(simpleValue, myModules)</span> {</span>
    <span class="comment">// here:</span>
    <span class="comment">// simpleValue == "simple value"</span>
-   <span class="comment">// myModule1 and myModule2 contain the resolved values of calls to asyncRequire</span>
+   <span class="comment">// myModules is an array containing the exports objects of myModule1 and myModule2</span>
 }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span>
    <span class="comment">// this function is called in case there is an error while loading myModule1 or myModule2</span>
 });</code></pre></div>
@@ -194,9 +214,10 @@ request(<span class="string">"/api/"</span>, {
      <span class="string">"Content-Type"</span>: <span class="string">"application/json"</span>
    },
    data: <span class="built_in">JSON</span>.stringify(myJsonObjectToSend)
-}).then(<span class="function"><span class="keyword">function</span> <span class="params">(responseText, xhrObject)</span> {</span>
+}).then(<span class="function"><span class="keyword">function</span> <span class="params">(xhr)</span> {</span>
    <span class="comment">// Success callback</span>
    <span class="comment">// Parses the response as JSON:</span>
+   <span class="keyword">var</span> responseText = xhr.responseText;
    <span class="keyword">var</span> responseJson = <span class="built_in">JSON</span>.parse(responseText);
    <span class="comment">// ...</span>
 }).then(<span class="literal">null</span>, <span class="function"><span class="keyword">function</span><span class="params">(error)</span> {</span>

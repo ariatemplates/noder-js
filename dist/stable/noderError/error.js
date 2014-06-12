@@ -14,12 +14,12 @@
  */
 
 var asyncRequire = require('noder-js/asyncRequire').create(module);
-var promise = require('noder-js/promise');
+var Promise = require('noder-js/promise');
 
 var errorsList = {
     "XMLHttpRequest": function(out, url, xhr) {
         out.unshift("failed to download '", url, "': ", xhr.status, " ", xhr.statusText, "\n");
-        return promise.done;
+        return Promise.done;
     },
     "moduleLoadDefinition": function(out, module) {
         out.unshift("failed to load definition of module '", module.filename, "'\n");
@@ -39,14 +39,14 @@ var errorsList = {
         if (module.filename != '.') {
             out.unshift("invalid recursive call to modulePreload '", module.filename, "'\n");
         }
-        return promise.done;
+        return Promise.done;
     },
     "notPreloaded": function(out, module) {
         out.unshift("cannot execute module '", module.filename, "' as it is not preloaded.\n");
-        return this.cause ? unshiftErrorInfo(this.cause, out) : promise.done;
+        return this.cause ? unshiftErrorInfo(this.cause, out) : Promise.done;
     },
     "jsEval": function(out, jsCode, url /*, prefix, suffix*/ ) {
-        return asyncRequire('./evalError.js').thenSync(function(evalError) {
+        return asyncRequire('./evalError.js').spreadSync(function(evalError) {
             var syntaxError = evalError(out, jsCode, url);
             if (!syntaxError) {
                 out.unshift("error while evaluating '" + url + "'\n");
@@ -56,11 +56,11 @@ var errorsList = {
     },
     "resolverRoot": function(out, path) {
         out.unshift("trying to go upper than the root of modules when resolving '", path.join('/'), "'\n");
-        return promise.done;
+        return Promise.done;
     },
     "resolverLoop": function(out, path) {
         out.unshift("inifinite loop when resolving '", path.join('/'), "'\n");
-        return promise.done;
+        return Promise.done;
     }
 };
 
@@ -75,17 +75,16 @@ var unshiftErrorInfo = function(error, out) {
     } else {
         out.unshift(error + "\n");
     }
-    return promise.done;
+    return Promise.done;
 };
 
-module.exports = function(async) {
-    var self = this;
+module.exports = function(error, async) {
     var out = [];
-    var res = unshiftErrorInfo(self, out).thenSync(function() {
+    var res = unshiftErrorInfo(error, out).thenSync(function() {
         var message = out.join('');
-        self.message = self.description = message;
+        error.message = error.description = message;
         if (async) {
-            console.error("Details about NoderError #" + self.id + ":\n" + message);
+            console.error("Details about NoderError #" + error.id + ":\n" + message);
         }
     });
     async = true;
