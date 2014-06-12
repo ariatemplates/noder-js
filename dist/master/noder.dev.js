@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.3.1 - 11 Jun 2014
+ * Noder-js 1.4.0 - 12 Jun 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -19,7 +19,7 @@
 /*jshint undef:true, -W069, -W055*/
 (function(global, callEval, packagedConfig) {
     "use strict";
-    var type$module, nextTick$module, uncaughtError$module, asyncCall$module, bind$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, merge$module, scriptConfig$module, defaultConfig$module, main$module;
+    var type$module, nextTick$module, uncaughtError$module, asyncCall$module, bind$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, merge$module, defaultConfig$module, main$module;
         (function() {
         var toString = Object.prototype.toString;
         var isString = function(str) {
@@ -289,7 +289,7 @@
             var async = false;
             var self = this;
             var res = getHandler().thenSync(function(syncLogDetails) {
-                return syncLogDetails.call(self, async);
+                return syncLogDetails(self, async);
             });
             async = true;
             return res;
@@ -723,7 +723,7 @@
         var operatorRegExp = /^(\w{2,}|[!%&\(*+,\-\/:;<=>?\[\^])$/;
         var firstNonSpaceCharRegExp = /^\s*(\S)/;
         var lastNonSpaceCharRegExp = /(\b(return|throw|new|in)|\S)\s*$/;
-        var pluginBeginRegExp = /\s*\)\s*\.\s*([_$a-zA-Z][_$a-zA-Z0-9]*)\s*\(\s*/g;
+        var pluginBeginRegExp = /\s*\)\s*\.\s*([_$a-zA-Z][_$a-zA-Z0-9]*)\s*\(\s*(?=(.?))/g;
         var pluginParamRegExp = /[_$a-zA-Z][_$a-zA-Z0-9]*/g;
         var pluginParamSepRegExp = /\s*(\)|,)\s*/g;
         var isEscaped = function(string) {
@@ -903,7 +903,8 @@
                             var method = match[1];
                             var args = [];
                             var nextString = ++strIndex < nbStrings && posConverter(stringsPositions[strIndex]);
-                            do {
+                            match[1] = match[2];
+                            while (match && match[1] != ")") {
                                 var curPos = match.index + match[0].length;
                                 if (nextString && curPos + 1 === nextString[0]) {
                                     args.push(getString(stripComment, nextString));
@@ -918,7 +919,7 @@
                                     args.push([ match[0] ]);
                                 }
                                 match = regExpExecPosition(pluginParamSepRegExp, stripComment, curPos);
-                            } while (match && match[1] == ",");
+                            }
                             if (match) {
                                 // this means the call is properly finished with a closing parenthesis
                                 res.push({
@@ -1280,13 +1281,14 @@
         merge$module = merge;
     })();
         (function() {
-        var config = {};
+        var config = packagedConfig$module().mainContext;
         var src = /*scriptTag*/ scriptTag$module.src;
         if (src) {
             // only read the script config if the script tag has an src attribute
             var configContent = /*scriptTag*/ scriptTag$module.innerHTML;
             if (!/^\s*$/.test(configContent || "")) {
-                config = /*exec*/ eval$module(configContent) || config;
+                var scriptConfig = /*exec*/ eval$module(configContent);
+                /*merge*/ merge$module(config, scriptConfig, true);
             }
             if (!config.main) {
                 var questionMark = src.indexOf("?");
@@ -1295,11 +1297,6 @@
                 }
             }
         }
-        scriptConfig$module = config;
-    })();
-        (function() {
-        var config = packagedConfig$module().mainContext;
-        /*merge*/ merge$module(config, scriptConfig$module, true);
         defaultConfig$module = config;
     })();
     /*Context*/ context$module.expose("noder-js/promise.js", promise$module);
@@ -1393,14 +1390,13 @@
                             }
                             return Promise.done;
                         };
-                        module.exports = function(async) {
-                            var self = this;
+                        module.exports = function(error, async) {
                             var out = [];
-                            var res = unshiftErrorInfo(self, out).thenSync(function() {
+                            var res = unshiftErrorInfo(error, out).thenSync(function() {
                                 var message = out.join("");
-                                self.message = self.description = message;
+                                error.message = error.description = message;
                                 if (async) {
-                                    console.error("Details about NoderError #" + self.id + ":\n" + message);
+                                    console.error("Details about NoderError #" + error.id + ":\n" + message);
                                 }
                             });
                             async = true;
