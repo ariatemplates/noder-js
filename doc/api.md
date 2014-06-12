@@ -54,8 +54,8 @@ provides a promises-based `asyncRequire` method to load a module asynchronously:
 
 **asyncRequire (modulePath1, modulePath2...) : Promise**
 
-`asyncRequire` accepts any number of module paths as parameters and returns a promise giving access to the `exports`
-object of each requested module.
+`asyncRequire` accepts any number of module paths as parameters and returns a promise giving access to the array of
+the `exports` objects of all requested modules.
 
 It can be used in the following way:
 
@@ -63,7 +63,9 @@ It can be used in the following way:
 var asyncRequire = require('noder-js/asyncRequire');
 
 // asyncRequire preloads and executes the modules given as parameters and returns a promise.
-asyncRequire("myFirstModule", "mySecondModule").then(function (myFirstModule, mySecondModule){
+// As the promise result is an array, it is possible to use "spread" to get each array item
+// as a different argument of the given handler function:
+asyncRequire("myFirstModule", "mySecondModule").spread(function (myFirstModule, mySecondModule){
     // Do something with myFirstModule and mySecondModule
 }, function (error) {
     // Do something in case of failure
@@ -80,7 +82,7 @@ or you can create a local version of the `asyncRequire` method, as shown in the 
 var asyncRequire = require('noder-js/asyncRequire');
 
 // Use require.resolve to convert the relative path into an absolute path:
-asyncRequire(require.resolve("./myRelativeModule")).then(function (myRelativeModule) { /* ... */ });
+asyncRequire(require.resolve("./myRelativeModule")).spread(function (myRelativeModule) { /* ... */ });
 ```
 
 ```js
@@ -88,7 +90,7 @@ asyncRequire(require.resolve("./myRelativeModule")).then(function (myRelativeMod
 var asyncRequire = require('noder-js/asyncRequire').create(module);
 
 // Then relative paths can be used directly:
-asyncRequire("./myRelativeModule").then(function (myRelativeModule) { /* ... */ });
+asyncRequire("./myRelativeModule").spread(function (myRelativeModule) { /* ... */ });
 ```
 
 #### Shortcut
@@ -97,7 +99,7 @@ For convenience, the `asyncRequire` method is also available on the `noder` glob
 some modules asynchronously, even from code which was not loaded through noderJS:
 
 ```js
-noder.asyncRequire("myModule").then(function (myModule){ /* ... */ }, function (error) { /* ... */ });
+noder.asyncRequire("myModule").spread(function (myModule){ /* ... */ }, function (error) { /* ... */ });
 ```
 
 ## Promises library
@@ -105,36 +107,30 @@ noder.asyncRequire("myModule").then(function (myModule){ /* ... */ }, function (
 noderJS heavily relies on promises. It includes a lightweight promise library which can be accessed through:
 
 ```js
-var promise = require("noder-js/promise");
+var Promise = require("noder-js/promise");
 ```
 
 Here is a description of each property available on this object:
 
-### promise.defer()
+### Promise constructor
 
-**promise.defer () : Defer**
+**new Promise (factoryFunction : function(resolve, reject)) : Promise**
 
-Creates a new defer. A defer is an object with 3 properties:
-
-```js
-{
-   promise: promise, /* Promise instance object (with the 'then' method) */
-   resolve: resolve, /* Function to resolve the promise, with the specified arguments. */
-   reject: reject /* Function to reject the promise, with the specified arguments. */
-}
-```
+Creates a new promise. The given `factoryFunction` gets a reference to the `resolve` and `reject` methods which
+allow to resolve or reject the promise. If the `factoryFunction` raises an exception before calling `resolve`
+or `reject`, the promise is rejected with the exception as the reason.
 
 Here is a sample implementing a promise-based version of `setTimeout`:
 
 ```js
-var promise = require("noder-js/promise");
+var Promise = require("noder-js/promise");
 
 var setTimeoutWithPromise = function (delay) {
-   var defer = promise.defer();
-   setTimeout(function() {
-      defer.resolve(5);
-   }, delay);
-   return defer.promise;
+   return new Promise(function(resolve, reject) {
+      setTimeout(function() {
+         resolve(5);
+      }, delay);
+   });
 };
 
 console.log("Before calling setTimeoutWithPromise");
@@ -149,32 +145,64 @@ console.log("After calling setTimeoutWithPromise");
 // In the callback. The result is: 5
 ```
 
-### promise.when() and promise.whenAll()
+Using the Promise constructor is the recommended way to create a promise. Alternatively, it is also possible
+to use the `Promise.defer` method below.
 
-**promise.when (promiseOrValue1, promiseOrValue2...) : Promise**
+### Promise.defer()
 
-**promise.whenAll (promiseOrValue1, promiseOrValue2...) : Promise**
+**Promise.defer () : Defer**
 
-Both `promise.when` and `promise.whenAll` accept any number of promises or simple values as parameters and return
-a promise that is resolved when all the given promises are resolved.
-
-`promise.when` is the fail-fast version of `promise.whenAll`:
-* the promise returned by `promise.whenAll` is rejected only when all promises are either resolved or rejected.
-* the promise returned by `promise.when` is rejected as soon as any promise given in the parameters is rejected, without waiting for other
-promises to either be resolved or rejected.
-
-Apart from that timing difference, `promise.when` and `promise.whenAll` are otherwise fully equivalent.
-
-Here is an example showing how to use `promise.when`:
+Creates a new defer. A defer is an object with 3 properties:
 
 ```js
-var promise = require("noder-js/promise");
+{
+   promise: promise, /* Promise instance object (with the 'then' method) */
+   resolve: resolve, /* Function to resolve the promise, with the specified value. */
+   reject: reject /* Function to reject the promise, with the specified reason. */
+}
+```
+
+Here is a sample re-implementing the `setTimeoutWithPromise` function from the previous section,
+but using `Promise.defer()` instead of the promise constructor.
+
+```js
+var Promise = require("noder-js/promise");
+
+var setTimeoutWithPromise = function (delay) {
+   var defer = Promise.defer();
+   setTimeout(function() {
+      defer.resolve(5);
+   }, delay);
+   return defer.promise;
+};
+```
+
+### Promise.all() and Promise.allSettled()
+
+**Promise.all (promiseOrValue1, promiseOrValue2...) : Promise**
+
+**Promise.allSettled (promiseOrValue1, promiseOrValue2...) : Promise**
+
+Both `Promise.all` and `Promise.allSettled` accept any number of promises or simple values as parameters and return
+a promise that is resolved when all the given promises are resolved.
+
+`Promise.all` is the fail-fast version of `Promise.allSettled`:
+* the promise returned by `Promise.allSettled` is rejected only when all promises are either resolved or rejected.
+* the promise returned by `Promise.all` is rejected as soon as any promise given in the parameters is rejected, without waiting for other
+promises to either be resolved or rejected.
+
+Apart from that timing difference, `Promise.all` and `Promise.allSettled` are otherwise fully equivalent.
+
+Here is an example showing how to use `Promise.all`:
+
+```js
+var Promise = require("noder-js/promise");
 var asyncRequire = require("noder-js/asyncRequire");
 
-promise.when("simple value", asyncRequire("myModule1"), asyncRequire("myModule2")).then(function (simpleValue, myModule1, myModule2) {
+Promise.all("simple value", asyncRequire("myModule1", "myModule2")).spread(function (simpleValue, myModules) {
    // here:
    // simpleValue == "simple value"
-   // myModule1 and myModule2 contain the resolved values of calls to asyncRequire
+   // myModules is an array containing the exports objects of myModule1 and myModule2
 }, function (error) {
    // this function is called in case there is an error while loading myModule1 or myModule2
 });
@@ -215,9 +243,10 @@ request("/api/", {
      "Content-Type": "application/json"
    },
    data: JSON.stringify(myJsonObjectToSend)
-}).then(function (responseText, xhrObject) {
+}).then(function (xhr) {
    // Success callback
    // Parses the response as JSON:
+   var responseText = xhr.responseText;
    var responseJson = JSON.parse(responseText);
    // ...
 }).then(null, function(error) {
