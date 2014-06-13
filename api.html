@@ -101,7 +101,7 @@ asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"
 <h4 id="relative-paths">Relative paths</h4>
 <p>If you want to use relative paths in <code>asyncRequire</code> (i.e. paths which are relative to the current module, in the same way
 as it is possible with the synchronous <code>require</code>), you can either convert them to absolute paths with <code>require.resolve</code>
-or you can create a local version of the <code>asyncRequire</code> method, as shown in the two following equivalent examples:</p>
+or you can create a local version of the <code>asyncRequire</code> method, as shown in the following two equivalent examples:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">'noder-js/asyncRequire'</span>);
 
 <span class="comment">// Use require.resolve to convert the relative path into an absolute path:</span>
@@ -116,9 +116,14 @@ asyncRequire(<span class="string">"./myRelativeModule"</span>).spread(<span clas
 some modules asynchronously, even from code which was not loaded through noderJS:</p>
 <div class='snippet'><pre><code class="lang-js">noder.asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span>{</span> <span class="comment">/* ... */</span> }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
 <h2 id="promises-library">Promises library</h2>
-<p>noderJS heavily relies on promises. It includes a lightweight promise library which can be accessed through:</p>
+<p><a href="http://promisesaplus.com/">
+<img src="http://promisesaplus.com/assets/logo-small.png" alt="Promises/A+ logo" title="Promises/A+ 1.1.1 compliant" align="right"
+ style="margin-left:10px;" />
+</a></p>
+<p>noderJS heavily relies on promises. It includes a lightweight promise library which is compliant with the
+<a href="http://promisesaplus.com">Promises/A+ specifications</a> version 1.1.1.</p>
+<p>The integrated promise library can be accessed with:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);</code></pre></div>
-<p>Here is a description of each property available on this object:</p>
 <h3 id="promise-constructor">Promise constructor</h3>
 <p><strong>new Promise (factoryFunction : function(resolve, reject)) : Promise</strong></p>
 <p>Creates a new promise. The given <code>factoryFunction</code> gets a reference to the <code>resolve</code> and <code>reject</code> methods which
@@ -130,7 +135,7 @@ or <code>reject</code>, the promise is rejected with the exception as the reason
 <span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> {</span>
    <span class="keyword">return</span> <span class="keyword">new</span> Promise(<span class="function"><span class="keyword">function</span><span class="params">(resolve, reject)</span> {</span>
       setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
-         resolve(<span class="number">5</span>);
+         resolve(<span class="number">7</span>);
       }, delay);
    });
 };
@@ -144,7 +149,7 @@ console.log(<span class="string">"After calling setTimeoutWithPromise"</span>);
 <span class="comment">// The console should contain:</span>
 <span class="comment">// Before calling setTimeoutWithPromise</span>
 <span class="comment">// After calling setTimeoutWithPromise</span>
-<span class="comment">// In the callback. The result is: 5</span></code></pre></div>
+<span class="comment">// In the callback. The result is: 7</span></code></pre></div>
 <p>Using the Promise constructor is the recommended way to create a promise. Alternatively, it is also possible
 to use the <code>Promise.defer</code> method below.</p>
 <h3 id="promise-defer-">Promise.defer()</h3>
@@ -162,36 +167,168 @@ but using <code>Promise.defer()</code> instead of the promise constructor.</p>
 <span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> {</span>
    <span class="keyword">var</span> defer = Promise.defer();
    setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
-      defer.resolve(<span class="number">5</span>);
+      defer.resolve(<span class="number">7</span>);
    }, delay);
    <span class="keyword">return</span> defer.promise;
 };</code></pre></div>
+<h3 id="promise-resolve-">Promise.resolve()</h3>
+<p><strong>Promise.resolve(valueOrPromise) : Promise</strong></p>
+<p>If <code>valueOrPromise</code> is a noder-js promise, <code>Promise.resolve</code> returns it directly.</p>
+<p>If <code>valueOrPromise</code> is an object or a function with a <code>thenSync</code> or <code>then</code>  method, it is considered as a promise and
+<code>Promise.resolve</code> returns an equivalent noder-js promise.</p>
+<p>Otherwise, <code>Promise.resolve</code> returns an already fulfilled promise, whose fulfillment value is <code>valueOrPromise</code>.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+
+<span class="keyword">var</span> promiseInstance = Promise.resolve(<span class="number">7</span>);
+promiseInstance.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> <span class="comment">/* here, value == 7 */</span> });
+Promise.resolve(promiseInstance) <span class="comment">// this call returns promiseInstance</span>
+Promise.resolve({
+   then: <span class="function"><span class="keyword">function</span> <span class="params">(resolve, reject)</span> {</span>
+      resolve(<span class="number">7</span>);
+   }
+}).then(<span class="function"><span class="keyword">function</span><span class="params">(value)</span> {</span> <span class="comment">/* here, value == 7 */</span> });</code></pre></div>
+<h3 id="promise-reject-">Promise.reject()</h3>
+<p><strong>Promise.reject(reason) : Promise</strong></p>
+<p><code>Promise.reject</code> returns a rejected promise with the given reason.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+
+Promise.reject(<span class="string">"error"</span>).catch(<span class="function"><span class="keyword">function</span> <span class="params">(reason)</span> {</span> <span class="comment">/* here, reason == "error" */</span> });</code></pre></div>
 <h3 id="promise-all-and-promise-allsettled-">Promise.all() and Promise.allSettled()</h3>
-<p><strong>Promise.all (promiseOrValue1, promiseOrValue2...) : Promise</strong></p>
-<p><strong>Promise.allSettled (promiseOrValue1, promiseOrValue2...) : Promise</strong></p>
-<p>Both <code>Promise.all</code> and <code>Promise.allSettled</code> accept any number of promises or simple values as parameters and return
-a promise that is resolved when all the given promises are resolved.</p>
+<p><strong>Promise.all (promiseOrValueArray : Array) : Promise</strong></p>
+<p><strong>Promise.allSettled (promiseOrValueArray : Array) : Promise</strong></p>
+<p><code>Promise.all</code> and <code>Promise.allSettled</code> return a promise that is fulfilled when all the given promises are fulfilled.</p>
 <p><code>Promise.all</code> is the fail-fast version of <code>Promise.allSettled</code>:</p>
 <ul>
-<li>the promise returned by <code>Promise.allSettled</code> is rejected only when all promises are either resolved or rejected.</li>
-<li>the promise returned by <code>Promise.all</code> is rejected as soon as any promise given in the parameters is rejected, without waiting for other
-promises to either be resolved or rejected.</li>
+<li>the promise returned by <code>Promise.allSettled</code> is rejected only when all promises are either fulfilled or rejected.</li>
+<li>the promise returned by <code>Promise.all</code> is rejected as soon as any promise is rejected, without waiting for other
+promises to either be fulfilled or rejected.</li>
 </ul>
 <p>Apart from that timing difference, <code>Promise.all</code> and <code>Promise.allSettled</code> are otherwise fully equivalent.</p>
 <p>Here is an example showing how to use <code>Promise.all</code>:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 <span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
 
-Promise.all(<span class="string">"simple value"</span>, asyncRequire(<span class="string">"myModule1"</span>, <span class="string">"myModule2"</span>)).spread(<span class="function"><span class="keyword">function</span> <span class="params">(simpleValue, myModules)</span> {</span>
+Promise.all([<span class="string">"simple value"</span>, asyncRequire(<span class="string">"myModule1"</span>, <span class="string">"myModule2"</span>)]).spread(<span class="function"><span class="keyword">function</span> <span class="params">(simpleValue, myModules)</span> {</span>
    <span class="comment">// here:</span>
    <span class="comment">// simpleValue == "simple value"</span>
    <span class="comment">// myModules is an array containing the exports objects of myModule1 and myModule2</span>
 }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span>
    <span class="comment">// this function is called in case there is an error while loading myModule1 or myModule2</span>
 });</code></pre></div>
+<h3 id="promiseinstance-then-and-its-shortcuts">promiseInstance.then() and its shortcuts</h3>
+<p><strong>promiseInstance.then(onFulfilled : function (value), onRejected : function (reason)) : Promise</strong></p>
+<p><code>promiseInstance.then</code> adds a fulfillment and a rejection handler to the promise, and returns a new promise
+resolving to the return value of the called handler.</p>
+<p>If <code>onFulfilled</code> is null (or not a function), and <code>promiseInstance</code> is fulfilled, the returned promise is
+fulfilled with the same fulfillment value.</p>
+<p>If <code>onRejected</code> is null (or not a function), and <code>promiseInstance</code> is rejected, the returned promise is rejected
+with the same reason.</p>
+<p>If both <code>onFulfilled</code> and <code>onRejected</code> are null (or not functions), <code>promiseInstance</code> itself is returned.</p>
+<p>The following shortcuts for <code>promiseInstance.then</code> are available:</p>
+<p><strong>promiseInstance.catch(onRejected : function (reason)) : Promise</strong></p>
+<div class='snippet'><pre><code class="lang-js">promiseInstance.catch(onRejected);
+<span class="comment">// is equivalent to:</span>
+promiseInstance.then(<span class="literal">null</span>, onRejected);</code></pre></div>
+<p><strong>promiseInstance.finally(handler : function (value)) : Promise</strong></p>
+<div class='snippet'><pre><code class="lang-js">promiseInstance.finally(handler);
+<span class="comment">// is equivalent to:</span>
+promiseInstance.then(handler, handler);</code></pre></div>
+<p><strong>promiseInstance.spread(onFulfilled : function (value1, value2 ...), onRejected : function (reason)) : Promise</strong></p>
+<p><code>promiseInstance.spread</code> can be used when the fulfillment value is expected to be an array.</p>
+<div class='snippet'><pre><code class="lang-js">promiseInstance.spread(onFulfilled, onRejected);
+<span class="comment">// is equivalent to:</span>
+promiseInstance.then(<span class="function"><span class="keyword">function</span><span class="params">(array)</span> {</span>
+  <span class="comment">// each item of the array is passed as a different argument to onFulfilled:</span>
+  <span class="keyword">return</span> onFulfilled.apply(<span class="literal">null</span>, array);
+}, onRejected);</code></pre></div>
+<p><strong>promiseInstance.done(onFulfilled : function (value), onRejected : function (reason))</strong></p>
+<p>The <code>done</code> method is equivalent to <code>then</code> except that it does not return a new promise, and it reports any error by throwing it
+asynchronously.
+It is often used without any argument to end a promises chain so that any unhandled error in the chain is properly
+reported instead of being silently ignored.</p>
+<p>For example, with the folling code, if an error occurs when loading <code>myModule</code>, or in the function which uses <code>myModule</code>,
+the error is silently ignored:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
+
+asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span> {</span>
+  <span class="comment">// do something with myModule</span>
+}); <span class="comment">// without .done(), errors in this promises chain are silently ignored</span></code></pre></div>
+<p>Adding <code>.done()</code> at the end of the promises chain makes sure any unhandled error happening in the promises chain is properly reported:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
+
+asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span> {</span>
+  <span class="comment">// do something with myModule</span>
+}).done(); <span class="comment">// with .done(), errors are properly reported</span></code></pre></div>
+<h3 id="promiseinstance-thensync-and-its-shortcuts">promiseInstance.thenSync() and its shortcuts</h3>
+<p>Following the <a href="http://promises-aplus.github.io/promises-spec/">Promises/A+ specifications</a>, the <code>promiseInstance.then</code> method never
+calls its handlers synchronously. The same applies to the associated <code>spread</code>, <code>catch</code>, <code>finally</code> and <code>done</code> shortcuts.</p>
+<p>However, in some cases, it can be useful to avoid code duplication by handling both the asynchronous and the synchronous cases with
+the same code. For example, noder-js itself can be configured to use either synchronous or asynchronous XHR requests and uses the same
+code to handle both cases, without adding asynchronism uselessly.</p>
+<p>For this to be possible, noder-js provides the <code>thenSync</code>, <code>spreadSync</code>, <code>catchSync</code>, <code>finallySync</code> and <code>doneSync</code> methods which behave
+exactly as their <code>then</code>, <code>spread</code>, <code>catch</code>, <code>finally</code> and <code>done</code> counterparts, except that, in case the promise is already fulfilled or
+rejected at the time the <code>xSync</code> method is called, the corresponding handler is called synchronously.</p>
+<p>Here is an example which shows the difference between <code>then</code> and <code>thenSync:</code></p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> thenValue, thenSyncValue;
+<span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+<span class="keyword">var</span> myPromise = Promise.resolve(<span class="number">7</span>);
+
+<span class="comment">// myPromise is already fulfilled</span>
+myPromise.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenValue = value; });
+myPromise.thenSync(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenSyncValue = value; });
+console.log(<span class="string">"thenValue = "</span> + thenValue);
+console.log(<span class="string">"thenSyncValue = "</span> + thenSyncValue);
+
+<span class="comment">// The result in the console is:</span>
+<span class="comment">// thenValue = undefined</span>
+<span class="comment">// thenSyncValue = 7</span></code></pre></div>
+<p>Note that the behavior of <code>thenSync</code> only differs from the one of <code>then</code> if it is called on an already fulfilled or rejected promise.
+In the following sample, both <code>then</code> and <code>thenSync</code> behave in the same way because the promise is still pending when <code>then</code> and <code>thenSync</code> are called:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> thenValue, thenSyncValue;
+<span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+<span class="keyword">var</span> defer = Promise.defer();
+<span class="keyword">var</span> myPromise = defer.promise;
+
+<span class="comment">// myPromise is not yet fulfilled</span>
+myPromise.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenValue = value; });
+myPromise.thenSync(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenSyncValue = value; });
+
+defer.resolve(<span class="number">7</span>); <span class="comment">// now it is fulfilled, but the handlers will be called asynchronously</span>
+console.log(<span class="string">"thenValue = "</span> + thenValue);
+console.log(<span class="string">"thenSyncValue = "</span> + thenSyncValue);
+
+<span class="comment">// The result in the console is:</span>
+<span class="comment">// thenValue = undefined</span>
+<span class="comment">// thenSyncValue = undefined</span></code></pre></div>
+<p>Note that <code>thenSync</code> is not (yet?) standard. There was a <a href="https://github.com/promises-aplus/promises-spec/issues/169">request</a> to better integrate
+Promises/A+ specifications with synchronous code, but it was unfortunately rejected.</p>
+<h3 id="promiseinstance-isfulfilled-and-promiseinstance-isrejected-">promiseInstance.isFulfilled() and promiseInstance.isRejected()</h3>
+<p><strong>promiseInstance.isFulfilled() : Boolean</strong></p>
+<p>Returns <code>true</code> if <code>promiseInstance</code> is fulfilled, and <code>false</code> otherwise.</p>
+<p><strong>promiseInstance.isRejected() : Boolean</strong></p>
+<p>Returns <code>true</code> if <code>promiseInstance</code> is rejected, and <code>false</code> otherwise.</p>
+<p>If both <code>promiseInstance.isFulfilled()</code> and <code>promiseInstance.isRejected()</code> return <code>false</code>, the promise is still pending.
+<code>promiseInstance.isFulfilled()</code> and <code>promiseInstance.isRejected()</code> never both return <code>true</code> for the same promise instance.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+Promise.resolve(<span class="number">7</span>).isFulfilled() <span class="comment">// returns true</span>
+Promise.resolve(<span class="number">7</span>).isRejected() <span class="comment">// returns false</span>
+Promise.reject(<span class="number">7</span>).isFulfilled() <span class="comment">// returns false</span>
+Promise.reject(<span class="number">7</span>).isRejected() <span class="comment">// returns true</span>
+Promise.defer().promise.isFulfilled() <span class="comment">// returns false</span>
+Promise.defer().promise.isRejected() <span class="comment">// returns false</span></code></pre></div>
+<h3 id="promiseinstance-result-">promiseInstance.result()</h3>
+<p><strong>promiseInstance.result()</strong></p>
+<p>If <code>promiseInstance</code> is fulfilled, <code>promiseInstance.result()</code> returns the fulfillment value.</p>
+<p>If <code>promiseInstance</code> is rejected, <code>promiseInstance.result()</code> returns the rejection reason.</p>
+<p>Otherwise (i.e. <code>promiseInstance</code> is still pending), <code>promiseInstance.result()</code> returns <code>undefined</code>.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+Promise.resolve(<span class="number">7</span>).result() <span class="comment">// returns 7</span>
+Promise.reject(<span class="number">7</span>).result() <span class="comment">// returns 7</span>
+Promise.defer().promise.result() <span class="comment">// returns undefined</span></code></pre></div>
 <h2 id="request-utility">Request utility</h2>
-<p>noderJS contains a small promises-based utility to make network requests.
-It is a simple wrapper around <a href="http://www.w3.org/TR/XMLHttpRequest">XMLHttpRequest</a> that hides some of the
+<p>noderJS contains a small promises-based utility to make network requests:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> request = <span class="built_in">require</span>(<span class="string">"noder-js/request"</span>);</code></pre></div>
+<p>It is a simple wrapper around <a href="http://www.w3.org/TR/XMLHttpRequest">XMLHttpRequest</a> that hides some of the
 differences between browsers and makes it easy to request files.</p>
 <p><strong>request (url: String, options: Object) : Promise</strong></p>
 <p>This method sends a request to the server for the specified url and returns a promise.</p>
@@ -220,7 +357,7 @@ request(<span class="string">"/api/"</span>, {
    <span class="keyword">var</span> responseText = xhr.responseText;
    <span class="keyword">var</span> responseJson = <span class="built_in">JSON</span>.parse(responseText);
    <span class="comment">// ...</span>
-}).then(<span class="literal">null</span>, <span class="function"><span class="keyword">function</span><span class="params">(error)</span> {</span>
+}).catch(<span class="function"><span class="keyword">function</span><span class="params">(error)</span> {</span>
    <span class="comment">// error callback handling cases when either the request fails or parsing the response JSON fails</span>
    <span class="comment">// ...</span>
 });</code></pre></div>
