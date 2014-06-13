@@ -4,6 +4,7 @@
     "description": "JavaScript CommonJS loader",
     "version": "1.4.0",
     "homepage": "http://github.com/ariatemplates/noder-js",
+    "keywords": ["promises-aplus"],
     "repository": {
         "type": "git",
         "url": "git://github.com/ariatemplates/noder-js.git"
