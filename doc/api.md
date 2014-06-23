@@ -19,8 +19,6 @@ in [Node.js](http://nodejs.org/api/globals.html):
 * [module.filename](http://nodejs.org/api/modules.html#modules_module_filename) and [module.id](http://nodejs.org/api/modules.html#modules_module_id)
 * [module.loaded](http://nodejs.org/api/modules.html#modules_module_loaded)
 * [module.require](http://nodejs.org/api/modules.html#modules_module_require_id)
-* [module.parent](http://nodejs.org/api/modules.html#modules_module_parent)
-* [module.children](http://nodejs.org/api/modules.html#modules_module_children)
 * [__filename](http://nodejs.org/api/globals.html#globals_filename)
 * [__dirname](http://nodejs.org/api/globals.html#globals_dirname)
 

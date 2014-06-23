@@ -61,8 +61,7 @@ var Module = function(context, filename) {
     this.require = bind1(context.moduleRequire, context, this);
     this.require.resolve = bind1(context.moduleResolve, context, this);
     this.require.cache = context.cache;
-    this.parent = null;
-    this.children = [];
+    this.require.main = context.main;
     this.preloaded = false;
     this.loaded = false;
     this.exports = {};
@@ -83,7 +82,8 @@ var start = function(context) {
 
     var main = config.main;
     actions = actions.thenSync(main ? function() {
-        return context.execModuleCall(main);
+        var res = context.main = context.execModuleCall(main);
+        return res;
     } : function() {} /* if there is no main module, an empty parameter should be passed to onstart */ );
 
     actions = actions.thenSync(config.onstart);
@@ -174,13 +174,6 @@ contextProto.modulePreload = function(module, parent) {
         return preloading;
     }
     var self = this;
-    if (parent && parent.id != '.') {
-        module.parent = parent;
-        module.require.main = parent.require.main;
-        parent.children.push(module);
-    } else {
-        module.require.main = module;
-    }
     setModuleProperty(module, PROPERTY_PRELOADING_PARENTS, parent ? [parent] : []);
     return setModuleProperty(module, PROPERTY_PRELOADING, self.moduleLoadDefinition(module).thenSync(function() {
         return self.modulePreloadDependencies(module, getModuleProperty(module, PROPERTY_DEPENDENCIES));
