@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.4.0 - 26 Jun 2014
+ * Noder-js 1.5.0 - 26 Jun 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -986,9 +986,6 @@
                 return res;
             } : function() {});
             actions = actions.thenSync(config.onstart);
-            if (!("scriptsType" in config)) {
-                config.scriptsType = config.varName;
-            }
             var scriptsType = config.scriptsType;
             if (scriptsType) {
                 actions = actions.thenSync(function() {
@@ -1309,6 +1306,7 @@
     return {
         mainContext: {
             varName: "noder",
+            scriptsType: "application/x-noder",
             resolver: {
                 "default": {}
             }
