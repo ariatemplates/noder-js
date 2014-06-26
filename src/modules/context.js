@@ -88,9 +88,6 @@ var start = function(context) {
 
     actions = actions.thenSync(config.onstart);
 
-    if (!("scriptsType" in config)) {
-        config.scriptsType = config.varName;
-    }
     var scriptsType = config.scriptsType;
     if (scriptsType) {
         actions = actions.thenSync(function() {

@@ -69,7 +69,7 @@ For example:
 
 ```html
 <script type="text/javascript" src="http://noder-js.ariatemplates.com/dist/%NODERJSVERSION%/noder.dev.js"></script>
-<script type="noder">
+<script type="application/x-noder">
     // This is executed as a module.
     require('lib/myMainModule').start('myParam1', document.getElementById('myItem'));
 </script>

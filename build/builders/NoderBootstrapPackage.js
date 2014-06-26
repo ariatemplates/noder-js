@@ -48,7 +48,8 @@ var noderEnvConfig = {
         defConfig: function() {
             return {
                 mainContext: {
-                    varName: "noder"
+                    varName: "noder",
+                    scriptsType: "application/x-noder"
                 }
             };
         }
