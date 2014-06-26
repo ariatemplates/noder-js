@@ -62,14 +62,14 @@ This will install client-side files in `node_modules/noder-js/dist/browser`, for
 
 ## Loading your first module
 
-When the document is ready, noderJS reads all the script tags whose type attribute is `noder`
+When the document is ready, noderJS reads all the script tags whose type attribute is `application/x-noder`
 (this is [configurable](configuration.md)) and considers them as modules to be executed.
 
 For example:
 
 ```html
 <script type="text/javascript" src="http://noder-js.ariatemplates.com/dist/%NODERJSVERSION%/noder.dev.js"></script>
-<script type="noder">
+<script type="application/x-noder">
     // This is executed as a module.
     require('lib/myMainModule').start('myParam1', document.getElementById('myItem'));
 </script>

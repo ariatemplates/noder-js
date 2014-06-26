@@ -28,7 +28,7 @@ The `index.html` file looks like this:
             console.log("Current exhibitions", exhib.current());
         }
     }</script>
-    <script type="noder">
+    <script type="application/x-noder">
         var paintings = require('paintings/catalogue').getAll();
         console.log("paintings", paintings);
     </script>

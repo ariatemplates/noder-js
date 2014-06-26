@@ -42,8 +42,8 @@ noderJS supports the following configuration options:
     // There is no default for other contexts than the default one.
     // If it is null or contains an empty string, noderJS does not expose any global variable.
 
-    scriptsType: 'noder', // Type of scripts to execute as CommonJS modules.
-    // The default is to use the same value as varName.
+    scriptsType: 'application/x-noder', // Type of scripts to execute as CommonJS modules.
+    // The default value for the default context in a browser is "application/x-noder".
     // If it contains an empty string, noderJS does not look for scripts to execute as modules.
 
     main: "lib/myMainModule", // Main module to load when starting
