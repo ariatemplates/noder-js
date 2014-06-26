@@ -57,8 +57,6 @@ in <a href="http://nodejs.org/api/globals.html">Node.js</a>:</p>
 <li><a href="http://nodejs.org/api/modules.html#modules_module_filename">module.filename</a> and <a href="http://nodejs.org/api/modules.html#modules_module_id">module.id</a></li>
 <li><a href="http://nodejs.org/api/modules.html#modules_module_loaded">module.loaded</a></li>
 <li><a href="http://nodejs.org/api/modules.html#modules_module_require_id">module.require</a></li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_parent">module.parent</a></li>
-<li><a href="http://nodejs.org/api/modules.html#modules_module_children">module.children</a></li>
 <li><a href="http://nodejs.org/api/globals.html#globals_filename">__filename</a></li>
 <li><a href="http://nodejs.org/api/globals.html#globals_dirname">__dirname</a></li>
 </ul>
@@ -115,6 +113,44 @@ asyncRequire(<span class="string">"./myRelativeModule"</span>).spread(<span clas
 <p>For convenience, the <code>asyncRequire</code> method is also available on the <code>noder</code> global variable, so that it is easy to load
 some modules asynchronously, even from code which was not loaded through noderJS:</p>
 <div class='snippet'><pre><code class="lang-js">noder.asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span>{</span> <span class="comment">/* ... */</span> }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
+<h2 id="loader-plugins">Loader plugins</h2>
+<p>Before a module can be executed in noderJS, it has to be preloaded. The preload process consists in downloading the
+module file, parsing it to detect its static dependencies, and preloading those dependencies. The preload process is usually
+asynchronous, as it usually involves one or more XHR requests (which, by default, are configured to be asynchronous).</p>
+<p>noderJS provides the ability to add custom actions to the preload process, by implementing a loader plugin.
+This is especially useful to preload additional dependencies which cannot be automatically detected because they are
+not static. These include, for example, language-dependent resources or browser-dependent code.</p>
+<p>For example, let&#39;s consider our <code>sample.js</code> module which depends on a language-dependent resource.
+The code could look like the following example:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> language = <span class="built_in">require</span>(<span class="string">"resourcesManager"</span>).language;
+<span class="keyword">var</span> myResources = <span class="built_in">require</span>(<span class="string">"./myRes_"</span>+language);
+<span class="comment">// ...</span></code></pre></div>
+<p>When parsing this file, noderJS will find <code>resourcesManager</code> as a static dependency, but will be unable know the other file to preload
+as it depends on the <code>language</code> variable, whose value is unknown at the time the file is parsed (as it is not executed yet).
+As a result, when later executing this file, the second require will probably fail because the dependency will not have been preloaded
+and it will most likely not be possible to preload it synchronously (if XHR requests are configured to be asynchronous).</p>
+<p>To solve this kind of issues, or to execute any other custom actions asynchronously, support for loader plugins was implemented.
+The parser detects the pattern <code>require(&quot;loaderPluginPath/$loaderPluginName&quot;).methodName(arg1, arg2...)</code> in the file to be preloaded,
+and executes the loader plugin module at preloading time. It calls the <code>$preload</code> method on the <code>methodName</code> property of the object
+exported by the loader plugin and executes it with the parsed arguments (which must be either string literals or the special <code>__dirname</code>,
+<code>__filename</code> and <code>module</code> variable, or <code>null</code>). The <code>$preload</code> method can return a promise. If it is the case, the preload process will
+wait for the promise to be fulfilled before marking the module as preloaded.</p>
+<p>Now our <code>sample.js</code> module depending on a language-dependent resource can be re-written in the following way:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> myResources = <span class="built_in">require</span>(<span class="string">"$resourcesLoader"</span>).getResource(__dirname, <span class="string">"./myRes"</span>);
+<span class="comment">// ...</span></code></pre></div>
+<p>The loader plugin, called <code>$resourcesLoader.js</code> could look like this:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
+<span class="keyword">var</span> language = <span class="built_in">require</span>(<span class="string">"resourcesManager"</span>).language;
+exports.getResource = <span class="function"><span class="keyword">function</span><span class="params">(directory, resource)</span> {</span>
+   <span class="comment">// this method is executed when sample.js is executed</span>
+   <span class="comment">// it is synchronous</span>
+   <span class="keyword">return</span> <span class="built_in">require</span>(directory + <span class="string">"/"</span> + resource);
+};
+exports.getResource.$preload = <span class="function"><span class="keyword">function</span><span class="params">(directory, resource)</span> {</span>
+   <span class="comment">// this method is automatically executed when sample.js is preloaded</span>
+   <span class="comment">// it can be asynchronous by returning a promise</span>
+   <span class="keyword">return</span> asyncRequire(directory + <span class="string">"/"</span> + resource);
+};</code></pre></div>
 <h2 id="promises-library">Promises library</h2>
 <p><a href="http://promisesaplus.com/">
 <img src="http://promisesaplus.com/assets/logo-small.png" alt="Promises/A+ logo" title="Promises/A+ 1.1.1 compliant" align="right"
@@ -175,7 +211,7 @@ but using <code>Promise.defer()</code> instead of the promise constructor.</p>
 <p><strong>Promise.resolve(valueOrPromise) : Promise</strong></p>
 <p>If <code>valueOrPromise</code> is a noder-js promise, <code>Promise.resolve</code> returns it directly.</p>
 <p>If <code>valueOrPromise</code> is an object or a function with a <code>thenSync</code> or <code>then</code>  method, it is considered as a promise and
-<code>Promise.resolve</code> returns an equivalent noder-js promise.</p>
+<code>Promise.resolve</code> returns an equivalent noderJS promise.</p>
 <p>Otherwise, <code>Promise.resolve</code> returns an already fulfilled promise, whose fulfillment value is <code>valueOrPromise</code>.</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
@@ -193,6 +229,12 @@ Promise.resolve({
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
 Promise.reject(<span class="string">"error"</span>).catch(<span class="function"><span class="keyword">function</span> <span class="params">(reason)</span> {</span> <span class="comment">/* here, reason == "error" */</span> });</code></pre></div>
+<h3 id="promise-done">Promise.done</h3>
+<p><strong>Promise.done : Promise</strong></p>
+<p><code>Promise.done</code> is a reference to an already resolved promise, whose fulfillment value is <code>undefined</code>.</p>
+<p>It is defined by:</p>
+<div class='snippet'><pre><code class="lang-js">Promise.done = Promise.resolve();</code></pre></div>
+<p>It can be used instead of <code>Promise.resolve(undefined)</code> to avoid creating a new promise instance.</p>
 <h3 id="promise-all-and-promise-allsettled-">Promise.all() and Promise.allSettled()</h3>
 <p><strong>Promise.all (promiseOrValueArray : Array) : Promise</strong></p>
 <p><strong>Promise.allSettled (promiseOrValueArray : Array) : Promise</strong></p>
@@ -263,9 +305,9 @@ asyncRequire(<span class="string">"myModule"</span>).spread(<span class="functio
 <p>Following the <a href="http://promises-aplus.github.io/promises-spec/">Promises/A+ specifications</a>, the <code>promiseInstance.then</code> method never
 calls its handlers synchronously. The same applies to the associated <code>spread</code>, <code>catch</code>, <code>finally</code> and <code>done</code> shortcuts.</p>
 <p>However, in some cases, it can be useful to avoid code duplication by handling both the asynchronous and the synchronous cases with
-the same code. For example, noder-js itself can be configured to use either synchronous or asynchronous XHR requests and uses the same
+the same code. For example, noderJS itself can be configured to use either synchronous or asynchronous XHR requests and uses the same
 code to handle both cases, without adding asynchronism uselessly.</p>
-<p>For this to be possible, noder-js provides the <code>thenSync</code>, <code>spreadSync</code>, <code>catchSync</code>, <code>finallySync</code> and <code>doneSync</code> methods which behave
+<p>For this to be possible, noderJS provides the <code>thenSync</code>, <code>spreadSync</code>, <code>catchSync</code>, <code>finallySync</code> and <code>doneSync</code> methods which behave
 exactly as their <code>then</code>, <code>spread</code>, <code>catch</code>, <code>finally</code> and <code>done</code> counterparts, except that, in case the promise is already fulfilled or
 rejected at the time the <code>xSync</code> method is called, the corresponding handler is called synchronously.</p>
 <p>Here is an example which shows the difference between <code>then</code> and <code>thenSync:</code></p>
@@ -361,11 +403,147 @@ request(<span class="string">"/api/"</span>, {
    <span class="comment">// error callback handling cases when either the request fails or parsing the response JSON fails</span>
    <span class="comment">// ...</span>
 });</code></pre></div>
-<p><strong>Note: this page is still in construction, the following sections are planned to be added:</strong></p>
+<h2 id="context">Context</h2>
+<p>A noderJS context is automatically created when noderJS is loaded. noderJS also provides an API to create new contexts.
+Each noderJS context has its own <a href="configuration.html">configuration</a> and its own cache of modules.</p>
+<p>Inside the same context, when the same module is required twice, the corresponding module is in fact loaded only once and the
+reference is shared.</p>
+<p>However, if the same module is required from two different contexts, two different instances of the module will be loaded and
+will be independent from one another.</p>
+<p>It can be useful to create a new context when testing a module. The tested module can be put in a mocked environment by exposing
+mocks in the new context, so that the tested module will access mocks instead of the original modules when calling the usual
+<code>require</code> method.</p>
+<h3 id="getting-a-context-instance">Getting a context instance</h3>
+<h4 id="new-context">New context</h4>
+<p>Here is how to create a new context:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Context = <span class="built_in">require</span>(<span class="string">"noder-js/context"</span>);
+<span class="keyword">var</span> contextInstance = <span class="keyword">new</span> Context({
+   <span class="comment">/* context configuration */</span>
+});</code></pre></div>
+<p>The context configuration object is described in the <a href="configuration.html">configuration page</a>.</p>
+<h4 id="current-context">Current context</h4>
+<p>Here is how to get a reference to the current context:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> contextInstance = <span class="built_in">require</span>(<span class="string">"noder-js/currentContext"</span>);</code></pre></div>
+<h3 id="context-instance-methods">Context instance methods</h3>
+<p><strong>contextInstance.expose(path: String, object: Object)</strong></p>
+<p>Exposes the given object at the given path. This means that, the next time a module with that path
+has to be loaded in the context, the usual loading method will be bypassed and the given object
+will be used as the export object.</p>
+<p>Note that this method does not unload any already loaded module at the given path. If a module with the
+given path is already loaded when this method is called, it is still accessible until it is deleted
+from the cache.</p>
+<p>For example:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> myObject = {};
+contextInstance.expose(<span class="string">"myModule.js"</span>, myObject);
+
+<span class="keyword">var</span> myModule = contextInstance.require(<span class="string">"myModule"</span>);
+<span class="keyword">delete</span> contextInstance.require.cache[<span class="string">"myModule.js"</span>];
+<span class="keyword">var</span> myReloadedModule = contextInstance.require(<span class="string">"myModule"</span>);
+
+<span class="comment">// Here, we always have:</span>
+<span class="comment">// myObject === myReloadedModule</span>
+
+<span class="comment">// We can also have:</span>
+<span class="comment">// myObject === myModule</span>
+<span class="comment">// but only if myModule.js was not loaded before the call to the expose method.</span></code></pre></div>
+<h3 id="context-instance-properties">Context instance properties</h3>
+<p><strong>contextInstance.config</strong></p>
+<p>A reference to the configuration of the context.</p>
+<p><strong>contextInstance.cache</strong></p>
+<p>The same object as the one available in <code>require.cache</code> from modules loaded from this context.</p>
+<p><strong>contextInstance.builtinModules</strong></p>
+<p>An object containing all built-in modules (also including modules exposed through the <code>expose</code> method).</p>
+<p><strong>contextInstance.rootModule</strong></p>
+<p>A special module created when the context is created.</p>
+<h2 id="asynccall">asyncCall</h2>
+<p>noder-js exposes an <code>asyncCall</code> module with some utility functions to call functions asynchronously or synchronously.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncCall = <span class="built_in">require</span>(<span class="string">"noder-js/asyncCall"</span>);</code></pre></div>
+<p><strong>asyncCall.nextTick(f : function())</strong></p>
+<p>Registers a function to be executed asynchronously.
+The function is called with no scope and no argument.
+Functions are executed in the same order as they are registered.</p>
+<p>The implementation of this function in the browser version of noderJS relies on <code>setTimeout</code>.
+To improve performance, multiple consecutive calls to <code>asyncCall.nextTick</code> in the same event loop turn lead to at most one call to <code>setTimeout</code>.
+Calling <code>async.nextTick</code> from a function called with <code>asyncCall.nextTick</code> simply adds the new function to the list of functions to be executed,
+without any call to <code>setTimeout</code>, and the function is executed at the end of the same event loop turn.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncCall = <span class="built_in">require</span>(<span class="string">"noder-js/asyncCall"</span>);
+<span class="keyword">var</span> myCounter = <span class="number">0</span>;
+asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  myCounter++;
+  console.log(<span class="string">"First function: "</span> + myCounter);
+});
+asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  myCounter++;
+  console.log(<span class="string">"Second function: "</span> + myCounter);
+});
+console.log(<span class="string">"Main: "</span> + myCounter);
+
+<span class="comment">// The console will have the following output:</span>
+<span class="comment">// Main: 0</span>
+<span class="comment">// First function: 1</span>
+<span class="comment">// Second function: 2</span></code></pre></div>
+<p><strong>asyncCall.syncCall(f : function())</strong></p>
+<p>Executes the given function synchronously. In case an error happens in the callback, it is thrown again asynchronously, so that the caller
+of <code>asyncCall.syncCall</code> is not affected.</p>
+<p>This function has the same signature as <code>asyncCall.nextTick</code>. This way, it is possible to parameterize an algorithm with a reference to a callback
+executor, which can be set to be either <code>asyncCall.nextTick</code> to call callbacks asynchronously, or <code>asyncCall.syncCall</code> to call callbacks
+synchronously. This is done internally for the implementation of the <code>then</code> and <code>thenSync</code> promise methods.</p>
+<p><strong>asyncCall.nextTickCalls(arrayOfFunctions : Array)</strong></p>
+<p>Registers an array of functions to be executed later asynchronously. The functions are called in the order in which they appear in the array.</p>
+<p>Note that this function modifies the array: the first item of the array is removed, then the corresponding function is executed, then
+the new first item of the array is removed, ... until there is no remaining item in the array.
+Also note that, if the array is changed outside of <code>asyncCall.nextTickCalls</code> before the execution of all array items is finished, it has
+an impact on the functions which are actually executed.</p>
+<p><strong>asyncCall.syncCalls(arrayOfFunctions : Array)</strong></p>
+<p>Synchronous version of <code>asyncCall.nextTickCalls</code>. Executes each function in the array, in order, synchronously.</p>
+<p><strong>asyncCall.syncTick()</strong></p>
+<p>Executes synchronously all the functions currently planned to be executed asynchronously (and registered with <code>asyncCall.nextTick</code>).
+Note that this method should <strong>never</strong> be called from application code.
+However, it can be useful to use it from tests to execute asynchronous code synchronously and improve performance for tests execution.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncCall = <span class="built_in">require</span>(<span class="string">"noder-js/asyncCall"</span>);
+<span class="keyword">var</span> methodCalled = <span class="literal">false</span>;
+asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+   methodCalled = <span class="literal">true</span>;
+});
+<span class="comment">// here, methodCalled = false</span>
+asyncCall.syncTick(); <span class="comment">// this calls ALL the functions previously registered with asyncCall.nextTick and not yet executed</span>
+<span class="comment">// here, methodCalled = true</span></code></pre></div>
+<h2 id="findrequires-parser">findRequires parser</h2>
+<p>noderJS includes a small parser for JavaScript code which extracts calls to the <code>require</code> method. It is exposed as <code>noder-js/findRequires</code>:</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> findRequires = <span class="built_in">require</span>(<span class="string">"noder-js/findRequires"</span>);</code></pre></div>
+<p><strong>findRequires(jsCode : String, detectLoaderPlugins : Boolean)</strong></p>
 <ul>
-<li>Loader plugins</li>
-<li>Context</li>
+<li><code>jsCode</code>: JavaScript code to be parsed.</li>
+<li><code>detectLoaderPlugins</code>: whether to return information about loader plugins.</li>
 </ul>
+<p><code>findRequires</code> returns an array. Each item in the array can be:</p>
+<ul>
+<li>a string, which is the string literal used in a call to require.</li>
+<li>(only if <code>detectLoaderPlugins</code> is <code>true</code>) an object with the <code>module</code> (string), <code>method</code> (string) and <code>args</code> (array) properties, corresponding
+to a call to a loader plugin.
+Note that for each loader plugin detected, a string entry is also present in the array in addition to the object. Each item in the args properties
+is either a string (corresponding to a string literal argument), or an array with a single string element (corresponding to a non-quoted argument
+like <code>module</code> or <code>null</code>).</li>
+</ul>
+<p>Each string corresponds to a call to require in the source code.</p>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> findRequires = <span class="built_in">require</span>(<span class="string">"noder-js/findRequires"</span>);
+
+findRequires(<span class="string">"var myModule = require('myModule')"</span>); <span class="comment">// returns ["myModule"]</span>
+findRequires(<span class="string">"var myModule = require( /* comment1 */ 'myModule' /* 'comment2' */ )"</span>); <span class="comment">// returns ["myModule"]</span>
+
+<span class="comment">// The following 3 calls all return [] (an empty array)</span>
+findRequires(<span class="string">"var myModule = require('my' + 'Module')"</span>); <span class="comment">// expressions are not included</span>
+findRequires(<span class="string">"var myModule = module.require('myModule')"</span>); <span class="comment">// calls to module.require are not included</span>
+findRequires(<span class="string">"var myString = \"require('myModule')\""</span>); <span class="comment">// the content of string literals is not included</span>
+
+<span class="comment">// Loader plugins:</span>
+findRequires(<span class="string">"require('$loaderPlugin').myMethod('arg1', module)"</span>); <span class="comment">// returns ['$loaderPlugin']</span>
+findRequires(<span class="string">"require('$loaderPlugin').myMethod('arg1', module)"</span>, <span class="literal">true</span>);
+<span class="comment">// The previous line returns:</span>
+[ <span class="string">'$loaderPlugin'</span>,
+  { module: <span class="string">'$loaderPlugin'</span>,
+    method: <span class="string">'myMethod'</span>,
+    args: [ <span class="string">'arg1'</span>, [<span class="string">"module"</span>] ] } ]</code></pre></div>
 </article>
 				</div>
 			</div>

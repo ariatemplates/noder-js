@@ -62,7 +62,9 @@ the following code creates a new context with the specified configuration:</li>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> newNoder = noder.createContext({
   <span class="comment">// put the configuration here</span>
 });</code></pre></div>
-<p>Then, <code>newNoder</code> is a new context, completely independent from <code>noder</code>. The possibility to have multiple contexts is useful for tests.</p>
+<p>Then, <code>newNoder</code> is a new context, completely independent from <code>noder</code>.
+The possibility to have multiple contexts is useful for tests.
+See <a href="api.html">the API page</a> for more information about noderJS contexts.</p>
 <h2 id="configuration-options">Configuration options</h2>
 <p>noderJS supports the following configuration options:</p>
 <div class='snippet'><pre><code class="lang-javascript">  {
@@ -94,7 +96,10 @@ the following code creates a new context with the specified configuration:</li>
     resolver: {
       <span class="string">"default"</span> : {
         <span class="comment">// Default configuration for the resolver.</span>
-        <span class="comment">// This object describes the tree of modules.</span>
+        <span class="comment">// The resolver is called when using `require` or `require.resolve`,</span>
+        <span class="comment">// in order to convert the parameter into an absolute file name.</span>
+
+        <span class="comment">// This configuration object describes the tree of modules.</span>
         <span class="comment">// An object value means that a directory with that name exists.</span>
         <span class="comment">// A string value means a redirection to some other file/directory</span>
         <span class="comment">// The special '.' key specifies the file to use when requiring the directory.</span>
@@ -115,6 +120,12 @@ the following code creates a new context with the specified configuration:</li>
     },
 
     packaging: {
+      <span class="comment">// The `packaging` configuration is related to how files are loaded from the server.</span>
+
+      <span class="comment">// It allows you to define a base URL, to add some HTTP headers when requesting files,</span>
+      <span class="comment">// to use preprocessors to change modules content before they are executed, and to specify how files</span>
+      <span class="comment">// are packaged together.</span>
+
       baseUrl: <span class="string">""</span>, <span class="comment">// Base URL which is prepended to every path when requesting files to the server.</span>
       <span class="comment">// It can be either absolute or relative to the current page location.</span>
       requestConfig: {
@@ -172,11 +183,6 @@ the following code creates a new context with the specified configuration:</li>
       }
     }
   }</code></pre></div>
-<p>The <code>resolver</code> is used to convert the parameter of require into an absolute file name. It accepts 3 different values: an object, a string and a special value.</p>
-<p>When the value is an object, it means that a directory with that name exists.
-When the value is a string, it means a redirection to some other file or directory.
-The &#39;.&#39; is the special value and defines the file to use when requiring the directory.</p>
-<p>The <code>packaging</code> allows you to define a base URL to prepend to every path when requesting files to the server, to add some configuration when requesting files, to use preprocessors to change modules content and to specify how files are packaged.</p>
 </article>
 				</div>
 			</div>
