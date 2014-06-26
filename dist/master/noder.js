@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.4.0 - 18 Jun 2014
+ * Noder-js 1.4.0 - 26 Jun 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -964,8 +964,7 @@
             this.require = /*bind1*/ bind$module(context.moduleRequire, context, this);
             this.require.resolve = /*bind1*/ bind$module(context.moduleResolve, context, this);
             this.require.cache = context.cache;
-            this.parent = null;
-            this.children = [];
+            this.require.main = context.main;
             this.preloaded = false;
             this.loaded = false;
             this.exports = {};
@@ -983,7 +982,8 @@
             var actions = /*Promise*/ promise$module.done;
             var main = config.main;
             actions = actions.thenSync(main ? function() {
-                return context.execModuleCall(main);
+                var res = context.main = context.execModuleCall(main);
+                return res;
             } : function() {});
             actions = actions.thenSync(config.onstart);
             if (!("scriptsType" in config)) {
@@ -1065,13 +1065,6 @@
                 return preloading;
             }
             var self = this;
-            if (parent && parent.id != ".") {
-                module.parent = parent;
-                module.require.main = parent.require.main;
-                parent.children.push(module);
-            } else {
-                module.require.main = module;
-            }
             setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5, parent ? [ parent ] : []);
             /*PROPERTY_PRELOADING*/
             return setModuleProperty(module, 3, self.moduleLoadDefinition(module).thenSync(function() {
