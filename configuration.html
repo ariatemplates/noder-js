@@ -73,8 +73,8 @@ See <a href="api.html">the API page</a> for more information about noderJS conte
     <span class="comment">// There is no default for other contexts than the default one.</span>
     <span class="comment">// If it is null or contains an empty string, noderJS does not expose any global variable.</span>
 
-    scriptsType: <span class="string">'noder'</span>, <span class="comment">// Type of scripts to execute as CommonJS modules.</span>
-    <span class="comment">// The default is to use the same value as varName.</span>
+    scriptsType: <span class="string">'application/x-noder'</span>, <span class="comment">// Type of scripts to execute as CommonJS modules.</span>
+    <span class="comment">// The default value for the default context in a browser is "application/x-noder".</span>
     <span class="comment">// If it contains an empty string, noderJS does not look for scripts to execute as modules.</span>
 
     main: <span class="string">"lib/myMainModule"</span>, <span class="comment">// Main module to load when starting</span>
