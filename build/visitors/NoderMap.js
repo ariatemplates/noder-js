@@ -54,10 +54,14 @@ var NoderMap = function(cfg) {
     this.starStarCompress = cfg.hasOwnProperty('starStarCompress') ? cfg.starStarCompress : ['**/*'];
     this.noderConfig = cfg.noderConfig;
     this.noderContext = cfg.noderContext;
+    this.varName = cfg.varName || "noder";
+    this.toFile = cfg.toFile;
 };
 
 NoderMap.prototype.onBeforeBuild = function(packaging) {
-    configUtils.planBootstrapFileRebuild(packaging, this.noderConfig);
+    if (!this.toFile) {
+        configUtils.planBootstrapFileRebuild(packaging, this.noderConfig);
+    }
 };
 
 NoderMap.prototype._starCompress = function(path, map) {
@@ -147,7 +151,7 @@ NoderMap.prototype._starStarCompress = function(path, map) {
 };
 
 NoderMap.prototype.onAfterBuild = function(packaging) {
-    var map = configUtils.getPackagesMap(packaging, this.noderConfig, this.noderContext);
+    var map = this.toFile ? {} : configUtils.getPackagesMap(packaging, this.noderConfig, this.noderContext);
     var sourceFilesPatterns = this.sourceFiles;
     var outputFilesPatterns = this.outputFiles;
     var sourceFiles = packaging.sourceFiles;
@@ -172,7 +176,11 @@ NoderMap.prototype.onAfterBuild = function(packaging) {
             this._starStarCompress('', map);
         }
     }
-    configUtils.rebuildBootstrapFile(packaging, this.noderConfig);
+    if (this.toFile) {
+        grunt.file.write(path.join(packaging.outputDirectory, this.toFile), this.varName + ".updatePackagesMap(" + JSON.stringify(map) + ");");
+    } else {
+        configUtils.rebuildBootstrapFile(packaging, this.noderConfig);
+    }
 };
 
 module.exports = NoderMap;

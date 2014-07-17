@@ -124,6 +124,8 @@ var Context = function(config) {
     this.resolver = createInstance(config.Resolver, Resolver, this);
     this.loader = createInstance(config.Loader, Loader, this);
 
+    rootModule.updatePackagesMap = bind(this.loader.updatePackagesMap, this.loader);
+
     var globalVarName = config.varName;
     if (globalVarName) {
         global[globalVarName] = rootModule;

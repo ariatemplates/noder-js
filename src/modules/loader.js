@@ -21,6 +21,7 @@ var emptyObject = {};
 var scriptBaseUrl = require('../node-modules/scriptBaseUrl');
 var filters = require('./filters');
 var bind1 = require('./bind1');
+var merge = require('./merge');
 
 var xhrContent = function(xhr) {
     return xhr.responseText;
@@ -91,6 +92,15 @@ loaderProto.loadPackaged = function(packageName) {
 
 loaderProto.jsPackageEval = function(jsCode, url) {
     return jsEval(jsCode, url, "(function(define){\n", "\n})");
+};
+
+loaderProto.updatePackagesMap = function(newMap) {
+    var config = this.config;
+    if (config.packagesMap) {
+        merge(config.packagesMap, newMap, true);
+    } else {
+        config.packagesMap = newMap;
+    }
 };
 
 module.exports = Loader;

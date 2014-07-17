@@ -28,12 +28,13 @@ noderJS creates a global variable called `noder` (its name is [configurable](con
 This variable corresponds to the root module that is automatically created by noderJS.
 All the properties usually available on the `module` variable in a module (and listed in the previous section)
 are also available on the `noder` global variable. Moreover, the following shortcuts are also available for
-convenience (they are documented later in this page):
+convenience (most of them are documented later in this page):
 
 * `noder.asyncRequire = noder.require("noder-js/asyncRequire")`
 * `noder.define = noder.require("noder-js/currentContext").define`
 * `noder.execute = noder.require("noder-js/currentContext").jsModuleExecute`
 * `noder.createContext = noder.require("noder-js/context").createContext`
+* `noder.updatePackagesMap`: the map provided as a parameter will be recursively merged with the existing one (it is normally provided in the [configuration](configuration.html)). This method can be useful when you want noder to be able to load modules from packages. For more information on packaging, see [here](packaging.html).
 
 The `noder` global variable is especially intended to be used from any JavaScript code in the page that is not
 loaded through noderJS (and thus does not have access to its own `module` and `require` variables). Unless there
