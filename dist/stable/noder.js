@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.5.0 - 27 Jun 2014
+ * Noder-js 1.6.0 - 18 Jul 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -19,7 +19,7 @@
 /*jshint undef:true, -W069, -W055*/
 (function(global, callEval, packagedConfig) {
     "use strict";
-    var type$module, nextTick$module, uncaughtError$module, asyncCall$module, bind$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, merge$module, defaultConfig$module, main$module;
+    var type$module, nextTick$module, uncaughtError$module, asyncCall$module, bind$module, promise$module, packagedConfig$module, noderError$module, request$module, eval$module, jsEval$module, findInMap$module, path$module, scriptTag$module, scriptBaseUrl$module, filters$module, merge$module, loader$module, resolver$module, domReady$module, execScripts$module, findRequires$module, context$module, defaultConfig$module, main$module;
         (function() {
         var toString = Object.prototype.toString;
         var isString = function(str) {
@@ -463,6 +463,22 @@
         return next(args[0]);
     };
         (function() {
+        var merge = function(dst, src, rec) {
+            for (var key in src) {
+                if (src.hasOwnProperty(key)) {
+                    var srcValue = src[key];
+                    var dstValue;
+                    if (rec && /*typeUtils*/ type$module.isPlainObject(srcValue) && /*typeUtils*/ type$module.isPlainObject(dstValue = dst[key])) {
+                        merge(dstValue, srcValue, rec);
+                    } else {
+                        dst[key] = srcValue;
+                    }
+                }
+            }
+        };
+        merge$module = merge;
+    })();
+        (function() {
         var split = path$module.split;
         var emptyObject = {};
         var xhrContent = function(xhr) {
@@ -531,6 +547,14 @@
         loaderProto.jsPackageEval = function(jsCode, url) {
             /*jsEval*/
             return jsEval$module(jsCode, url, "(function(define){\n", "\n})");
+        };
+        loaderProto.updatePackagesMap = function(newMap) {
+            var config = this.config;
+            if (config.packagesMap) {
+                /*merge*/ merge$module(config.packagesMap, newMap, true);
+            } else {
+                config.packagesMap = newMap;
+            }
         };
         loader$module = Loader;
     })();
@@ -1016,6 +1040,7 @@
             this.rootModule = rootModule;
             this.resolver = createInstance(config.Resolver, /*Resolver*/ resolver$module, this);
             this.loader = createInstance(config.Loader, /*Loader*/ loader$module, this);
+            rootModule.updatePackagesMap = bind(this.loader.updatePackagesMap, this.loader);
             var globalVarName = config.varName;
             if (globalVarName) {
                 global[globalVarName] = rootModule;
@@ -1253,22 +1278,6 @@
             };
         };
         context$module = Context;
-    })();
-        (function() {
-        var merge = function(dst, src, rec) {
-            for (var key in src) {
-                if (src.hasOwnProperty(key)) {
-                    var srcValue = src[key];
-                    var dstValue;
-                    if (rec && /*typeUtils*/ type$module.isPlainObject(srcValue) && /*typeUtils*/ type$module.isPlainObject(dstValue = dst[key])) {
-                        merge(dstValue, srcValue, rec);
-                    } else {
-                        dst[key] = srcValue;
-                    }
-                }
-            }
-        };
-        merge$module = merge;
     })();
         (function() {
         var config = packagedConfig$module().mainContext;

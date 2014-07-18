@@ -42,7 +42,7 @@
 		<section class="content">
 			<div class="wrapper">
 				<div class="columns main-page one">
-					<article class="column"><h1 id="packaging-noderjs">Packaging noderJS</h1>
+					<article class="column"><h1 id="packaging-with-noderjs">Packaging with noderJS</h1>
 <p>This page will detail how to package your application when you are using noderJS.</p>
 <p>The tool that allows you to do that is <a href="http://atpackager.ariatemplates.com/"><code>atpackager</code></a>. noderJS provides the necessary builders and visitors that you can use with atpackager during the build of your application.</p>
 <p>The main steps will be introduced by means of an example. Suppose you have a project with the following file structure:</p>
@@ -52,25 +52,24 @@
 <span class="tag">&lt;<span class="title">html</span>&gt;</span>
     <span class="tag">&lt;<span class="title">head</span>&gt;</span>
         <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
-        <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">name</span>=<span class="value">"viewport"</span> <span class="attribute">content</span>=<span class="value">"width=device-width, initial-scale=1"</span>&gt;</span>
         <span class="tag">&lt;<span class="title">title</span>&gt;</span>My museum<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
     <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
     <span class="tag">&lt;<span class="title">body</span>&gt;</span>
-    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.5.0/noder.dev.js"</span>&gt;</span><span class="javascript">{
-        main : <span class="string">"information/exhibitions"</span>,
-        onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
-            console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
-        }
-    }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
-    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"application/x-noder"</span>&gt;</span><span class="javascript">
-        <span class="keyword">var</span> paintings = <span class="built_in">require</span>(<span class="string">'paintings/catalogue'</span>).getAll();
-        console.log(<span class="string">"paintings"</span>, paintings);
-    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
-<span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js"</span>&gt;</span><span class="javascript">{
+            main : <span class="string">"information/exhibitions"</span>,
+            onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
+                console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
+            }
+        }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"application/x-noder"</span>&gt;</span><span class="javascript">
+            <span class="keyword">var</span> paintings = <span class="built_in">require</span>(<span class="string">'paintings/catalogue'</span>).getAll();
+            console.log(<span class="string">"paintings"</span>, paintings);
+        </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
 <span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre></div>
 <p>We are basically loading noderJS from an external source, instructing it to load the main module <code>&quot;information/exhibitions&quot;</code>. In the script of type <code>&quot;noder&quot;</code>, the <code>require</code> method leads to the fetch and execution of module <code>&quot;paintings/catalogue&quot;</code>. When targeting this page, the following files are downloaded from the server:</p>
 <ul>
-<li><code>http://noder-js.ariatemplates.com/dist/v1.5.0/noder.dev.js</code></li>
+<li><code>http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js</code></li>
 <li><code>information/exhibitions.js</code></li>
 <li><code>paintings/catalogue.js</code></li>
 <li><code>paintings/painting.js</code></li>
@@ -78,22 +77,117 @@
 </ul>
 <p>In fact, module <code>&quot;paintings/catalogue&quot;</code> requires <code>&quot;paintings/painting&quot;</code>, which, in turn, requires <code>&quot;paintings/image&quot;</code>.</p>
 <p>Of course, this is not acceptable in a production environment. We need some packaging!!!</p>
-<h2 id="creating-a-bootstrap-script">Creating a bootstrap script</h2>
-<p>We will now use <a href="http://gruntjs.com/">grunt</a> and <a href="http://atpackager.ariatemplates.com/"><code>atpackager</code></a> in order to generate a script which</p>
-<ul>
-<li>contains all of our source modules and</li>
-<li>embeds a noderJS distribution.</li>
-</ul>
-<p>Let&#39;s add a <code>package.json</code> file at the root of our project. This will allow us to use <code>npm</code> to fetch the dependencies we need.</p>
+<h2 id="creating-packages-the-noderpackage-builder">Creating packages - the <code>NoderPackage</code> builder</h2>
+<p>We will now use <a href="http://gruntjs.com/">grunt</a> and <a href="http://atpackager.ariatemplates.com/"><code>atpackager</code></a> in order to group our modules in several packages.</p>
+<p>Let&#39;s first add a <code>package.json</code> file at the root of our project. This will allow us to use <a href="https://www.npmjs.org/"><code>npm</code></a> to fetch the dependencies we need.</p>
 <div class='snippet'><pre><code class="lang-json">{
     "<span class="attribute">name</span>" : <span class="value"><span class="string">"museum-management"</span></span>,
     "<span class="attribute">version</span>" : <span class="value"><span class="string">"1.0.0"</span></span>,
     "<span class="attribute">devDependencies</span>" : <span class="value">{
         "<span class="attribute">atpackager</span>" : <span class="value"><span class="string">"0.2.4"</span></span>,
-        "<span class="attribute">noder-js</span>" : <span class="value"><span class="string">"1.5.0"</span>
+        "<span class="attribute">noder-js</span>" : <span class="value"><span class="string">"1.6.0"</span>
     </span>}
 </span>}</code></pre></div>
-<p>Let&#39;s now configure a grunt build so that atpackager can be correctly run to generate a bootstrap file. The <code>gruntfile.js</code> that we put at the root of our project looks like this:</p>
+<p>We can now configure our grunt build. The <code>gruntfile.js</code> that we put at the root of our project looks like this:</p>
+<div class='snippet'><pre><code class="lang-javascript">module.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> {</span>
+
+    grunt.initConfig({
+        pkg : <span class="built_in">require</span>(<span class="string">"./package.json"</span>),
+        atpackager : {
+            packaging : {
+                options : {
+                    sourceFiles : [<span class="string">"**/*"</span>],
+                    sourceDirectories : [<span class="string">"src"</span>],
+                    outputDirectory : <span class="string">"build"</span>,
+                    visitors : [<span class="string">"JSMinify"</span>, {
+                                type : <span class="string">"NoderMap"</span>,
+                                cfg : {
+                                    toFile : <span class="string">"&lt;%= pkg.name %&gt;-&lt;%= pkg.version %&gt;-map.js"</span>
+                                }
+                            }, {
+                                type : <span class="string">"CopyUnpackaged"</span>,
+                                cfg : {
+                                    files : [<span class="string">"**/*"</span>],
+                                    builder : <span class="string">"Concat"</span>
+                                }
+                            }],
+                    packages : [{
+                                name : <span class="string">"paintings-manager.js"</span>,
+                                builder : <span class="string">"NoderPackage"</span>,
+                                files : [<span class="string">"paintings/**/*.js"</span>]
+                            }, {
+                                name : <span class="string">"sculptures-manager.js"</span>,
+                                builder : <span class="string">"NoderPackage"</span>,
+                                files : [<span class="string">"sculptures/**/*.js"</span>]
+                            }]
+                }
+            }
+        }
+    });
+
+    grunt.loadNpmTasks(<span class="string">"atpackager"</span>);
+    <span class="built_in">require</span>(<span class="string">"atpackager"</span>).loadNpmPlugin(<span class="string">"noder-js"</span>);
+
+    grunt.registerTask(<span class="string">"default"</span>, [<span class="string">"atpackager:packaging"</span>]);
+};</code></pre></div>
+<p>Apart from the basic configuration for <a href="http://atpackager.ariatemplates.com/"><code>atpackager</code></a>, in which we specify the source files, the source directory, and the output directory, there is</p>
+<ul>
+<li>a list of packages</li>
+<li>and a list of visitors.</li>
+</ul>
+<p>You can see that we define two entries in the list of packages. The <code>builder</code> property of both of them is set to <strong><code>NoderPackage</code></strong>. This is the first builder that comes with noderJS: it just groups a set of module definitions. Indeed, if you inspect a bundle, you will realize that it contains a sequence of call to the <code>define</code> method.</p>
+<p>How does noderJS know that, for example, module <code>&quot;paintings/catalogue&quot;</code> is in package <code>&quot;paintings-manager.js&quot;</code>? We need to update the packagesMap in its configuration. In order to do that, we can use the <code>NoderMap</code> visitor (that is documented more properly later). Indeed, you can see how we added it in the list of visitors of atpackager with the <code>toFile</code> configuration property set to &quot;museum-management-1.0.0-map.js&quot;. This file will contain the code that is needed to perform the update, so it has to be included as source of a <code>&lt;script&gt;</code> tag right after loading noderJS bootstrap.
+This is what the <code>index.html</code> becomes.</p>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">html</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">title</span>&gt;</span>My museum<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">body</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js"</span>&gt;</span><span class="javascript">{
+            main : <span class="string">"information/exhibitions"</span>,
+            onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
+                console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
+            }
+        }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"museum-management-1.0.0-map.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"application/x-noder"</span>&gt;</span><span class="javascript">
+            <span class="keyword">var</span> paintings = <span class="built_in">require</span>(<span class="string">'paintings/catalogue'</span>).getAll();
+            console.log(<span class="string">"paintings"</span>, paintings);
+        </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre></div>
+<p>We also used the <code>JSMinify</code> visitor to minify both noderJS and our sources, as well as the <code>CopyUnpackaged</code> visitor to copy all unpackaged resources to the <code>build</code> directory.</p>
+<p>We can now run</p>
+<div class='snippet'><pre><code>npm install &amp;&amp; grunt</code></pre></div>
+<p>The <code>build</code> folder of our project now looks like this</p>
+<p><img src="images/file_structure_after_first_build.png" alt="structure of the build folder" title="Build folder"></p>
+<p>If we target the <code>index.html</code> file of the <code>build</code> folder, the following resources are downloaded from the server:</p>
+<ul>
+<li><code>http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js</code></li>
+<li><code>museum-management-1.0.0-map.js</code></li>
+<li><code>information/exhibitions.js</code></li>
+<li><code>paintings-manager.js</code></li>
+</ul>
+<h3 id="advanced-configuration-properties">Advanced configuration properties</h3>
+<p>There is only one configuration property that is specific to the <code>NoderPackage</code> builder. You are not likely to need it in your build.</p>
+<ul>
+<li><code>moduleFunction</code>: code that is used to wrap the definition of each module.</li>
+</ul>
+<p>This builder inherits from the <code>JSConcat</code> default builder of atpackager. More configuration properties (like <code>header</code>, <code>footer</code> and so on) are available and documented <a href="http://atpackager.ariatemplates.com/">here</a>.
+In particular, an interesting inherited property is <code>outputFileWrapper</code>. It allows to build packages that can directly be included as sources for script tags. Indeed,</p>
+<div class='snippet'><pre><code>outputFileWrapper : &quot;(function(define){$CONTENT$;})(noder.define);&quot;</code></pre></div>
+<p>will wrap all modules definition in a function that is directly called providing as argument the <code>define</code> method defined on the <code>noder</code> global variable.</p>
+<p>We encourage you to inspect the result of the build in order to gain more insight on the process.</p>
+<p><strong>Takeaway:</strong> <em>it is possible to create different packages by using the <strong><code>NoderPackage</code></strong> builder for atpackager. It has to be used along with the <code>NoderMap</code> visitor in order to update the packages map that noderJS will use to retrieve resources.</em></p>
+<h2 id="creating-a-bootstrap-script-the-noderbootstrappackage-builder">Creating a bootstrap script - the <code>NoderBootstrapPackage</code> builder</h2>
+<p>In the previous example, we are still fetching noderJS bootstrap from an external url. It is also possible to create our own bootstrap file for noderJS which</p>
+<ul>
+<li>contains all of our source modules and</li>
+<li>embeds a noderJS distribution.</li>
+</ul>
+<p>Let&#39;s now configure a grunt build so that atpackager can be correctly run to generate a bootstrap file. The <code>gruntfile.js</code> now looks like this:</p>
 <div class='snippet'><pre><code class="lang-javascript">module.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> {</span>
 
     grunt.initConfig({
@@ -142,12 +236,10 @@
         }
     }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
 <p>We also used the <code>JSMinify</code> visitor to minify both noderJS and our sources, as well as the <code>CopyUnpackaged</code> visitor to copy all unpackaged resources (in this case only the <code>index.html</code> file) to the <code>build</code> directory.</p>
-<p>We can now run</p>
-<div class='snippet'><pre><code>npm install &amp;&amp; grunt</code></pre></div>
 <p>When we target the <code>build</code> directory with the browser, the only resource that is downloaded now is the newly built <code>museum-management-1.0.0.js</code> file.</p>
 <h3 id="configuration-properties">Configuration properties</h3>
 <h4 id="basic">Basic</h4>
-<p>Here is the list of the most useful configuration properties</p>
+<p>This is the most useful configuration property for the <code>NoderBootstrapPackage</code> builder</p>
 <ul>
 <li><code>noderConfigOptions</code>: as explained above, it corresponds to the noderJS configuration. Many of its properties can be automatically added by using visitors. Later in this article you will discover the available ones.</li>
 </ul>
@@ -164,8 +256,8 @@
 <li><code>moduleFunction</code>: code that is used to wrap the definition of each module.</li>
 </ul>
 <p>This builder inherits from the <code>JSConcat</code> default builder of atpackager. More configuration properties (like <code>header</code>, <code>footer</code> and so on) are available and documented <a href="http://atpackager.ariatemplates.com/">here</a>.</p>
-<p><strong>Takeaway:</strong> <em>When packaging your noderJS based application, you need to use <strong><code>NoderBootstrapPackage</code></strong> builder for atpackager to generate the bootstrap file. This file will contain noderJS and all the resources that you might want to include in it.</em></p>
-<h2 id="creating-several-packages">Creating several packages</h2>
+<p><strong>Takeaway:</strong> <em>When packaging your noderJS based application, you can use <strong><code>NoderBootstrapPackage</code></strong> builder for atpackager to generate a bootstrap file. This file will contain noderJS and all the resources that you might want to include in it.</em></p>
+<h3 id="creating-several-packages-along-with-the-bootstrap">Creating several packages along with the bootstrap</h3>
 <p>We don&#39;t necessarily want to include all of our sources in the bootstrap file. For example, in our application, we might want to keep module <code>&quot;information/exhibitions&quot;</code> inside the bootstrap file (it&#39;s the main module), but we want to keep all modules in <code>paintings</code> and <code>sculptures</code> folders in separate packages. This is the grunt file that allows us to achieve this result:</p>
 <div class='snippet'><pre><code class="lang-javascript">module.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> {</span>
 
@@ -177,7 +269,7 @@
                     sourceFiles : [<span class="string">"**/*"</span>],
                     sourceDirectories : [<span class="string">"src"</span>],
                     outputDirectory : <span class="string">"build"</span>,
-                    visitors : [<span class="string">"NoderMap"</span>, {
+                    visitors : [<span class="string">"JSMinify"</span>, <span class="string">"NoderMap"</span>, {
                                 type : <span class="string">"CopyUnpackaged"</span>,
                                 cfg : {
                                     files : [<span class="string">"**/*"</span>],
@@ -214,8 +306,8 @@
 
     grunt.registerTask(<span class="string">"default"</span>, [<span class="string">"atpackager:packaging"</span>]);
 };</code></pre></div>
-<p>You can notice that two more entries are present in the list of packages. The <code>builder</code> property of both of them is set to <strong><code>NoderPackage</code></strong>. This is the other builder that comes with noderJS. Unlike the previous one, it does not include  noderJS code inside of bundles, but it just groups a set of module definitions. Indeed, if you inspect a bundle, you will realize that it contains a sequence of call to the <code>define</code> method.</p>
-<p>How does noderJS know that, for example, module <code>&quot;paintings/catalogue&quot;</code> is in package <code>&quot;paintings-manager.js&quot;</code>? the <code>packaging.packagesMap</code> property has to be correctly set in noderJS configuration. The good thing is that you don&#39;t have to do it manually, because there is a visitor available that will automatically do it for you: <code>NoderMap</code>. Indeed, you can see how we added it in the list of visitors of atpackager.</p>
+<p>You can notice that two more entries are present in the list of packages. The <code>builder</code> property of both of them is set to <strong><code>NoderPackage</code></strong>, that was introduced earlier in this article.
+We have already stressed that when you package your modules you need to use the <code>NoderMap</code> visitor in order to notify noderJS about the map of packages. When you use the <code>NoderBootstrapPackage</code> builder to create a new bootstrap file that contains noderJS, you don&#39;t need to provide a file path (<code>toFile</code> property) for the map update, as the <code>NoderMap</code> visitor will automatically embed the required information in the boostrap.</p>
 <p>The <code>build</code> folder of our project now looks like this</p>
 <p><img src="images/file_structure_after_build.png" alt="structure of the build folder" title="Build folder"></p>
 <p>If we target the <code>index.html</code> file, only two resources are downloaded from the server:</p>
@@ -223,23 +315,22 @@
 <li><code>museum-management-1.0.0.js</code></li>
 <li><code>paintings-manager.js</code>.</li>
 </ul>
-<h3 id="advanced-configuration-properties">Advanced configuration properties</h3>
-<p>There is only one configuration property that is specific to this builder. You are not likely to need it in your build.</p>
-<ul>
-<li><code>moduleFunction</code>: code that is used to wrap the definition of each module.</li>
-</ul>
-<p>This builder inherits from the <code>JSConcat</code> default builder of atpackager. More configuration properties (like <code>header</code>, <code>footer</code> and so on) are available and documented <a href="http://atpackager.ariatemplates.com/">here</a>.
-In particular, an interesting inherited property is <code>outputFileWrapper</code>. It allows to build packages that can directly be included as sources for script tags. Indeed,</p>
-<div class='snippet'><pre><code>outputFileWrapper : &quot;(function(define){$CONTENT$;})(noder.define);&quot;</code></pre></div>
-<p>will wrap all modules definition in a function that is directly called providing as argument the <code>define</code> method defined on the <code>noder</code> global variable.</p>
-<p>We encourage you to inspect the result of the build in order to gain more insight on the process.</p>
-<p><strong>Takeaway:</strong> <em>it is possible to do different packages by using the <strong><code>NoderPackage</code></strong> builder for atpackager. It has to be used along with the <code>NoderMap</code> visitor in order to update the packages map that noderJS will use to retrieve resources.</em></p>
+<p><strong>Takeaway:</strong> <em>it is possible to create a bootstrap package using <strong><code>NoderBootstrapPackage</code></strong> builder and different other packages by using the <strong><code>NoderPackage</code></strong> builder for atpackager. The <code>NoderMap</code> visitor will take care of automatically updating the packages map in the bootstrap.</em></p>
 <h2 id="visitors">Visitors</h2>
 <p>As already hinted earlier, noderJS comes with a set of visitors for atpackager. We will describe them in this section.</p>
 <h3 id="nodermap">NoderMap</h3>
-<p>We have already encountered this visitor when talking about the <strong><code>NoderPackage</code></strong> builder for packages. If present in the list of visitors, it will interact with the creation of the bootstrap file in order to decorate the <code>packaging.packagesMap</code> property of noderJS configuration with the correct information about the physical files containing packaged resources.</p>
-<h4 id="advanced-configuration-properties">Advanced configuration properties</h4>
-<p>These configuration properties are quite advanced. It is normally enough to just declare the intention of using this visitor. The default configuration will do the job.</p>
+<p>We have already encountered this visitor when talking about the <strong><code>NoderPackage</code></strong> builder for packages. If present in the list of visitors, it will</p>
+<ul>
+<li>either create a file that will update noderJS packages map (if the <code>toFile</code> property is set). This file will have to be included as src of a <code>&lt;script&gt;</code> tag,</li>
+<li>or interact with the creation of the bootstrap file in order to decorate the <code>packaging.packagesMap</code> property of noderJS configuration with the correct information about the physical files containing packaged resources. This option only makes sense if you are using the <strong><code>NoderBootstrapPackage</code></strong> builder to create your own bootstrap file.</li>
+</ul>
+<h4 id="configuration-properties">Configuration properties</h4>
+<p><strong>Basic</strong></p>
+<ul>
+<li><code>toFile</code>: when a file path is specified, the visitor will create a file in the output directory which contains the code needed to update the packages map (it relies on method <code>noder.updatePackagesMap</code> described <a href="api.html">here</a>). The packagesMap configuration will not be injected inside the bootstrap file created by the above-mentioned <code>NoderBootstrapPackage</code> builder, so in order to allow noder to correctly find modules in packages, this output file will have to be explicitly injected inside the HTML page as source of a <code>&lt;script&gt;</code> tag.</li>
+</ul>
+<p><strong>Advanced</strong></p>
+<p>These configuration properties are quite advanced and rarely needed.</p>
 <ul>
 <li><code>sourceFiles</code>: the files to take into account in the map (default: <code>[&#39;**/*&#39;]</code>).</li>
 <li><code>outputFiles</code>: output files to take into account in the map (default: <code>[&#39;**/*&#39;]</code>).</li>
@@ -247,8 +338,9 @@ In particular, an interesting inherited property is <code>outputFileWrapper</cod
 <li><code>starStarCompress</code>:  the list of files for which it is allowed to put a single entry (<code>&quot;**&quot;</code>) in the map in case they all come from the same directory or one of its nested directories and they all are in the same package (default: <code>[&#39;**/*&#39;]</code>).</li>
 <li><code>noderConfig</code>: the identifier of the noderJS configuration for which the map should be applied. This configuration should be declared also in one of the bootstrap configurations.</li>
 <li><code>noderContext</code>: the context for which this map should apply (either <code>&quot;mainContext&quot;</code> or <code>&quot;errorContext&quot;</code>).</li>
+<li><code>varName</code>: global variable used for noder global object. This property can be used in conjunction with <code>toFile</code> in order to override the default global object used to call the <code>updatePackagesMap</code> method. It defaults to <code>&quot;noder&quot;</code>.<h3 id="noderdependencies">NoderDependencies</h3>
+</li>
 </ul>
-<h3 id="noderdependencies">NoderDependencies</h3>
 <p>This visitor allows to automatically add to a package all the dependencies of the modules that are explicitly added to it. This can be useful if you want to specify only the main file of a bundle without worrying about all the possible dependencies that it might have.</p>
 <p>In our example, we can configure package <code>paintings-manager.js</code> to explicitly include only module <code>&quot;paintings/catalogue&quot;</code>, which is providing us with the main features that we intend to use. The other files in the same folders (from which it depends) will be automatically included.
 Let&#39;s take a look at the grunt file that allows to achieve this result.</p>
