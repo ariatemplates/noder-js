@@ -92,7 +92,7 @@ ModuleSystem.prototype.build = function() {
     var body = [];
     var log = grunt.log;
     this.includedModules.forEach(function(curModule) {
-        log.writeln("Using noder module " + curModule.fileName);
+        log.verbose.writeln("Using noder module " + curModule.fileName);
         varDefinitions.push(new UglifyJS.AST_VarDef({
             name: new UglifyJS.AST_SymbolVar({
                 name: curModule.getVarName()

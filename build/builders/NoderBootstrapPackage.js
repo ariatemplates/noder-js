@@ -95,7 +95,7 @@ NoderBootstrapPackage.prototype.createNoderContent = function() {
     for (var i = 0, l = modules.length; i < l; i++) {
         var curModule = moduleSystem.addModule(modules[i]);
         if (curModule.parentModule) {
-            log.writeln('Overriding ' + curModule.parentModule.fileName + ' with ' + curModule.fileName);
+            log.verbose.writeln('Overriding ' + curModule.parentModule.fileName + ' with ' + curModule.fileName);
         }
     }
 
