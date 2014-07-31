@@ -183,3 +183,7 @@ img.noderjs-home {
 ul {
 	list-style: square inside none;
 }
+
+.snippet iframe {
+	width: 100%;
+}
