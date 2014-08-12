@@ -18,7 +18,8 @@ For example:
 ```
 
 * It is also possible to create a new context with a specific configuration.
-For example, supposing ``noder`` is the global variable exposed by noderJS (corresponding to the default context),
+For example, supposing ``noder`` is the global variable exposed by noderJS
+(corresponding to the root module of the default context),
 the following code creates a new context with the specified configuration:
 
 ```js
@@ -27,7 +28,7 @@ var newNoder = noder.createContext({
 });
 ```
 
-Then, ``newNoder`` is a new context, completely independent from ``noder``.
+Then, ``newNoder`` is the root module of a new context, completely independent from ``noder``.
 The possibility to have multiple contexts is useful for tests.
 See [the API page](api.md) for more information about noderJS contexts.
 

@@ -570,6 +570,15 @@ var contextInstance = new Context({
 
 The context configuration object is described in the [configuration page](configuration.md).
 
+It is also possible to create a new context with the `createContext` method, which returns the root module of the new context:
+
+```js
+var Context = require("noder-js/context");
+var contextRootModule = Context.createContext({
+   /* context configuration */
+});
+```
+
 #### Current context
 
 Here is how to get a reference to the current context:
@@ -580,10 +589,221 @@ var contextInstance = require("noder-js/currentContext");
 
 ### Context instance methods
 
+Context instance methods whose name start with `module` expect a module object as their first
+argument. Module objects are stored in the cache (accessible from `require.cache` and `contextInstance.cache`).
+They can also be retrieved with the `contextInstance.getModule` method, and, inside a module, the
+`module` variable refers to the current module object.
+
+**contextInstance.getModule(moduleFilename: String) : Module**
+
+If the `moduleFilename` argument is provided, this function retrieves the corresponding module
+object from the cache and returns it. If the module object for this file name does
+not exist yet in the cache, it is created and stored in the cache. Note that the
+`moduleFilename` argument must exactly correspond to the `filename` property of the
+desired module object (which is the full path of the module, including the extension,
+as returned by the `require.resolve` method).
+
+If `moduleFilename` is not provided, a new anonymous module is returned.
+Anonymous modules are not stored in the cache.
+
+```js
+var myModule = contextInstance.getModule(module.filename);
+// here: myModule === module (if the context of module is contextInstance)
+```
+
+**contextInstance.modulePreload(module: Module, parent: Module) : Promise**
+
+Preloads the given module, if it is not already preloaded.
+Preloading a module means loading its definition and preloading its static dependencies.
+
+The `parent` argument should usually not be defined when calling `modulePreload`. It is used internally for
+recursive calls, to detect circular dependencies. In case a circular dependency is detected, `modulePreload`
+returns an already resolved promise even if the module is not fully preloaded yet.
+
+The fulfillment value of the returned promise is `undefined`, unless the promise is rejected with an error.
+
+**contextInstance.moduleLoadDefinition(module: Module) : Promise**
+
+Requests and loads the definition of the given module from the server, if it is not already loaded.
+
+The fulfillment value of the returned promise is `undefined`, unless the promise is rejected with an error.
+
+**contextInstance.moduleResolve(module: Module, dependency: String) : String**
+
+Resolves the given dependency as if it was used in the given module, and returns the resulting path.
+Especially, if the dependency is expressed as a relative path, or without any extension, this function
+returns the corresponding absolute path, including the extension.
+
+Note that the resolver can be configured to redirect some paths to other locations.
+You can check the `resolver` part of the [configuration](configuration.md).
+
+```js
+contextInstance.moduleResolve(myModuleFromContextInstance, myDependency); // is equivalent to:
+myModuleFromContextInstance.require.resolve(myDependency);
+
+contextInstance.moduleResolve(contextInstance.getModule("a/b/c.js"), "../f"); // returns "a/f.js"
+contextInstance.moduleResolve(contextInstance.getModule("d/e/f.js"), "../f"); // returns "d/f.js"
+```
+
+**contextInstance.moduleProcessPlugin(module: Module, pluginDef: Object) : Promise**
+
+Executes the `$preload` method of the given plugin for the given module.
+
+The structure of the `pluginDef` object corresponds to the one which can be found in the array returned
+by the `findRequires` parser when it is given a truthy `detectLoaderPlugins` argument.
+
+`pluginDef` is an object with the `module` (string), `method` (string) and `args` (array) properties.
+Each item in the args properties is either a string (corresponding to a string literal argument),
+or an array with a single string element (corresponding to a non-quoted argument like `module` or `null`).
+
+This method resolves the `pluginDef.module` module (in the context of `module`) and executes it. It then looks for a
+method with the given name on its exports object, and accesses its `$preload` property. If this is a function,
+it is called with the given arguments.
+
+```js
+//The following line does the equivalent of: module.require("$loaderPlugin").myMethod.$preload("arg1", module)
+contextInstance.moduleProcessPlugin(module, {
+   module: "$loaderPlugin",
+   method: "myMethod",
+   args: ["arg1", ["module"]]
+});
+```
+
+**contextInstance.modulePreloadDependencies(module: Module, dependencies: Array) : Promise**
+
+Preloads the given dependencies of the given module. Each item in the `dependencies` array can
+be either a string (in which case the corresponding dependency is resolved and preloaded)
+or a plugin definition object (in which case the plugin is precessed with `moduleProcessPlugin`).
+
+**contextInstance.moduleExecuteSync(module: Module) : Object**
+
+Executes the given module if it was not executed yet and returns its `exports` object.
+
+For this function to succeed, the given module has to be already preloaded, or to be preloadable synchronously.
+If it is not the case, an exception is thrown.
+
+**contextInstance.moduleExecute(module: Module) : Promise**
+
+Preloads and executes the given module if it was not executed yet. The fulfillment value of the returned promise
+is the `exports` object of the module.
+
+**contextInstance.moduleAsyncRequire(module: Module, dependencies: Array) : Promise**
+
+Preloads and executes all the given dependencies.
+The fulfillment value of the returned promise is the array of the `exports` object of each dependency.
+
+```js
+contextInstance.moduleAsyncRequire(getModule("a/b/c.js"), ["./d", "a/e.js"]).spread(function (d, e) {
+   // here, d and e refer to the exports objects of ./d and a/e.js
+});
+```
+
+**contextInstance.moduleRequire(module: Module, dependency: String) : Object**
+
+Resolves and executes the given dependency of the module.
+The dependency has to be already preloaded or to be preloadable synchronously.
+If it is not the case, an exception is thrown.
+
+**contextInstance.moduleDefine(module: Module, dependencies: Array, body: Function) : Module**
+
+Sets the dependencies and the definition function of the given module, if the module was not already defined.
+This method returns its first parameter.
+
+```js
+contextInstance.define(contextInstance.getModule("a/b/c.js"), [], function(module, global) {
+   module.exports = {
+      hello: function () {
+         alert("Hello World!");
+      }
+   };
+});
+```
+
+**contextInstance.define(moduleFilename: String, dependencies: Array, body: Function)**
+
+Defines the `moduleFilename` module, if it was not already defined.
+It is a shortcut for: `contextInstance.moduleDefine(contextInstance.getModule(moduleFilename), dependencies, body)`.
+Note that, unlike `moduleDefine`, this method does not return anything.
+
+For convenience, this method is also available on the `noder` variable (and, more generally, on the root module of any context).
+It is also the method called to define modules from a package.
+
+```js
+noder.define("a/b/c.js", [], function(module, global) {
+   module.exports = {
+      hello: function () {
+         alert("Hello World!");
+      }
+   };
+});
+noder.define("a/b/d.js", ["./c"], function(module, global) {
+   var require = module.require;
+   module.exports = require("./c").hello;
+});
+```
+
+**contextInstance.jsModuleEval(jsCode: String, url: String) : Function**
+
+Wraps `jsCode` in a module definition function, evaluates the resulting code and returns the corresponding function.
+Note that the content of `jsCode` itself is not executed until the returned function is called.
+
+If provided, the given `url` is used in a sourceURL comment (to give a name to the evaluated code, for compatible debuggers).
+
+```js
+// creates a module definition function from a simple module source code:
+var moduleDefinition = contextInstance.jsModuleEval("module.exports = { hello: function() { alert('Hello World!'); }};");
+// defines it as the body of a module with no dependency:
+var myModule = contextInstance.moduleDefine(contextInstance.getModule("a/b/c.js"), [], moduleDefinition);
+// executes the module synchronously:
+var myModuleExports = contextInstance.moduleExecuteSync(myModule);
+myModuleExports.hello();
+```
+
+**contextInstance.jsModuleDefine(jsCode: String, moduleFilename: String, url: String)**
+
+Defines `jsCode` as the JavaScript code of the `moduleFilename` module (if the module was not already defined).
+
+The given `url` is used in the sourceURL comment (to give a name to the evaluated code, for compatible debuggers). If no url
+is provided, `moduleFilename` is used as the url.
+
+Returns the module object corresponding to the module.
+
+```js
+// defines a simple module:
+var myModule = contextInstance.jsModuleDefine("module.exports = { hello: function() { alert('Hello World!'); }};", "a/b/c.js");
+// then executes it synchronously:
+var myModuleExports = contextInstance.moduleExecuteSync(myModule);
+myModuleExports.hello();
+```
+
+**contextInstance.jsModuleExecute(jsCode: String, moduleFilename: String, url: String) : Promise**
+
+Defines `jsCode` as the JavaScript code of the `moduleFilename` module (if the module was not already defined), preloads its dependencies
+and executes it (if it was not already executed).
+
+The given `url` is used in the sourceURL comment (to give a name to the evaluated code, for compatible debuggers). If no url
+is provided, `moduleFilename` is used as the url.
+
+The fulfillment value of the returned promise is the `exports` object of the module.
+
+For convenience, this method is also available as the `execute` method on the `noder` variable (and, more generally, on the root module of any context).
+
+```js
+// defines and executes a simple module:
+contextInstance.jsModuleExecute("module.exports = { hello: function() { alert('Hello World!'); }};", "a/b/c.js").then(function(myModuleExports){
+    myModuleExports.hello();
+});
+```
+
+**contextInstance.execModuleCall(modulePath: String) : Promise**
+
+Preloads and executes the module at the given path. The path is resolved from the root module.
+The fulfillment value of the returned promise is the `exports` object of the module.
+
 **contextInstance.expose(path: String, object: Object)**
 
-Exposes the given object at the given path. This means that, the next time a module with that path
-has to be loaded in the context, the usual loading method will be bypassed and the given object
+Exposes the given object at the given path in the `contextInstance` context. This means that, the next time a module
+with that path has to be loaded in the context, the usual loading method will be bypassed and the given object
 will be used as the export object.
 
 Note that this method does not unload any already loaded module at the given path. If a module with the
@@ -608,6 +828,12 @@ var myReloadedModule = contextInstance.require("myModule");
 // but only if myModule.js was not loaded before the call to the expose method.
 ```
 
+Note that there is a static version of this method which exposes the given object at the given path for all
+contexts (both already created and created later).
+If both the static and the instance versions of this method are called for the same path, the object passed to the
+instance version of the `expose` function will be used rather than the object passed to the static version of `expose`
+(the most specific call wins).
+
 ### Context instance properties
 
 **contextInstance.config**
@@ -616,15 +842,45 @@ A reference to the configuration of the context.
 
 **contextInstance.cache**
 
-The same object as the one available in `require.cache` from modules loaded from this context.
+A map of cached modules. It is the same object as the one available in `require.cache` from modules loaded from this context.
+The key in the map is the the full path of the module, including the extension, as returned by the `require.resolve` method
+and corresponding to the `filename` property on the module object.
+The value is the corresponding module object.
+
+**contextInstance.rootModule**
+
+A special module created when the context is created.
 
 **contextInstance.builtinModules**
 
 An object containing all built-in modules (also including modules exposed through the `expose` method).
 
-**contextInstance.rootModule**
+**contextInstance.resolver**
 
-A special module created when the context is created.
+Reference to the resolver.
+
+**contextInstance.loader**
+
+Reference to the loader.
+
+### Context static methods
+
+**Context.createContext(config)**
+
+Creates a new context and returns its `rootModule`.
+
+```js
+var myRootModule = new Context(myConfig).rootModule;
+
+// is equivalent to:
+
+var myRootModule = Context.createContext(myConfig);
+```
+
+**Context.expose(name, exports)**
+
+Exposes the given object at the given path for all contexts (both already created and created later).
+See `contextInstance.expose` for more information.
 
 ## asyncCall
 
