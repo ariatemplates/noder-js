@@ -82,7 +82,11 @@ loaderProto.loadPackaged = function(packageName) {
         self.currentLoads[url] = res = request(url, self.config.requestConfig).thenSync(xhrContent).thenSync(function(content) {
             var body = self.jsPackageEval(content, url);
             body(self.context.define);
-        })["finally"](function() {
+        });
+        // the following line must not be part of the previous promises chain because,
+        // in the synchronous case, self.currentLoads[url] must have already been assigned
+        // (and we should not add useless asynchronism in the chain)
+        res.finallySync(function() {
             delete self.currentLoads[url];
             self = null;
         });

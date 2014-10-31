@@ -28,12 +28,7 @@ describe("Main", function() {
         };
     };
 
-    it("Simple asynchronous", function(done) {
-        var newRootModule = noder.createContext({
-            packaging: {
-                baseUrl: directory + '/main-tests/simple/'
-            }
-        });
+    var simpleAsynchronousCheck = function(newRootModule, done) {
         newRootModule.asyncRequire('file1').spread(function(file1) {
             expect(file1.test1()).to.equal('simple-ok1');
             expect(file1.test2()).to.equal('simple-ok2');
@@ -41,31 +36,61 @@ describe("Main", function() {
 
             expect(file1).to.equal(newRootModule.require('file1'));
         }).then(done, fail(done));
+    };
+
+    it("Simple asynchronous", function(done) {
+        simpleAsynchronousCheck(noder.createContext({
+            packaging: {
+                baseUrl: directory + '/main-tests/simple/'
+            }
+        }), done);
     });
 
+
+    it("Simple asynchronous packaged", function(done) {
+        simpleAsynchronousCheck(noder.createContext({
+            packaging: {
+                baseUrl: directory + '/main-tests/packaged/',
+                packagesMap: {
+                    "**": "simple.js"
+                }
+            }
+        }), done);
+    });
+
+    var simpleSynchronousCheck = function(newRootModule) {
+        var file1 = newRootModule.require('file1');
+        expect(file1.test1()).to.equal('simple-ok1');
+        expect(file1.test2()).to.equal('simple-ok2');
+        expect(file1.test3()).to.equal('simple-ok3');
+    };
+
     it("Simple synchronous", function() {
-        var newRootModule = noder.createContext({
+        simpleSynchronousCheck(noder.createContext({
             packaging: {
                 requestConfig: {
                     sync: true
                 },
                 baseUrl: directory + '/main-tests/simple/'
             }
-        });
-
-        var file1 = newRootModule.require('file1');
-        expect(file1.test1()).to.equal('simple-ok1');
-        expect(file1.test2()).to.equal('simple-ok2');
-        expect(file1.test3()).to.equal('simple-ok3');
-
+        }));
     });
 
-    it("Circular dependency asynchronous", function(done) {
-        var newRootModule = noder.createContext({
+    it("Simple synchronous packaged", function() {
+        simpleSynchronousCheck(noder.createContext({
             packaging: {
-                baseUrl: directory + '/main-tests/circularDependency/'
+                requestConfig: {
+                    sync: true
+                },
+                baseUrl: directory + '/main-tests/packaged/',
+                packagesMap: {
+                    "**": "simple.js"
+                }
             }
-        });
+        }));
+    });
+
+    var circularAsynchronousCheck = function(newRootModule, done) {
         newRootModule.asyncRequire('file1', 'file2').spread(function(file1, file2) {
             expect(file1.test1()).to.equal('ok1');
             expect(file1.test2()).to.equal('ok2');
@@ -76,18 +101,28 @@ describe("Main", function() {
             expect(file1).to.equal(newRootModule.require('file1'));
             expect(file2).to.equal(newRootModule.require('file2'));
         }).then(done, fail(done));
-    });
+    };
 
-    it("Circular dependency synchronous", function() {
-        var newRootModule = noder.createContext({
+    it("Circular dependency asynchronous", function(done) {
+        circularAsynchronousCheck(noder.createContext({
             packaging: {
-                requestConfig: {
-                    sync: true
-                },
                 baseUrl: directory + '/main-tests/circularDependency/'
             }
-        });
+        }), done);
+    });
 
+    it("Circular dependency asynchronous packaged", function(done) {
+        circularAsynchronousCheck(noder.createContext({
+            packaging: {
+                baseUrl: directory + '/main-tests/packaged/',
+                packagesMap: {
+                    "**": "circular.js"
+                }
+            }
+        }), done);
+    });
+
+    var circularSynchronousCheck = function(newRootModule) {
         var file1 = newRootModule.require('file1');
         expect(file1.test1()).to.equal('ok1');
         expect(file1.test2()).to.equal('ok2');
@@ -95,6 +130,31 @@ describe("Main", function() {
         var file2 = newRootModule.require('file2');
         expect(file2.test1()).to.equal('ok1');
         expect(file2.test2()).to.equal('ok2');
+    };
+
+    it("Circular dependency synchronous", function() {
+        circularSynchronousCheck(noder.createContext({
+            packaging: {
+                requestConfig: {
+                    sync: true
+                },
+                baseUrl: directory + '/main-tests/circularDependency/'
+            }
+        }));
+    });
+
+    it("Circular dependency synchronous packaged", function() {
+        circularSynchronousCheck(noder.createContext({
+            packaging: {
+                requestConfig: {
+                    sync: true
+                },
+                baseUrl: directory + '/main-tests/packaged/',
+                packagesMap: {
+                    "**": "circular.js"
+                }
+            }
+        }));
     });
 
     var itChecksError = function(fileName, checkError) {
