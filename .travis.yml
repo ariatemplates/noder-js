@@ -12,7 +12,7 @@ before_install:
  - npm install --quiet -g grunt-cli
 
 before_script:
- - curl https://gist.githubusercontent.com/santiycr/5139565/raw/sauce_connect_setup.sh | bash
+ - curl -L https://gist.githubusercontent.com/henrikhodne/9322897/raw/sauce-connect.sh | bash
  - export DISPLAY=:99.0
  - sh -e /etc/init.d/xvfb start
 
