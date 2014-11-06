@@ -195,19 +195,37 @@ module.exports = function(grunt) {
                     'SL_Chrome': {
                         base: 'SauceLabs',
                         browserName: 'chrome',
+                        platform: 'Windows 7',
+                        version: '38'
+                    },
+                    'SL_Chrome_Beta': {
+                        base: 'SauceLabs',
+                        browserName: 'chrome',
                         platform: 'Linux',
-                        version: '30'
+                        version: 'beta'
                     },
                     'SL_Firefox': {
                         base: 'SauceLabs',
                         browserName: 'firefox',
                         platform: 'Linux'
                     },
+                    'SL_Firefox_Beta': {
+                        base: 'SauceLabs',
+                        browserName: 'firefox',
+                        platform: 'Linux',
+                        version: 'beta'
+                    },
                     'SL_Safari_6': {
                         base: 'SauceLabs',
                         browserName: 'safari',
                         platform: 'OS X 10.8',
                         version: '6'
+                    },
+                    'SL_Safari_7': {
+                        base: 'SauceLabs',
+                        browserName: 'safari',
+                        platform: 'OS X 10.9',
+                        version: '7'
                     },
                     'SL_IE_7': {
                         base: 'SauceLabs',
@@ -239,11 +257,47 @@ module.exports = function(grunt) {
                         platform: 'Windows 8.1',
                         version: '11'
                     },
-                    'SL_Android': {
+                    'SL_iOS_6': {
                         base: 'SauceLabs',
-                        browserName: 'android',
+                        browserName: 'iphone',
+                        platform: 'OS X 10.9',
+                        version: '6.0'
+                    },
+                    'SL_iOS_7': {
+                        base: 'SauceLabs',
+                        browserName: 'iphone',
+                        platform: 'OS X 10.9',
+                        version: '7.1'
+                    },
+                    'SL_Android_4.0': {
+                        base: 'SauceLabs',
+                        browserName: 'ANDROID',
                         platform: 'Linux',
                         version: '4.0'
+                    },
+                    'SL_Android_4.1': {
+                        base: 'SauceLabs',
+                        browserName: 'ANDROID',
+                        platform: 'Linux',
+                        version: '4.1'
+                    },
+                    'SL_Android_4.2': {
+                        base: 'SauceLabs',
+                        browserName: 'ANDROID',
+                        platform: 'Linux',
+                        version: '4.2'
+                    },
+                    'SL_Android_4.3': {
+                        base: 'SauceLabs',
+                        browserName: 'ANDROID',
+                        platform: 'Linux',
+                        version: '4.3'
+                    },
+                    'SL_Android_4.4': {
+                        base: 'SauceLabs',
+                        browserName: 'ANDROID',
+                        platform: 'Linux',
+                        version: '4.4'
                     }
                 }
                 //logLevel: 'LOG_INFO'
@@ -255,23 +309,52 @@ module.exports = function(grunt) {
                 singleRun: false,
                 autoWatch: true
             },
-            ci: {
+            ci1: {
                 sauceLabs: {
                     startConnect: false,
                     tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
                 },
                 transports: ['xhr-polling'],
                 singleRun: true,
-                captureTimeout: 300000,
-                browserNoActivityTimeout: 20000,
-                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'SL_Android', 'SL_Safari_6'],
+                captureTimeout: 0,
+                browserNoActivityTimeout: 0,
+                browsers: ['PhantomJS', 'SL_Chrome', 'SL_Firefox', 'SL_Safari_7', 'SL_IE_11', 'SL_Android_4.4'],
                 reporters: ['dots', 'saucelabs']
             },
-            sauce: {
+            ci2: {
+                sauceLabs: {
+                    startConnect: false,
+                    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
+                },
+                transports: ['xhr-polling'],
                 singleRun: true,
-                captureTimeout: 300000,
-                browserNoActivityTimeout: 20000,
-                browsers: ['PhantomJS', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10', 'SL_IE_11', 'SL_Firefox', 'SL_Chrome', 'SL_Android', 'SL_Safari_6'],
+                captureTimeout: 0,
+                browserNoActivityTimeout: 0,
+                browsers: ['SL_Android_4.0', 'SL_Android_4.1', 'SL_Android_4.2', 'SL_Android_4.3', 'SL_Safari_6'],
+                reporters: ['dots', 'saucelabs']
+            },
+            ci3: {
+                sauceLabs: {
+                    startConnect: false,
+                    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
+                },
+                transports: ['xhr-polling'],
+                singleRun: true,
+                captureTimeout: 0,
+                browserNoActivityTimeout: 0,
+                browsers: ['SL_iOS_6', 'SL_iOS_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10'],
+                reporters: ['dots', 'saucelabs']
+            },
+            ci4: {
+                sauceLabs: {
+                    startConnect: false,
+                    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
+                },
+                transports: ['xhr-polling'],
+                singleRun: true,
+                captureTimeout: 0,
+                browserNoActivityTimeout: 0,
+                browsers: ['SL_IE_7', 'SL_Chrome_Beta', 'SL_Firefox_Beta'],
                 reporters: ['dots', 'saucelabs']
             }
         },
@@ -338,7 +421,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip', 'compress', 'doc']);
     grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:unit']);
-    grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci']);
+    grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci1', 'karma:ci2', 'karma:ci3', 'karma:ci4']);
     grunt.registerTask('doc', ['copy:docData', 'copy:docHtml', 'markdown:doc']);
     grunt.registerTask('beautify', ['jsbeautifier:update']);
     grunt.registerTask('dev', ['beautify', 'build', 'jshint']);
