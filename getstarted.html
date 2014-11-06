@@ -53,20 +53,20 @@ a synchronous require function. For information about how to write a module, you
 <h3 id="script-tag">Script tag</h3>
 <p>First of all you need to load noderJS inside your page. The simplest way is to use a direct reference to <code>noder-js.ariatemplates.com</code>,
 as shown below:</p>
-<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.0/noder.dev.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
-<p>Note that <a href="http://noder-js.ariatemplates.com/dist/v1.6.0/noder.dev.js"><code>noder.dev.js</code></a> is a development version of
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.1/noder.dev.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<p>Note that <a href="http://noder-js.ariatemplates.com/dist/v1.6.1/noder.dev.js"><code>noder.dev.js</code></a> is a development version of
 noderJS. It is easy to use when debugging, as the code is not minified and the file includes error messages. However, it is not
 recommended to be used in a production environment, as it is quite big so it is slow to download.</p>
 <p>Alternatively, you can use one of the following files:</p>
 <ul>
-<li><a href="http://noder-js.ariatemplates.com/dist/v1.6.0/noder.dev.min.js"><code>noder.dev.min.js</code></a>: minified version of <code>noder.dev.js</code>
+<li><a href="http://noder-js.ariatemplates.com/dist/v1.6.1/noder.dev.min.js"><code>noder.dev.min.js</code></a>: minified version of <code>noder.dev.js</code>
 (with error messages)</li>
-<li><a href="http://noder-js.ariatemplates.com/dist/v1.6.0/noder.js"><code>noder.js</code></a>: not minified, without error messages.
+<li><a href="http://noder-js.ariatemplates.com/dist/v1.6.1/noder.js"><code>noder.js</code></a>: not minified, without error messages.
 In case an error occurs, the following extra files are automatically downloaded to display a readable error message:
-<a href="http://noder-js.ariatemplates.com/dist/v1.6.0/noderError/error.js"><code>noderError/error.js</code></a>,
-<a href="http://noder-js.ariatemplates.com/dist/v1.6.0/noderError/evalError.js"><code>noderError/evalError.js</code></a>,
-and <a href="http://noder-js.ariatemplates.com/dist/v1.6.0/noderError/acorn.js"><code>noderError/acorn.js</code></a>.</li>
-<li><a href="http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js"><code>noder.min.js</code></a>: minified version of <code>noder.js</code> (without error messages).
+<a href="http://noder-js.ariatemplates.com/dist/v1.6.1/noderError/error.js"><code>noderError/error.js</code></a>,
+<a href="http://noder-js.ariatemplates.com/dist/v1.6.1/noderError/evalError.js"><code>noderError/evalError.js</code></a>,
+and <a href="http://noder-js.ariatemplates.com/dist/v1.6.1/noderError/acorn.js"><code>noderError/acorn.js</code></a>.</li>
+<li><a href="http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js"><code>noder.min.js</code></a>: minified version of <code>noder.js</code> (without error messages).
 This is the recommended version to use on a production environment, unless you want to create your own custom packaging of noderJS,
 as described <a href="packaging.html">here</a>.</li>
 </ul>
@@ -75,30 +75,30 @@ as described <a href="packaging.html">here</a>.</li>
 or if you want to host it on your own server, you can get the full set of files either as a downloadable zip file or through the
 npm repository.</p>
 <h4 id="zip-file">ZIP file</h4>
-<p><a class="btn btn-lg btn-white" href="https://github.com/ariatemplates/noder-js/releases/download/v1.6.0/noder-browser.zip" target="_blank">
-<i class="fa fa-download"></i> Download zip (1.6.0)
+<p><a class="btn btn-lg btn-white" href="https://github.com/ariatemplates/noder-js/releases/download/v1.6.1/noder-browser.zip" target="_blank">
+<i class="fa fa-download"></i> Download zip (1.6.1)
 </a></p>
 <h4 id="npm-repository">NPM repository</h4>
 <p>To install noderJS through <a href="https://www.npmjs.org/">npm</a>, you can use the following command:</p>
-<div class='snippet'><pre><code>npm install noder-js@1.6.0</code></pre></div>
+<div class='snippet'><pre><code>npm install noder-js@1.6.1</code></pre></div>
 <p>This will install client-side files in <code>node_modules/noder-js/dist/browser</code>, for example: <code>node_modules/noder-js/dist/browser/noder.dev.js</code>.</p>
 <h2 id="loading-your-first-module">Loading your first module</h2>
 <p>When the document is ready, noderJS reads all the script tags whose type attribute is <code>application/x-noder</code>
 (this is <a href="configuration.html">configurable</a>) and considers them as modules to be executed.</p>
 <p>For example:</p>
-<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/1.6.0/noder.dev.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/1.6.1/noder.dev.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
 <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"application/x-noder"</span>&gt;</span><span class="javascript">
     <span class="comment">// This is executed as a module.</span>
     <span class="built_in">require</span>(<span class="string">'lib/myMainModule'</span>).start(<span class="string">'myParam1'</span>, document.getElementById(<span class="string">'myItem'</span>));
 </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
 <p>It is also possible to both load noderJS and a specific module with a single line:</p>
 <div class='snippet'><pre><code class="lang-html"><span class="comment">&lt;!-- The following script tag loads noderJS and then loads lib/myMainModule --&gt;</span>
-<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/1.6.0/noder.dev.js?lib/myMainModule"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/1.6.1/noder.dev.js?lib/myMainModule"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
 <p>A module loaded this way is considered the main module, available through <code>require.main</code> (as it is done in Node.js), so
 a module can check if it is the main module with: <code>module === require.main</code>.</p>
 <p>A configuration object can be specified inside the script tag to change the behavior of noderJS
 (check the <a href="configuration.html">configuration options</a> for more details about available parameters):</p>
-<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.0/noder.dev.js"</span>&gt;</span><span class="javascript">
+<div class='snippet'><pre><code class="lang-html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.1/noder.dev.js"</span>&gt;</span><span class="javascript">
 {
     varName : <span class="string">'myNoder'</span> <span class="comment">// Name of the global variable exposed by noder, the default is "noder"</span>
 }

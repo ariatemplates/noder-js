@@ -56,7 +56,7 @@
         <span class="tag">&lt;<span class="title">title</span>&gt;</span>My museum<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
     <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
     <span class="tag">&lt;<span class="title">body</span>&gt;</span>
-        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js"</span>&gt;</span><span class="javascript">{
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js"</span>&gt;</span><span class="javascript">{
             main : <span class="string">"information/exhibitions"</span>,
             onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
                 console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
@@ -70,7 +70,7 @@
 <span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre></div>
 <p>We are basically loading noderJS from an external source, instructing it to load the main module <code>&quot;information/exhibitions&quot;</code>. In the script of type <code>&quot;noder&quot;</code>, the <code>require</code> method leads to the fetch and execution of module <code>&quot;paintings/catalogue&quot;</code>. When targeting this page, the following files are downloaded from the server:</p>
 <ul>
-<li><code>http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js</code></li>
+<li><code>http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js</code></li>
 <li><code>information/exhibitions.js</code></li>
 <li><code>paintings/catalogue.js</code></li>
 <li><code>paintings/painting.js</code></li>
@@ -86,7 +86,7 @@
     "<span class="attribute">version</span>" : <span class="value"><span class="string">"1.0.0"</span></span>,
     "<span class="attribute">devDependencies</span>" : <span class="value">{
         "<span class="attribute">atpackager</span>" : <span class="value"><span class="string">"0.2.4"</span></span>,
-        "<span class="attribute">noder-js</span>" : <span class="value"><span class="string">"1.6.0"</span>
+        "<span class="attribute">noder-js</span>" : <span class="value"><span class="string">"1.6.1"</span>
     </span>}
 </span>}</code></pre></div>
 <p>We can now configure our grunt build. The <code>gruntfile.js</code> that we put at the root of our project looks like this:</p>
@@ -145,7 +145,7 @@ This is what the <code>index.html</code> becomes.</p>
         <span class="tag">&lt;<span class="title">title</span>&gt;</span>My museum<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
     <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
     <span class="tag">&lt;<span class="title">body</span>&gt;</span>
-        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js"</span>&gt;</span><span class="javascript">{
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js"</span>&gt;</span><span class="javascript">{
             main : <span class="string">"information/exhibitions"</span>,
             onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
                 console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
@@ -166,7 +166,7 @@ This is what the <code>index.html</code> becomes.</p>
 <p><img src="images/file_structure_after_first_build.png" alt="structure of the build folder" title="Build folder"></p>
 <p>If we target the <code>index.html</code> file of the <code>build</code> folder, the following resources are downloaded from the server:</p>
 <ul>
-<li><code>http://noder-js.ariatemplates.com/dist/v1.6.0/noder.min.js</code></li>
+<li><code>http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js</code></li>
 <li><code>museum-management-1.0.0-map.js</code></li>
 <li><code>information/exhibitions.js</code></li>
 <li><code>paintings-manager.js</code></li>

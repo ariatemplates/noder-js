@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.6.0 - 14 Aug 2014
+ * Noder-js 1.6.1 - 06 Nov 2014
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2014 Amadeus s.a.s.
@@ -537,7 +537,11 @@
                 self.currentLoads[url] = res = /*request*/ request$module(url, self.config.requestConfig).thenSync(xhrContent).thenSync(function(content) {
                     var body = self.jsPackageEval(content, url);
                     body(self.context.define);
-                })["finally"](function() {
+                });
+                // the following line must not be part of the previous promises chain because,
+                // in the synchronous case, self.currentLoads[url] must have already been assigned
+                // (and we should not add useless asynchronism in the chain)
+                res.finallySync(function() {
                     delete self.currentLoads[url];
                     self = null;
                 });
