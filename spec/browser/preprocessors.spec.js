@@ -18,6 +18,7 @@ var global = (function() {
 })();
 
 describe("Preprocessors", function() {
+    this.timeout(10000);
     var noder = global.noder || require('../../dist/node/noder.js');
     var directory = global.window ? "/base/spec/browser" : __dirname;
     var expect = global.expect ? global.expect : require("expect.js");
