@@ -197,7 +197,7 @@ module.exports = function(grunt) {
                         base: 'SauceLabs',
                         browserName: 'chrome',
                         platform: 'Windows 7',
-                        version: '38'
+                        version: ''
                     },
                     'SL_Chrome_Beta': {
                         base: 'SauceLabs',
@@ -208,7 +208,8 @@ module.exports = function(grunt) {
                     'SL_Firefox': {
                         base: 'SauceLabs',
                         browserName: 'firefox',
-                        platform: 'Linux'
+                        platform: 'Linux',
+                        version: ''
                     },
                     'SL_Firefox_Beta': {
                         base: 'SauceLabs',
@@ -216,17 +217,17 @@ module.exports = function(grunt) {
                         platform: 'Linux',
                         version: 'beta'
                     },
-                    'SL_Safari_6': {
-                        base: 'SauceLabs',
-                        browserName: 'safari',
-                        platform: 'OS X 10.8',
-                        version: '6'
-                    },
                     'SL_Safari_7': {
                         base: 'SauceLabs',
                         browserName: 'safari',
                         platform: 'OS X 10.9',
                         version: '7'
+                    },
+                    'SL_Safari_8': {
+                        base: 'SauceLabs',
+                        browserName: 'safari',
+                        platform: 'OS X 10.10',
+                        version: '8'
                     },
                     'SL_IE_7': {
                         base: 'SauceLabs',
@@ -258,11 +259,11 @@ module.exports = function(grunt) {
                         platform: 'Windows 8.1',
                         version: '11'
                     },
-                    'SL_iOS_7': {
+                    'SL_iOS_8': {
                         base: 'SauceLabs',
                         browserName: 'iphone',
-                        platform: 'OS X 10.9',
-                        version: '7.1'
+                        platform: 'OS X 10.10',
+                        version: '8.1'
                     },
                     'SL_Android_4.0': {
                         base: 'SauceLabs',
@@ -313,7 +314,7 @@ module.exports = function(grunt) {
                 singleRun: true,
                 captureTimeout: 0,
                 browserNoActivityTimeout: 0,
-                browsers: ['PhantomJS', 'SL_Chrome', 'SL_Firefox', 'SL_Safari_7', 'SL_IE_11', 'SL_Android_4.4'],
+                browsers: ['PhantomJS', 'SL_Chrome', 'SL_Firefox', 'SL_Safari_8', 'SL_IE_11', 'SL_Android_4.4'],
                 reporters: ['dots', 'saucelabs']
             },
             ci2: {
@@ -325,7 +326,7 @@ module.exports = function(grunt) {
                 singleRun: true,
                 captureTimeout: 0,
                 browserNoActivityTimeout: 0,
-                browsers: ['SL_Android_4.0', 'SL_Android_4.1', 'SL_Android_4.2', 'SL_Android_4.3', 'SL_Safari_6'],
+                browsers: ['SL_Android_4.0', 'SL_Android_4.1', 'SL_Android_4.2', 'SL_Android_4.3', 'SL_Safari_7'],
                 reporters: ['dots', 'saucelabs']
             },
             ci3: {
@@ -337,7 +338,7 @@ module.exports = function(grunt) {
                 singleRun: true,
                 captureTimeout: 0,
                 browserNoActivityTimeout: 0,
-                browsers: ['SL_iOS_7', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10'],
+                browsers: ['SL_iOS_8', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10'],
                 reporters: ['dots', 'saucelabs']
             },
             ci4: {
