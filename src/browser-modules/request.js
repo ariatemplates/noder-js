@@ -32,11 +32,14 @@ if (HttpRequestObject) {
 var createCallback = function(url, xhr, fulfill, reject) {
     return function() {
         if (xhr && xhr.readyState == 4) {
-            var error = (xhr.status != 200);
-            if (error) {
-                reject(noderError('XMLHttpRequest', [url, xhr]));
-            } else {
+            // Considers 2xx and 304 as a success, anything else as an error
+            // https://github.com/ariatemplates/noder-js/issues/23
+            var status = xhr.status,
+                success = (status >= 200 && status < 300) || status == 304;
+            if (success) {
                 fulfill(xhr);
+            } else {
+                reject(noderError('XMLHttpRequest', [url, xhr]));
             }
             // clean the closure:
             url = xhr = fulfill = reject = null;
