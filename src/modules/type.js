@@ -18,8 +18,8 @@ var isString = function(str) {
     return (typeof str === "string") || toString.call(str) === '[object String]';
 };
 var isArray = Array.isArray || function(obj) {
-        return toString.call(obj) === '[object Array]';
-    };
+    return toString.call(obj) === '[object Array]';
+};
 
 var isFunction = function(fn) {
     return (typeof fn == "function");

@@ -153,7 +153,8 @@ module.exports = function(grunt) {
             options: {
                 debug: true,
                 unused: true,
-                eqnull: true
+                eqnull: true,
+                "-W079": true
             }
         },
         mocha: {

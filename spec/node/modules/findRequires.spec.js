@@ -138,9 +138,9 @@ describe('Dependencies extraction', function() {
             module: "$myPlugin",
             method: "myMethod",
             args: [
-                ["__dirname"],
-                ["null"]
-            ] // test with 2 variable parameters
+                    ["__dirname"],
+                    ["null"]
+                ] // test with 2 variable parameters
         }], true);
         expectDeps('var e = require("$myPlugin").myMethod()', ["$myPlugin", {
             module: "$myPlugin",
