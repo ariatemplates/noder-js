@@ -1,8 +1,11 @@
 # Noder
 
 [![Build Status](https://secure.travis-ci.org/ariatemplates/noder-js.png?branch=master)](https://travis-ci.org/ariatemplates/noder-js)
+[![Dependencies](https://david-dm.org/ariatemplates/noder-js.svg?style=flat)](https://david-dm.org/ariatemplates/noder-js)
+[![devDependencies](https://david-dm.org/ariatemplates/noder-js/dev-status.svg?style=flat)](https://david-dm.org/ariatemplates/noder-js#info=devDependencies)
 
-***Note that Noder is still under construction.***
+[![npm](https://nodei.co/npm/noder-js.png?compact=true)](https://www.npmjs.com/package/noder-js)
+
 
 ## Features
 
