@@ -296,7 +296,6 @@ module.exports = function(grunt) {
                         version: '4.4'
                     }
                 }
-                //logLevel: 'LOG_INFO'
             },
             unit: {
                 singleRun: true
@@ -314,6 +313,11 @@ module.exports = function(grunt) {
                 singleRun: true,
                 captureTimeout: 0,
                 browserNoActivityTimeout: 0,
+                client: {
+                    mocha: {
+                        timeout: 60000
+                    }
+                },
                 browsers: ['PhantomJS', 'SL_Chrome', 'SL_Firefox', 'SL_Safari_8', 'SL_IE_11', 'SL_Android_4.4'],
                 reporters: ['dots', 'saucelabs']
             },
@@ -326,6 +330,11 @@ module.exports = function(grunt) {
                 singleRun: true,
                 captureTimeout: 0,
                 browserNoActivityTimeout: 0,
+                client: {
+                    mocha: {
+                        timeout: 60000
+                    }
+                },
                 browsers: ['SL_Android_4.0', 'SL_Android_4.1', 'SL_Android_4.2', 'SL_Android_4.3', 'SL_Safari_7'],
                 reporters: ['dots', 'saucelabs']
             },
@@ -338,6 +347,11 @@ module.exports = function(grunt) {
                 singleRun: true,
                 captureTimeout: 0,
                 browserNoActivityTimeout: 0,
+                client: {
+                    mocha: {
+                        timeout: 60000
+                    }
+                },
                 browsers: ['SL_iOS_8', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10'],
                 reporters: ['dots', 'saucelabs']
             },
@@ -350,6 +364,11 @@ module.exports = function(grunt) {
                 singleRun: true,
                 captureTimeout: 0,
                 browserNoActivityTimeout: 0,
+                client: {
+                    mocha: {
+                        timeout: 60000
+                    }
+                },
                 browsers: ['SL_Chrome_Beta', 'SL_Firefox_Beta'],
                 reporters: ['dots', 'saucelabs']
             }
