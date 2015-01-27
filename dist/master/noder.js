@@ -1,8 +1,8 @@
 /*
- * Noder-js 1.6.1 - 06 Nov 2014
+ * Noder-js 1.6.1 - 27 Jan 2015
  * https://github.com/ariatemplates/noder-js
  *
- * Copyright 2009-2014 Amadeus s.a.s.
+ * Copyright 2009-2015 Amadeus s.a.s.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -332,11 +332,13 @@
         var createCallback = function(url, xhr, fulfill, reject) {
             return function() {
                 if (xhr && xhr.readyState == 4) {
-                    var error = xhr.status != 200;
-                    if (error) {
-                        reject(/*noderError*/ noderError$module("XMLHttpRequest", [ url, xhr ]));
-                    } else {
+                    // Considers 2xx and 304 as a success, anything else as an error
+                    // https://github.com/ariatemplates/noder-js/issues/23
+                    var status = xhr.status, success = status >= 200 && status < 300 || status == 304;
+                    if (success) {
                         fulfill(xhr);
+                    } else {
+                        reject(/*noderError*/ noderError$module("XMLHttpRequest", [ url, xhr ]));
                     }
                     // clean the closure:
                     url = xhr = fulfill = reject = null;
