@@ -211,12 +211,6 @@ module.exports = function(grunt) {
                         platform: 'Linux',
                         version: ''
                     },
-                    'SL_Firefox_Beta': {
-                        base: 'SauceLabs',
-                        browserName: 'firefox',
-                        platform: 'Linux',
-                        version: 'beta'
-                    },
                     'SL_Safari_7': {
                         base: 'SauceLabs',
                         browserName: 'safari',
@@ -369,7 +363,7 @@ module.exports = function(grunt) {
                         timeout: 60000
                     }
                 },
-                browsers: ['SL_Chrome_Beta', 'SL_Firefox_Beta'],
+                browsers: ['SL_Chrome_Beta'],
                 reporters: ['dots', 'saucelabs']
             }
         },
