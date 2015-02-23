@@ -213,4 +213,13 @@ describe("Main", function() {
         expect(errorMsg).to.contain("syntax-end.error.js");
         expect(errorMsg).to.contain("line 7,");
     });
+
+    itChecksError("pluginException.js", function(error) {
+        if (error.logDetails) {
+            error.logDetails();
+        }
+        var errorMsg = error.message || error.description;
+        expect(errorMsg).to.contain("this error from the plugin has to be reported!!!");
+        expect(errorMsg).to.contain("failed to process plugin require(\'./$pluginException\').plugin for module \'pluginException.js\'");
+    });
 });
