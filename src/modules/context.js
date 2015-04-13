@@ -23,14 +23,14 @@ var dirname = require('./path.js').dirname;
 var jsEval = require('./jsEval.js');
 var findRequires = require('./findRequires.js');
 var bind1 = require('./bind1.js');
-var noderPropertiesKey = "_noder";
+var noderPropertiesKey = "noderInfo";
 
-var PROPERTY_DEFINITION = 0;
-var PROPERTY_DEPENDENCIES = 1;
-var PROPERTY_EXECUTING = 2;
-var PROPERTY_PRELOADING = 3;
-var PROPERTY_LOADING_DEFINITION = 4;
-var PROPERTY_PRELOADING_PARENTS = 5;
+var PROPERTY_DEFINITION = "_0";
+var PROPERTY_EXECUTING = "_1";
+var PROPERTY_LOADING_DEFINITION = "_2";
+var PROPERTY_PRELOADING_PARENTS = "_3";
+var PROPERTY_DEPENDENCIES = "dependencies";
+var PROPERTY_PRELOADING = "preloading";
 
 var bind = function(fn, scope) {
     return function() {
@@ -74,6 +74,10 @@ var getModuleProperty = function(module, property) {
 var setModuleProperty = function(module, property, value) {
     module[noderPropertiesKey][property] = value;
     return value;
+};
+
+var isModuleDefined = function(module) {
+    return module.loaded || getModuleProperty(module, PROPERTY_DEFINITION);
 };
 
 var start = function(context) {
@@ -178,7 +182,6 @@ contextProto.modulePreload = function(module, parent) {
         return self.modulePreloadDependencies(module, getModuleProperty(module, PROPERTY_DEPENDENCIES));
     }).thenSync(function() {
         module.preloaded = true;
-        setModuleProperty(module, PROPERTY_PRELOADING, false);
         setModuleProperty(module, PROPERTY_PRELOADING_PARENTS, null);
     }, function(error) {
         throw noderError("modulePreload", [module], error);
@@ -186,7 +189,7 @@ contextProto.modulePreload = function(module, parent) {
 };
 
 contextProto.moduleLoadDefinition = function(module) {
-    if (getModuleProperty(module, PROPERTY_DEFINITION)) {
+    if (isModuleDefined(module)) {
         return Promise.done;
     }
     var res = getModuleProperty(module, PROPERTY_LOADING_DEFINITION);
@@ -197,20 +200,15 @@ contextProto.moduleLoadDefinition = function(module) {
             this.moduleDefine(module, [], builtin(this));
             res = Promise.done;
         } else {
-            var asyncOrError = true;
             var checkResult = function(error) {
                 // check that the definition was correctly loaded:
-                if (getModuleProperty(module, PROPERTY_DEFINITION)) {
-                    asyncOrError = false;
-                } else {
+                if (!isModuleDefined(module)) {
                     throw noderError("moduleLoadDefinition", [module], error);
                 }
             };
             res = this.loader.moduleLoad(module).thenSync(checkResult, checkResult);
-            if (asyncOrError) {
-                setModuleProperty(module, PROPERTY_LOADING_DEFINITION, res);
-            }
         }
+        setModuleProperty(module, PROPERTY_LOADING_DEFINITION, res);
     }
     return res;
 };
@@ -268,7 +266,6 @@ contextProto.moduleExecuteSync = function(module) {
     try {
         getModuleProperty(module, PROPERTY_DEFINITION).call(exports, module, global);
         setModuleProperty(module, PROPERTY_DEFINITION, null);
-        setModuleProperty(module, PROPERTY_DEPENDENCIES, null);
         module.loaded = true;
         return module.exports;
     } finally {
@@ -301,11 +298,10 @@ contextProto.define = function(moduleFilename, dependencies, body) {
 };
 
 contextProto.moduleDefine = function(module, dependencies, body) {
-    if (!getModuleProperty(module, PROPERTY_DEFINITION)) {
+    if (!isModuleDefined(module)) {
         // do not override an existing definition
         setModuleProperty(module, PROPERTY_DEFINITION, body);
         setModuleProperty(module, PROPERTY_DEPENDENCIES, dependencies);
-        setModuleProperty(module, PROPERTY_LOADING_DEFINITION, false);
     }
     return module;
 };

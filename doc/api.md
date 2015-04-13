@@ -22,6 +22,11 @@ in [Node.js](http://nodejs.org/api/globals.html):
 * [__filename](http://nodejs.org/api/globals.html#globals_filename)
 * [__dirname](http://nodejs.org/api/globals.html#globals_dirname)
 
+The following extra properties are noderJS-specific:
+* `module.preloaded` is a boolean value indicating whether the module is fully preloaded (i.e. its definition and all its transitive dependencies are cached, so the module can be executed synchronously).
+* `module.noderInfo.dependencies` contains the array of static dependencies of the module (as returned by [findRequires](#findrequires-parser), with `detectLoaderPlugins = true`).
+* `module.noderInfo.preloading` contains either a falsy value, if the module preload did not started, or a promise which indicates the state of the preloading process (either pending, resolved or rejected).
+
 ## noder global variable
 
 noderJS creates a global variable called `noder` (its name is [configurable](configuration.md)).
