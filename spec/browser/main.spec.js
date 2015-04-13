@@ -29,13 +29,24 @@ describe("Main", function() {
     };
 
     var simpleAsynchronousCheck = function(newRootModule, done) {
+        var cache = newRootModule.require.cache;
+        var file1Preloaded = false;
         newRootModule.asyncRequire('file1').spread(function(file1) {
             expect(file1.test1()).to.equal('simple-ok1');
             expect(file1.test2()).to.equal('simple-ok2');
             expect(file1.test3()).to.equal('simple-ok3');
-
             expect(file1).to.equal(newRootModule.require('file1'));
+            expect(file1Preloaded).to.be(true);
         }).then(done, fail(done));
+        cache['file1.js'].noderInfo.preloading.thenSync(function() {
+            expect(cache['file1.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+            expect(cache['file1.js'].noderInfo.dependencies).to.eql(['./lib/file2.js']);
+            expect(cache['lib/file2.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+            expect(cache['lib/file2.js'].noderInfo.dependencies).to.eql(['./file3.js']);
+            expect(cache['lib/file3.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+            expect(cache['lib/file3.js'].noderInfo.dependencies).to.eql([]);
+            file1Preloaded = true;
+        });
     };
 
     it("Simple asynchronous", function(done) {
@@ -63,6 +74,14 @@ describe("Main", function() {
         expect(file1.test1()).to.equal('simple-ok1');
         expect(file1.test2()).to.equal('simple-ok2');
         expect(file1.test3()).to.equal('simple-ok3');
+
+        var cache = newRootModule.require.cache;
+        expect(cache['file1.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+        expect(cache['file1.js'].noderInfo.dependencies).to.eql(['./lib/file2.js']);
+        expect(cache['lib/file2.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+        expect(cache['lib/file2.js'].noderInfo.dependencies).to.eql(['./file3.js']);
+        expect(cache['lib/file3.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+        expect(cache['lib/file3.js'].noderInfo.dependencies).to.eql([]);
     };
 
     it("Simple synchronous", function() {
@@ -100,6 +119,12 @@ describe("Main", function() {
 
             expect(file1).to.equal(newRootModule.require('file1'));
             expect(file2).to.equal(newRootModule.require('file2'));
+
+            var cache = newRootModule.require.cache;
+            expect(cache['file1.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+            expect(cache['file1.js'].noderInfo.dependencies).to.eql(['./file2.js']);
+            expect(cache['file2.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+            expect(cache['file2.js'].noderInfo.dependencies).to.eql(['./file1.js']);
         }).then(done, fail(done));
     };
 
@@ -130,6 +155,12 @@ describe("Main", function() {
         var file2 = newRootModule.require('file2');
         expect(file2.test1()).to.equal('ok1');
         expect(file2.test2()).to.equal('ok2');
+
+        var cache = newRootModule.require.cache;
+        expect(cache['file1.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+        expect(cache['file1.js'].noderInfo.dependencies).to.eql(['./file2.js']);
+        expect(cache['file2.js'].noderInfo.preloading.isFulfilled()).to.be(true);
+        expect(cache['file2.js'].noderInfo.dependencies).to.eql(['./file1.js']);
     };
 
     it("Circular dependency synchronous", function() {

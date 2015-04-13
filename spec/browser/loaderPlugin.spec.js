@@ -73,6 +73,9 @@ describe("Loader plugins", function() {
                 var pluginModule = cache["$plugin.js"];
                 var notPluginModule = cache["notPlugin.js"];
                 expect(pluginModule.exports.preloadCalls).to.length(usages);
+                expect(pluginUsage2Module.noderInfo.dependencies).to.length(2 /* for string values */ + usages /* for plugin calls */ );
+                expect(pluginUsage2Module.noderInfo.dependencies).to.contain("./$plugin");
+                expect(pluginUsage2Module.noderInfo.dependencies).to.contain("./notPlugin");
                 var preloadCalls = pluginModule.exports.preloadCalls;
                 for (var i = 0, l = preloadCalls.length; i < l; i++) {
                     expect(preloadCalls[i].resolved).to.equal(true);
