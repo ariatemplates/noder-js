@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.6.1 - 23 Feb 2015
+ * Noder-js 1.6.1 - 17 Apr 2015
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2015 Amadeus s.a.s.
@@ -988,7 +988,7 @@
             } else {
                 this.dirname = filename = ".";
             }
-            this[/*noderPropertiesKey*/ "_noder"] = {};
+            this[/*noderPropertiesKey*/ "noderInfo"] = {};
             this.filename = filename;
             this.id = filename;
             this.require = /*bind1*/ bind$module(context.moduleRequire, context, this);
@@ -1001,11 +1001,15 @@
         };
         var getModuleProperty = function(module, property) {
             /*noderPropertiesKey*/
-            return module["_noder"][property];
+            return module["noderInfo"][property];
         };
         var setModuleProperty = function(module, property, value) {
-            module[/*noderPropertiesKey*/ "_noder"][property] = value;
+            module[/*noderPropertiesKey*/ "noderInfo"][property] = value;
             return value;
+        };
+        var isModuleDefined = function(module) {
+            /*PROPERTY_DEFINITION*/
+            return module.loaded || getModuleProperty(module, "_0");
         };
         var start = function(context) {
             var config = context.config;
@@ -1058,7 +1062,7 @@
             if (lookInside === module) {
                 return true;
             }
-            var parents = getModuleProperty(lookInside, /*PROPERTY_PRELOADING_PARENTS*/ 5);
+            var parents = getModuleProperty(lookInside, /*PROPERTY_PRELOADING_PARENTS*/ "_3");
             if (parents) {
                 for (var i = 0; parents[i]; i++) {
                     if (checkCircularDependency(module, parents[i])) {
@@ -1075,8 +1079,8 @@
                 /*Promise*/
                 return promise$module.done;
             }
-            var preloading = getModuleProperty(module, /*PROPERTY_PRELOADING*/ 3);
-            var preloadingParents = getModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5);
+            var preloading = getModuleProperty(module, /*PROPERTY_PRELOADING*/ "preloading");
+            var preloadingParents = getModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ "_3");
             if (preloading || preloadingParents) {
                 // If we get here, it may be because of a circular dependency
                 if (parent) {
@@ -1093,26 +1097,25 @@
                 return preloading;
             }
             var self = this;
-            setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5, parent ? [ parent ] : []);
+            setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ "_3", parent ? [ parent ] : []);
             /*PROPERTY_PRELOADING*/
-            return setModuleProperty(module, 3, self.moduleLoadDefinition(module).thenSync(function() {
+            return setModuleProperty(module, "preloading", self.moduleLoadDefinition(module).thenSync(function() {
                 /*PROPERTY_DEPENDENCIES*/
-                return self.modulePreloadDependencies(module, getModuleProperty(module, 1));
+                return self.modulePreloadDependencies(module, getModuleProperty(module, "dependencies"));
             }).thenSync(function() {
                 module.preloaded = true;
-                setModuleProperty(module, /*PROPERTY_PRELOADING*/ 3, false);
-                setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ 5, null);
+                setModuleProperty(module, /*PROPERTY_PRELOADING_PARENTS*/ "_3", null);
             }, function(error) {
                 /*noderError*/
                 throw noderError$module("modulePreload", [ module ], error);
             }));
         };
         contextProto.moduleLoadDefinition = function(module) {
-            if (getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
+            if (isModuleDefined(module)) {
                 /*Promise*/
                 return promise$module.done;
             }
-            var res = getModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4);
+            var res = getModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ "_2");
             if (!res) {
                 var filename = module.filename;
                 var builtin = this.builtinModules["/" + filename];
@@ -1120,21 +1123,16 @@
                     this.moduleDefine(module, [], builtin(this));
                     res = /*Promise*/ promise$module.done;
                 } else {
-                    var asyncOrError = true;
                     var checkResult = function(error) {
                         // check that the definition was correctly loaded:
-                        if (getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
-                            asyncOrError = false;
-                        } else {
+                        if (!isModuleDefined(module)) {
                             /*noderError*/
                             throw noderError$module("moduleLoadDefinition", [ module ], error);
                         }
                     };
                     res = this.loader.moduleLoad(module).thenSync(checkResult, checkResult);
-                    if (asyncOrError) {
-                        setModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4, res);
-                    }
                 }
+                setModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ "_2", res);
             }
             return res;
         };
@@ -1176,7 +1174,7 @@
             return this.allSettled(promises);
         };
         contextProto.moduleExecuteSync = function(module) {
-            if (module.loaded || getModuleProperty(module, /*PROPERTY_EXECUTING*/ 2)) {
+            if (module.loaded || getModuleProperty(module, /*PROPERTY_EXECUTING*/ "_1")) {
                 /* this.executing is true only in the case of a circular dependency */
                 return module.exports;
             }
@@ -1186,15 +1184,14 @@
                 throw noderError$module("notPreloaded", [ module ], preloadPromise.result());
             }
             var exports = module.exports;
-            setModuleProperty(module, /*PROPERTY_EXECUTING*/ 2, true);
+            setModuleProperty(module, /*PROPERTY_EXECUTING*/ "_1", true);
             try {
-                getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0).call(exports, module, global);
-                setModuleProperty(module, /*PROPERTY_DEFINITION*/ 0, null);
-                setModuleProperty(module, /*PROPERTY_DEPENDENCIES*/ 1, null);
+                getModuleProperty(module, /*PROPERTY_DEFINITION*/ "_0").call(exports, module, global);
+                setModuleProperty(module, /*PROPERTY_DEFINITION*/ "_0", null);
                 module.loaded = true;
                 return module.exports;
             } finally {
-                setModuleProperty(module, /*PROPERTY_EXECUTING*/ 2, false);
+                setModuleProperty(module, /*PROPERTY_EXECUTING*/ "_1", false);
             }
         };
         contextProto.moduleResolve = function(module, id) {
@@ -1218,11 +1215,10 @@
             this.moduleDefine(this.getModule(moduleFilename), dependencies, body);
         };
         contextProto.moduleDefine = function(module, dependencies, body) {
-            if (!getModuleProperty(module, /*PROPERTY_DEFINITION*/ 0)) {
+            if (!isModuleDefined(module)) {
                 // do not override an existing definition
-                setModuleProperty(module, /*PROPERTY_DEFINITION*/ 0, body);
-                setModuleProperty(module, /*PROPERTY_DEPENDENCIES*/ 1, dependencies);
-                setModuleProperty(module, /*PROPERTY_LOADING_DEFINITION*/ 4, false);
+                setModuleProperty(module, /*PROPERTY_DEFINITION*/ "_0", body);
+                setModuleProperty(module, /*PROPERTY_DEPENDENCIES*/ "dependencies", dependencies);
             }
             return module;
         };
