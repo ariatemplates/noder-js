@@ -1,5 +1,5 @@
 /*
- * Noder-js 1.6.1 - 17 Apr 2015
+ * Noder-js 1.6.2 - 20 Apr 2015
  * https://github.com/ariatemplates/noder-js
  *
  * Copyright 2009-2015 Amadeus s.a.s.
