@@ -54,7 +54,8 @@ For example:</li>
 {
   <span class="comment">// put the configuration of the default context here</span>
 }
-</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+</code></pre></div>
 <ul>
 <li>It is also possible to create a new context with a specific configuration.
 For example, supposing <code>noder</code> is the global variable exposed by noderJS
@@ -63,7 +64,8 @@ the following code creates a new context with the specified configuration:</li>
 </ul>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> newNoder = noder.createContext({
   <span class="comment">// put the configuration here</span>
-});</code></pre></div>
+});
+</code></pre></div>
 <p>Then, <code>newNoder</code> is the root module of a new context, completely independent from <code>noder</code>.
 The possibility to have multiple contexts is useful for tests.
 See <a href="api.html">the API page</a> for more information about noderJS contexts.</p>
@@ -90,7 +92,7 @@ See <a href="api.html">the API page</a> for more information about noderJS conte
     <span class="comment">// If this parameter is true, noderJS raises the error as soon as possible.</span>
     <span class="comment">// The default value is true.</span>
 
-    onstart : <span class="function"><span class="keyword">function</span> <span class="params">(mainModule)</span> {</span>
+    onstart : <span class="function"><span class="keyword">function</span> <span class="params">(mainModule)</span> </span>{
       <span class="comment">// Function to be executed when the main module has been loaded.</span>
       <span class="comment">// The reference to the exported object is given as a parameter.</span>
     },
@@ -150,15 +152,15 @@ See <a href="api.html">the API page</a> for more information about noderJS conte
         <span class="comment">// to the modified file content.</span>
         {
           pattern: <span class="regexp">/\.coffee$/</span>,
-          module: <span class="string">"preprocessors/coffeeScript.js"</span>
+          <span class="built_in">module</span>: <span class="string">"preprocessors/coffeeScript.js"</span>
         },
         {
           pattern: <span class="regexp">/\.yml$/</span>,
-          module: <span class="string">"preprocessors/yaml.js"</span>
+          <span class="built_in">module</span>: <span class="string">"preprocessors/yaml.js"</span>
         },
         {
           pattern: <span class="regexp">/\.js$/</span>,
-          module: <span class="string">"preprocessors/myJSPreprocessor.js"</span>,
+          <span class="built_in">module</span>: <span class="string">"preprocessors/myJSPreprocessor.js"</span>,
           options: {
             <span class="comment">// This options object will be passed to myJSPreprocessor as its 3rd argument</span>
             specialFeature: <span class="literal">true</span>
@@ -184,7 +186,8 @@ See <a href="api.html">the API page</a> for more information about noderJS conte
         }
       }
     }
-  }</code></pre></div>
+  }
+</code></pre></div>
 </article>
 					</div>
 				</div>

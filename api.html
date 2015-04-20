@@ -61,6 +61,12 @@ in <a href="http://nodejs.org/api/globals.html">Node.js</a>:</p>
 <li><a href="http://nodejs.org/api/globals.html#globals_filename">__filename</a></li>
 <li><a href="http://nodejs.org/api/globals.html#globals_dirname">__dirname</a></li>
 </ul>
+<p>The following extra properties are noderJS-specific:</p>
+<ul>
+<li><code>module.preloaded</code> is a boolean value indicating whether the module is fully preloaded (i.e. its definition and all its transitive dependencies are cached, so the module can be executed synchronously).</li>
+<li><code>module.noderInfo.dependencies</code> contains the array of static dependencies of the module (as returned by <a href="#findrequires-parser">findRequires</a>, with <code>detectLoaderPlugins = true</code>).</li>
+<li><code>module.noderInfo.preloading</code> contains either a falsy value, if the module preload did not started, or a promise which indicates the state of the preloading process (either pending, resolved or rejected).</li>
+</ul>
 <h2 id="noder-global-variable">noder global variable</h2>
 <p>noderJS creates a global variable called <code>noder</code> (its name is <a href="configuration.html">configurable</a>).
 This variable corresponds to the root module that is automatically created by noderJS.
@@ -93,11 +99,12 @@ the <code>exports</code> objects of all requested modules.</p>
 <span class="comment">// asyncRequire preloads and executes the modules given as parameters and returns a promise.</span>
 <span class="comment">// As the promise result is an array, it is possible to use "spread" to get each array item</span>
 <span class="comment">// as a different argument of the given handler function:</span>
-asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"mySecondModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myFirstModule, mySecondModule)</span>{</span>
+asyncRequire(<span class="string">"myFirstModule"</span>, <span class="string">"mySecondModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myFirstModule, mySecondModule)</span></span>{
     <span class="comment">// Do something with myFirstModule and mySecondModule</span>
-}, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span>
+}, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> </span>{
     <span class="comment">// Do something in case of failure</span>
-});</code></pre></div>
+});
+</code></pre></div>
 <h4 id="relative-paths">Relative paths</h4>
 <p>If you want to use relative paths in <code>asyncRequire</code> (i.e. paths which are relative to the current module, in the same way
 as it is possible with the synchronous <code>require</code>), you can either convert them to absolute paths with <code>require.resolve</code>
@@ -105,16 +112,19 @@ or you can create a local version of the <code>asyncRequire</code> method, as sh
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">'noder-js/asyncRequire'</span>);
 
 <span class="comment">// Use require.resolve to convert the relative path into an absolute path:</span>
-asyncRequire(<span class="built_in">require</span>.resolve(<span class="string">"./myRelativeModule"</span>)).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
+asyncRequire(<span class="built_in">require</span>.resolve(<span class="string">"./myRelativeModule"</span>)).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> </span>{ <span class="comment">/* ... */</span> });
+</code></pre></div>
 <div class='snippet'><pre><code class="lang-js"><span class="comment">// Use the create method to create a local version of the asyncRequire method which accepts relative paths:</span>
-<span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">'noder-js/asyncRequire'</span>).create(module);
+<span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">'noder-js/asyncRequire'</span>).create(<span class="built_in">module</span>);
 
 <span class="comment">// Then relative paths can be used directly:</span>
-asyncRequire(<span class="string">"./myRelativeModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
+asyncRequire(<span class="string">"./myRelativeModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myRelativeModule)</span> </span>{ <span class="comment">/* ... */</span> });
+</code></pre></div>
 <h4 id="shortcut">Shortcut</h4>
 <p>For convenience, the <code>asyncRequire</code> method is also available on the <code>noder</code> global variable, so that it is easy to load
 some modules asynchronously, even from code which was not loaded through noderJS:</p>
-<div class='snippet'><pre><code class="lang-js">noder.asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span>{</span> <span class="comment">/* ... */</span> }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span> <span class="comment">/* ... */</span> });</code></pre></div>
+<div class='snippet'><pre><code class="lang-js">noder.asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span></span>{ <span class="comment">/* ... */</span> }, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> </span>{ <span class="comment">/* ... */</span> });
+</code></pre></div>
 <h2 id="loader-plugins">Loader plugins</h2>
 <p>Before a module can be executed in noderJS, it has to be preloaded. The preload process consists in downloading the
 module file, parsing it to detect its static dependencies, and preloading those dependencies. The preload process is usually
@@ -126,7 +136,8 @@ not static. These include, for example, language-dependent resources or browser-
 The code could look like the following example:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> language = <span class="built_in">require</span>(<span class="string">"resourcesManager"</span>).language;
 <span class="keyword">var</span> myResources = <span class="built_in">require</span>(<span class="string">"./myRes_"</span>+language);
-<span class="comment">// ...</span></code></pre></div>
+<span class="comment">// ...</span>
+</code></pre></div>
 <p>When parsing this file, noderJS will find <code>resourcesManager</code> as a static dependency, but will be unable know the other file to preload
 as it depends on the <code>language</code> variable, whose value is unknown at the time the file is parsed (as it is not executed yet).
 As a result, when later executing this file, the second require will probably fail because the dependency will not have been preloaded
@@ -139,20 +150,22 @@ exported by the loader plugin and executes it with the parsed arguments (which m
 wait for the promise to be fulfilled before marking the module as preloaded.</p>
 <p>Now our <code>sample.js</code> module depending on a language-dependent resource can be re-written in the following way:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> myResources = <span class="built_in">require</span>(<span class="string">"$resourcesLoader"</span>).getResource(__dirname, <span class="string">"./myRes"</span>);
-<span class="comment">// ...</span></code></pre></div>
+<span class="comment">// ...</span>
+</code></pre></div>
 <p>The loader plugin, called <code>$resourcesLoader.js</code> could look like this:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
 <span class="keyword">var</span> language = <span class="built_in">require</span>(<span class="string">"resourcesManager"</span>).language;
-exports.getResource = <span class="function"><span class="keyword">function</span><span class="params">(directory, resource)</span> {</span>
+exports.getResource = <span class="function"><span class="keyword">function</span><span class="params">(directory, resource)</span> </span>{
    <span class="comment">// this method is executed when sample.js is executed</span>
    <span class="comment">// it is synchronous</span>
    <span class="keyword">return</span> <span class="built_in">require</span>(directory + <span class="string">"/"</span> + resource);
 };
-exports.getResource.$preload = <span class="function"><span class="keyword">function</span><span class="params">(directory, resource)</span> {</span>
+exports.getResource.$preload = <span class="function"><span class="keyword">function</span><span class="params">(directory, resource)</span> </span>{
    <span class="comment">// this method is automatically executed when sample.js is preloaded</span>
    <span class="comment">// it can be asynchronous by returning a promise</span>
    <span class="keyword">return</span> asyncRequire(directory + <span class="string">"/"</span> + resource);
-};</code></pre></div>
+};
+</code></pre></div>
 <h2 id="promises-library">Promises library</h2>
 <p><a href="http://promisesaplus.com/">
 <img src="http://promisesaplus.com/assets/logo-small.png" alt="Promises/A+ logo" title="Promises/A+ 1.1.1 compliant" align="right"
@@ -161,7 +174,8 @@ exports.getResource.$preload = <span class="function"><span class="keyword">func
 <p>noderJS heavily relies on promises. It includes a lightweight promise library which is compliant with the
 <a href="http://promisesaplus.com">Promises/A+ specifications</a> version 1.1.1.</p>
 <p>The integrated promise library can be accessed with:</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);</code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
+</code></pre></div>
 <h3 id="promise-constructor">Promise constructor</h3>
 <p><strong>new Promise (factoryFunction : function(resolve, reject)) : Promise</strong></p>
 <p>Creates a new promise. The given <code>factoryFunction</code> gets a reference to the <code>resolve</code> and <code>reject</code> methods which
@@ -170,24 +184,25 @@ or <code>reject</code>, the promise is rejected with the exception as the reason
 <p>Here is a sample implementing a promise-based version of <code>setTimeout</code>:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
-<span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> {</span>
-   <span class="keyword">return</span> <span class="keyword">new</span> Promise(<span class="function"><span class="keyword">function</span><span class="params">(resolve, reject)</span> {</span>
-      setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+<span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> </span>{
+   <span class="keyword">return</span> <span class="keyword">new</span> Promise(<span class="function"><span class="keyword">function</span><span class="params">(resolve, reject)</span> </span>{
+      setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> </span>{
          resolve(<span class="number">7</span>);
       }, delay);
    });
 };
 
-console.log(<span class="string">"Before calling setTimeoutWithPromise"</span>);
-setTimeoutWithPromise(<span class="number">1000</span>).then(<span class="function"><span class="keyword">function</span> <span class="params">(result)</span> {</span>
-   console.log(<span class="string">"In the callback. The result is: "</span> + result)
+<span class="built_in">console</span>.log(<span class="string">"Before calling setTimeoutWithPromise"</span>);
+setTimeoutWithPromise(<span class="number">1000</span>).then(<span class="function"><span class="keyword">function</span> <span class="params">(result)</span> </span>{
+   <span class="built_in">console</span>.log(<span class="string">"In the callback. The result is: "</span> + result)
 });
-console.log(<span class="string">"After calling setTimeoutWithPromise"</span>);
+<span class="built_in">console</span>.log(<span class="string">"After calling setTimeoutWithPromise"</span>);
 
 <span class="comment">// The console should contain:</span>
 <span class="comment">// Before calling setTimeoutWithPromise</span>
 <span class="comment">// After calling setTimeoutWithPromise</span>
-<span class="comment">// In the callback. The result is: 7</span></code></pre></div>
+<span class="comment">// In the callback. The result is: 7</span>
+</code></pre></div>
 <p>Using the Promise constructor is the recommended way to create a promise. Alternatively, it is also possible
 to use the <code>Promise.defer</code> method below.</p>
 <h3 id="promise-defer-">Promise.defer()</h3>
@@ -197,18 +212,20 @@ to use the <code>Promise.defer</code> method below.</p>
    promise: promise, <span class="comment">/* Promise instance object (with the 'then' method) */</span>
    resolve: resolve, <span class="comment">/* Function to resolve the promise, with the specified value. */</span>
    reject: reject <span class="comment">/* Function to reject the promise, with the specified reason. */</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <p>Here is a sample re-implementing the <code>setTimeoutWithPromise</code> function from the previous section,
 but using <code>Promise.defer()</code> instead of the promise constructor.</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
-<span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> {</span>
+<span class="keyword">var</span> setTimeoutWithPromise = <span class="function"><span class="keyword">function</span> <span class="params">(delay)</span> </span>{
    <span class="keyword">var</span> defer = Promise.defer();
-   setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+   setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span> </span>{
       defer.resolve(<span class="number">7</span>);
    }, delay);
    <span class="keyword">return</span> defer.promise;
-};</code></pre></div>
+};
+</code></pre></div>
 <h3 id="promise-resolve-">Promise.resolve()</h3>
 <p><strong>Promise.resolve(valueOrPromise) : Promise</strong></p>
 <p>If <code>valueOrPromise</code> is a noder-js promise, <code>Promise.resolve</code> returns it directly.</p>
@@ -218,24 +235,27 @@ but using <code>Promise.defer()</code> instead of the promise constructor.</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
 <span class="keyword">var</span> promiseInstance = Promise.resolve(<span class="number">7</span>);
-promiseInstance.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> <span class="comment">/* here, value == 7 */</span> });
+promiseInstance.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> </span>{ <span class="comment">/* here, value == 7 */</span> });
 Promise.resolve(promiseInstance) <span class="comment">// this call returns promiseInstance</span>
 Promise.resolve({
-   then: <span class="function"><span class="keyword">function</span> <span class="params">(resolve, reject)</span> {</span>
+   then: <span class="function"><span class="keyword">function</span> <span class="params">(resolve, reject)</span> </span>{
       resolve(<span class="number">7</span>);
    }
-}).then(<span class="function"><span class="keyword">function</span><span class="params">(value)</span> {</span> <span class="comment">/* here, value == 7 */</span> });</code></pre></div>
+}).then(<span class="function"><span class="keyword">function</span><span class="params">(value)</span> </span>{ <span class="comment">/* here, value == 7 */</span> });
+</code></pre></div>
 <h3 id="promise-reject-">Promise.reject()</h3>
 <p><strong>Promise.reject(reason) : Promise</strong></p>
 <p><code>Promise.reject</code> returns a rejected promise with the given reason.</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 
-Promise.reject(<span class="string">"error"</span>).catch(<span class="function"><span class="keyword">function</span> <span class="params">(reason)</span> {</span> <span class="comment">/* here, reason == "error" */</span> });</code></pre></div>
+Promise.reject(<span class="string">"error"</span>).catch(<span class="function"><span class="keyword">function</span> <span class="params">(reason)</span> </span>{ <span class="comment">/* here, reason == "error" */</span> });
+</code></pre></div>
 <h3 id="promise-done">Promise.done</h3>
 <p><strong>Promise.done : Promise</strong></p>
 <p><code>Promise.done</code> is a reference to an already resolved promise, whose fulfillment value is <code>undefined</code>.</p>
 <p>It is defined by:</p>
-<div class='snippet'><pre><code class="lang-js">Promise.done = Promise.resolve();</code></pre></div>
+<div class='snippet'><pre><code class="lang-js">Promise.done = Promise.resolve();
+</code></pre></div>
 <p>It can be used instead of <code>Promise.resolve(undefined)</code> to avoid creating a new promise instance.</p>
 <h3 id="promise-all-and-promise-allsettled-">Promise.all() and Promise.allSettled()</h3>
 <p><strong>Promise.all (promiseOrValueArray : Array) : Promise</strong></p>
@@ -252,13 +272,14 @@ promises to either be fulfilled or rejected.</li>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 <span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
 
-Promise.all([<span class="string">"simple value"</span>, asyncRequire(<span class="string">"myModule1"</span>, <span class="string">"myModule2"</span>)]).spread(<span class="function"><span class="keyword">function</span> <span class="params">(simpleValue, myModules)</span> {</span>
+Promise.all([<span class="string">"simple value"</span>, asyncRequire(<span class="string">"myModule1"</span>, <span class="string">"myModule2"</span>)]).spread(<span class="function"><span class="keyword">function</span> <span class="params">(simpleValue, myModules)</span> </span>{
    <span class="comment">// here:</span>
    <span class="comment">// simpleValue == "simple value"</span>
    <span class="comment">// myModules is an array containing the exports objects of myModule1 and myModule2</span>
-}, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> {</span>
+}, <span class="function"><span class="keyword">function</span> <span class="params">(error)</span> </span>{
    <span class="comment">// this function is called in case there is an error while loading myModule1 or myModule2</span>
-});</code></pre></div>
+});
+</code></pre></div>
 <h3 id="promiseinstance-then-and-its-shortcuts">promiseInstance.then() and its shortcuts</h3>
 <p><strong>promiseInstance.then(onFulfilled : function (value), onRejected : function (reason)) : Promise</strong></p>
 <p><code>promiseInstance.then</code> adds a fulfillment and a rejection handler to the promise, and returns a new promise
@@ -272,19 +293,22 @@ with the same reason.</p>
 <p><strong>promiseInstance.catch(onRejected : function (reason)) : Promise</strong></p>
 <div class='snippet'><pre><code class="lang-js">promiseInstance.catch(onRejected);
 <span class="comment">// is equivalent to:</span>
-promiseInstance.then(<span class="literal">null</span>, onRejected);</code></pre></div>
+promiseInstance.then(<span class="literal">null</span>, onRejected);
+</code></pre></div>
 <p><strong>promiseInstance.finally(handler : function (value)) : Promise</strong></p>
 <div class='snippet'><pre><code class="lang-js">promiseInstance.finally(handler);
 <span class="comment">// is equivalent to:</span>
-promiseInstance.then(handler, handler);</code></pre></div>
+promiseInstance.then(handler, handler);
+</code></pre></div>
 <p><strong>promiseInstance.spread(onFulfilled : function (value1, value2 ...), onRejected : function (reason)) : Promise</strong></p>
 <p><code>promiseInstance.spread</code> can be used when the fulfillment value is expected to be an array.</p>
 <div class='snippet'><pre><code class="lang-js">promiseInstance.spread(onFulfilled, onRejected);
 <span class="comment">// is equivalent to:</span>
-promiseInstance.then(<span class="function"><span class="keyword">function</span><span class="params">(array)</span> {</span>
+promiseInstance.then(<span class="function"><span class="keyword">function</span><span class="params">(array)</span> </span>{
   <span class="comment">// each item of the array is passed as a different argument to onFulfilled:</span>
   <span class="keyword">return</span> onFulfilled.apply(<span class="literal">null</span>, array);
-}, onRejected);</code></pre></div>
+}, onRejected);
+</code></pre></div>
 <p><strong>promiseInstance.done(onFulfilled : function (value), onRejected : function (reason))</strong></p>
 <p>The <code>done</code> method is equivalent to <code>then</code> except that it does not return a new promise, and it reports any error by throwing it
 asynchronously.
@@ -294,15 +318,17 @@ reported instead of being silently ignored.</p>
 the error is silently ignored:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
 
-asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span> {</span>
+asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span> </span>{
   <span class="comment">// do something with myModule</span>
-}); <span class="comment">// without .done(), errors in this promises chain are silently ignored</span></code></pre></div>
+}); <span class="comment">// without .done(), errors in this promises chain are silently ignored</span>
+</code></pre></div>
 <p>Adding <code>.done()</code> at the end of the promises chain makes sure any unhandled error happening in the promises chain is properly reported:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncRequire = <span class="built_in">require</span>(<span class="string">"noder-js/asyncRequire"</span>);
 
-asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span> {</span>
+asyncRequire(<span class="string">"myModule"</span>).spread(<span class="function"><span class="keyword">function</span> <span class="params">(myModule)</span> </span>{
   <span class="comment">// do something with myModule</span>
-}).done(); <span class="comment">// with .done(), errors are properly reported</span></code></pre></div>
+}).done(); <span class="comment">// with .done(), errors are properly reported</span>
+</code></pre></div>
 <h3 id="promiseinstance-thensync-and-its-shortcuts">promiseInstance.thenSync() and its shortcuts</h3>
 <p>Following the <a href="http://promises-aplus.github.io/promises-spec/">Promises/A+ specifications</a>, the <code>promiseInstance.then</code> method never
 calls its handlers synchronously. The same applies to the associated <code>spread</code>, <code>catch</code>, <code>finally</code> and <code>done</code> shortcuts.</p>
@@ -318,14 +344,15 @@ rejected at the time the <code>xSync</code> method is called, the corresponding 
 <span class="keyword">var</span> myPromise = Promise.resolve(<span class="number">7</span>);
 
 <span class="comment">// myPromise is already fulfilled</span>
-myPromise.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenValue = value; });
-myPromise.thenSync(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenSyncValue = value; });
-console.log(<span class="string">"thenValue = "</span> + thenValue);
-console.log(<span class="string">"thenSyncValue = "</span> + thenSyncValue);
+myPromise.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> </span>{ thenValue = value; });
+myPromise.thenSync(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> </span>{ thenSyncValue = value; });
+<span class="built_in">console</span>.log(<span class="string">"thenValue = "</span> + thenValue);
+<span class="built_in">console</span>.log(<span class="string">"thenSyncValue = "</span> + thenSyncValue);
 
 <span class="comment">// The result in the console is:</span>
 <span class="comment">// thenValue = undefined</span>
-<span class="comment">// thenSyncValue = 7</span></code></pre></div>
+<span class="comment">// thenSyncValue = 7</span>
+</code></pre></div>
 <p>Note that the behavior of <code>thenSync</code> only differs from the one of <code>then</code> if it is called on an already fulfilled or rejected promise.
 In the following sample, both <code>then</code> and <code>thenSync</code> behave in the same way because the promise is still pending when <code>then</code> and <code>thenSync</code> are called:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> thenValue, thenSyncValue;
@@ -334,16 +361,17 @@ In the following sample, both <code>then</code> and <code>thenSync</code> behave
 <span class="keyword">var</span> myPromise = defer.promise;
 
 <span class="comment">// myPromise is not yet fulfilled</span>
-myPromise.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenValue = value; });
-myPromise.thenSync(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span> thenSyncValue = value; });
+myPromise.then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> </span>{ thenValue = value; });
+myPromise.thenSync(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> </span>{ thenSyncValue = value; });
 
 defer.resolve(<span class="number">7</span>); <span class="comment">// now it is fulfilled, but the handlers will be called asynchronously</span>
-console.log(<span class="string">"thenValue = "</span> + thenValue);
-console.log(<span class="string">"thenSyncValue = "</span> + thenSyncValue);
+<span class="built_in">console</span>.log(<span class="string">"thenValue = "</span> + thenValue);
+<span class="built_in">console</span>.log(<span class="string">"thenSyncValue = "</span> + thenSyncValue);
 
 <span class="comment">// The result in the console is:</span>
 <span class="comment">// thenValue = undefined</span>
-<span class="comment">// thenSyncValue = undefined</span></code></pre></div>
+<span class="comment">// thenSyncValue = undefined</span>
+</code></pre></div>
 <p>Note that <code>thenSync</code> is not (yet?) standard. There was a <a href="https://github.com/promises-aplus/promises-spec/issues/169">request</a> to better integrate
 Promises/A+ specifications with synchronous code, but it was unfortunately rejected.</p>
 <h3 id="promiseinstance-isfulfilled-and-promiseinstance-isrejected-">promiseInstance.isFulfilled() and promiseInstance.isRejected()</h3>
@@ -359,7 +387,8 @@ Promise.resolve(<span class="number">7</span>).isRejected() <span class="comment
 Promise.reject(<span class="number">7</span>).isFulfilled() <span class="comment">// returns false</span>
 Promise.reject(<span class="number">7</span>).isRejected() <span class="comment">// returns true</span>
 Promise.defer().promise.isFulfilled() <span class="comment">// returns false</span>
-Promise.defer().promise.isRejected() <span class="comment">// returns false</span></code></pre></div>
+Promise.defer().promise.isRejected() <span class="comment">// returns false</span>
+</code></pre></div>
 <h3 id="promiseinstance-result-">promiseInstance.result()</h3>
 <p><strong>promiseInstance.result()</strong></p>
 <p>If <code>promiseInstance</code> is fulfilled, <code>promiseInstance.result()</code> returns the fulfillment value.</p>
@@ -368,10 +397,12 @@ Promise.defer().promise.isRejected() <span class="comment">// returns false</spa
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Promise = <span class="built_in">require</span>(<span class="string">"noder-js/promise"</span>);
 Promise.resolve(<span class="number">7</span>).result() <span class="comment">// returns 7</span>
 Promise.reject(<span class="number">7</span>).result() <span class="comment">// returns 7</span>
-Promise.defer().promise.result() <span class="comment">// returns undefined</span></code></pre></div>
+Promise.defer().promise.result() <span class="comment">// returns undefined</span>
+</code></pre></div>
 <h2 id="request-utility">Request utility</h2>
 <p>noderJS contains a small promises-based utility to make network requests:</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> request = <span class="built_in">require</span>(<span class="string">"noder-js/request"</span>);</code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> request = <span class="built_in">require</span>(<span class="string">"noder-js/request"</span>);
+</code></pre></div>
 <p>It is a simple wrapper around <a href="http://www.w3.org/TR/XMLHttpRequest">XMLHttpRequest</a> that hides some of the
 differences between browsers and makes it easy to request files.</p>
 <p><strong>request (url: String, options: Object) : Promise</strong></p>
@@ -385,7 +416,8 @@ differences between browsers and makes it easy to request files.</p>
    data : <span class="string">"My Request is..."</span>, <span class="comment">// String - Body of the request</span>
    sync : <span class="literal">false</span>, <span class="comment">// Boolean - Specifies if the request is synchronous or not (default: false)</span>
    method : <span class="string">"POST"</span> <span class="comment">// String - Type of request (default: "GET")</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <p>Here is an example, which posts a json object to the server, and parses the response as json:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> request = <span class="built_in">require</span>(<span class="string">"noder-js/request"</span>);
 
@@ -395,16 +427,17 @@ request(<span class="string">"/api/"</span>, {
      <span class="string">"Content-Type"</span>: <span class="string">"application/json"</span>
    },
    data: <span class="built_in">JSON</span>.stringify(myJsonObjectToSend)
-}).then(<span class="function"><span class="keyword">function</span> <span class="params">(xhr)</span> {</span>
+}).then(<span class="function"><span class="keyword">function</span> <span class="params">(xhr)</span> </span>{
    <span class="comment">// Success callback</span>
    <span class="comment">// Parses the response as JSON:</span>
    <span class="keyword">var</span> responseText = xhr.responseText;
    <span class="keyword">var</span> responseJson = <span class="built_in">JSON</span>.parse(responseText);
    <span class="comment">// ...</span>
-}).catch(<span class="function"><span class="keyword">function</span><span class="params">(error)</span> {</span>
+}).catch(<span class="function"><span class="keyword">function</span><span class="params">(error)</span> </span>{
    <span class="comment">// error callback handling cases when either the request fails or parsing the response JSON fails</span>
    <span class="comment">// ...</span>
-});</code></pre></div>
+});
+</code></pre></div>
 <h2 id="context">Context</h2>
 <p>A noderJS context is automatically created when noderJS is loaded. noderJS also provides an API to create new contexts.
 Each noderJS context has its own <a href="configuration.html">configuration</a> and its own cache of modules.</p>
@@ -421,16 +454,19 @@ mocks in the new context, so that the tested module will access mocks instead of
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Context = <span class="built_in">require</span>(<span class="string">"noder-js/context"</span>);
 <span class="keyword">var</span> contextInstance = <span class="keyword">new</span> Context({
    <span class="comment">/* context configuration */</span>
-});</code></pre></div>
+});
+</code></pre></div>
 <p>The context configuration object is described in the <a href="configuration.html">configuration page</a>.</p>
 <p>It is also possible to create a new context with the <code>createContext</code> method, which returns the root module of the new context:</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> Context = <span class="built_in">require</span>(<span class="string">"noder-js/context"</span>);
 <span class="keyword">var</span> contextRootModule = Context.createContext({
    <span class="comment">/* context configuration */</span>
-});</code></pre></div>
+});
+</code></pre></div>
 <h4 id="current-context">Current context</h4>
 <p>Here is how to get a reference to the current context:</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> contextInstance = <span class="built_in">require</span>(<span class="string">"noder-js/currentContext"</span>);</code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> contextInstance = <span class="built_in">require</span>(<span class="string">"noder-js/currentContext"</span>);
+</code></pre></div>
 <h3 id="context-instance-methods">Context instance methods</h3>
 <p>Context instance methods whose name start with <code>module</code> expect a module object as their first
 argument. Module objects are stored in the cache (accessible from <code>require.cache</code> and <code>contextInstance.cache</code>).
@@ -445,8 +481,9 @@ desired module object (which is the full path of the module, including the exten
 as returned by the <code>require.resolve</code> method).</p>
 <p>If <code>moduleFilename</code> is not provided, a new anonymous module is returned.
 Anonymous modules are not stored in the cache.</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> myModule = contextInstance.getModule(module.filename);
-<span class="comment">// here: myModule === module (if the context of module is contextInstance)</span></code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> myModule = contextInstance.getModule(<span class="built_in">module</span>.filename);
+<span class="comment">// here: myModule === module (if the context of module is contextInstance)</span>
+</code></pre></div>
 <p><strong>contextInstance.modulePreload(module: Module, parent: Module) : Promise</strong></p>
 <p>Preloads the given module, if it is not already preloaded.
 Preloading a module means loading its definition and preloading its static dependencies.</p>
@@ -467,7 +504,8 @@ You can check the <code>resolver</code> part of the <a href="configuration.html"
 myModuleFromContextInstance.require.resolve(myDependency);
 
 contextInstance.moduleResolve(contextInstance.getModule(<span class="string">"a/b/c.js"</span>), <span class="string">"../f"</span>); <span class="comment">// returns "a/f.js"</span>
-contextInstance.moduleResolve(contextInstance.getModule(<span class="string">"d/e/f.js"</span>), <span class="string">"../f"</span>); <span class="comment">// returns "d/f.js"</span></code></pre></div>
+contextInstance.moduleResolve(contextInstance.getModule(<span class="string">"d/e/f.js"</span>), <span class="string">"../f"</span>); <span class="comment">// returns "d/f.js"</span>
+</code></pre></div>
 <p><strong>contextInstance.moduleProcessPlugin(module: Module, pluginDef: Object) : Promise</strong></p>
 <p>Executes the <code>$preload</code> method of the given plugin for the given module.</p>
 <p>The structure of the <code>pluginDef</code> object corresponds to the one which can be found in the array returned
@@ -479,11 +517,12 @@ or an array with a single string element (corresponding to a non-quoted argument
 method with the given name on its exports object, and accesses its <code>$preload</code> property. If this is a function,
 it is called with the given arguments.</p>
 <div class='snippet'><pre><code class="lang-js"><span class="comment">//The following line does the equivalent of: module.require("$loaderPlugin").myMethod.$preload("arg1", module)</span>
-contextInstance.moduleProcessPlugin(module, {
-   module: <span class="string">"$loaderPlugin"</span>,
+contextInstance.moduleProcessPlugin(<span class="built_in">module</span>, {
+   <span class="built_in">module</span>: <span class="string">"$loaderPlugin"</span>,
    method: <span class="string">"myMethod"</span>,
    args: [<span class="string">"arg1"</span>, [<span class="string">"module"</span>]]
-});</code></pre></div>
+});
+</code></pre></div>
 <p><strong>contextInstance.modulePreloadDependencies(module: Module, dependencies: Array) : Promise</strong></p>
 <p>Preloads the given dependencies of the given module. Each item in the <code>dependencies</code> array can
 be either a string (in which case the corresponding dependency is resolved and preloaded)
@@ -498,9 +537,10 @@ is the <code>exports</code> object of the module.</p>
 <p><strong>contextInstance.moduleAsyncRequire(module: Module, dependencies: Array) : Promise</strong></p>
 <p>Preloads and executes all the given dependencies.
 The fulfillment value of the returned promise is the array of the <code>exports</code> object of each dependency.</p>
-<div class='snippet'><pre><code class="lang-js">contextInstance.moduleAsyncRequire(getModule(<span class="string">"a/b/c.js"</span>), [<span class="string">"./d"</span>, <span class="string">"a/e.js"</span>]).spread(<span class="function"><span class="keyword">function</span> <span class="params">(d, e)</span> {</span>
+<div class='snippet'><pre><code class="lang-js">contextInstance.moduleAsyncRequire(getModule(<span class="string">"a/b/c.js"</span>), [<span class="string">"./d"</span>, <span class="string">"a/e.js"</span>]).spread(<span class="function"><span class="keyword">function</span> <span class="params">(d, e)</span> </span>{
    <span class="comment">// here, d and e refer to the exports objects of ./d and a/e.js</span>
-});</code></pre></div>
+});
+</code></pre></div>
 <p><strong>contextInstance.moduleRequire(module: Module, dependency: String) : Object</strong></p>
 <p>Resolves and executes the given dependency of the module.
 The dependency has to be already preloaded or to be preloadable synchronously.
@@ -508,30 +548,32 @@ If it is not the case, an exception is thrown.</p>
 <p><strong>contextInstance.moduleDefine(module: Module, dependencies: Array, body: Function) : Module</strong></p>
 <p>Sets the dependencies and the definition function of the given module, if the module was not already defined.
 This method returns its first parameter.</p>
-<div class='snippet'><pre><code class="lang-js">contextInstance.define(contextInstance.getModule(<span class="string">"a/b/c.js"</span>), [], <span class="function"><span class="keyword">function</span><span class="params">(module, global)</span> {</span>
-   module.exports = {
-      hello: <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+<div class='snippet'><pre><code class="lang-js">contextInstance.define(contextInstance.getModule(<span class="string">"a/b/c.js"</span>), [], <span class="function"><span class="keyword">function</span><span class="params">(module, global)</span> </span>{
+   <span class="built_in">module</span>.exports = {
+      hello: <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>{
          alert(<span class="string">"Hello World!"</span>);
       }
    };
-});</code></pre></div>
+});
+</code></pre></div>
 <p><strong>contextInstance.define(moduleFilename: String, dependencies: Array, body: Function)</strong></p>
 <p>Defines the <code>moduleFilename</code> module, if it was not already defined.
 It is a shortcut for: <code>contextInstance.moduleDefine(contextInstance.getModule(moduleFilename), dependencies, body)</code>.
 Note that, unlike <code>moduleDefine</code>, this method does not return anything.</p>
 <p>For convenience, this method is also available on the <code>noder</code> variable (and, more generally, on the root module of any context).
 It is also the method called to define modules from a package.</p>
-<div class='snippet'><pre><code class="lang-js">noder.define(<span class="string">"a/b/c.js"</span>, [], <span class="function"><span class="keyword">function</span><span class="params">(module, global)</span> {</span>
-   module.exports = {
-      hello: <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+<div class='snippet'><pre><code class="lang-js">noder.define(<span class="string">"a/b/c.js"</span>, [], <span class="function"><span class="keyword">function</span><span class="params">(module, global)</span> </span>{
+   <span class="built_in">module</span>.exports = {
+      hello: <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>{
          alert(<span class="string">"Hello World!"</span>);
       }
    };
 });
-noder.define(<span class="string">"a/b/d.js"</span>, [<span class="string">"./c"</span>], <span class="function"><span class="keyword">function</span><span class="params">(module, global)</span> {</span>
-   <span class="keyword">var</span> <span class="built_in">require</span> = module.require;
-   module.exports = <span class="built_in">require</span>(<span class="string">"./c"</span>).hello;
-});</code></pre></div>
+noder.define(<span class="string">"a/b/d.js"</span>, [<span class="string">"./c"</span>], <span class="function"><span class="keyword">function</span><span class="params">(module, global)</span> </span>{
+   <span class="keyword">var</span> <span class="built_in">require</span> = <span class="built_in">module</span>.require;
+   <span class="built_in">module</span>.exports = <span class="built_in">require</span>(<span class="string">"./c"</span>).hello;
+});
+</code></pre></div>
 <p><strong>contextInstance.jsModuleEval(jsCode: String, url: String) : Function</strong></p>
 <p>Wraps <code>jsCode</code> in a module definition function, evaluates the resulting code and returns the corresponding function.
 Note that the content of <code>jsCode</code> itself is not executed until the returned function is called.</p>
@@ -542,7 +584,8 @@ Note that the content of <code>jsCode</code> itself is not executed until the re
 <span class="keyword">var</span> myModule = contextInstance.moduleDefine(contextInstance.getModule(<span class="string">"a/b/c.js"</span>), [], moduleDefinition);
 <span class="comment">// executes the module synchronously:</span>
 <span class="keyword">var</span> myModuleExports = contextInstance.moduleExecuteSync(myModule);
-myModuleExports.hello();</code></pre></div>
+myModuleExports.hello();
+</code></pre></div>
 <p><strong>contextInstance.jsModuleDefine(jsCode: String, moduleFilename: String, url: String)</strong></p>
 <p>Defines <code>jsCode</code> as the JavaScript code of the <code>moduleFilename</code> module (if the module was not already defined).</p>
 <p>The given <code>url</code> is used in the sourceURL comment (to give a name to the evaluated code, for compatible debuggers). If no url
@@ -552,7 +595,8 @@ is provided, <code>moduleFilename</code> is used as the url.</p>
 <span class="keyword">var</span> myModule = contextInstance.jsModuleDefine(<span class="string">"module.exports = { hello: function() { alert('Hello World!'); }};"</span>, <span class="string">"a/b/c.js"</span>);
 <span class="comment">// then executes it synchronously:</span>
 <span class="keyword">var</span> myModuleExports = contextInstance.moduleExecuteSync(myModule);
-myModuleExports.hello();</code></pre></div>
+myModuleExports.hello();
+</code></pre></div>
 <p><strong>contextInstance.jsModuleExecute(jsCode: String, moduleFilename: String, url: String) : Promise</strong></p>
 <p>Defines <code>jsCode</code> as the JavaScript code of the <code>moduleFilename</code> module (if the module was not already defined), preloads its dependencies
 and executes it (if it was not already executed).</p>
@@ -561,9 +605,10 @@ is provided, <code>moduleFilename</code> is used as the url.</p>
 <p>The fulfillment value of the returned promise is the <code>exports</code> object of the module.</p>
 <p>For convenience, this method is also available as the <code>execute</code> method on the <code>noder</code> variable (and, more generally, on the root module of any context).</p>
 <div class='snippet'><pre><code class="lang-js"><span class="comment">// defines and executes a simple module:</span>
-contextInstance.jsModuleExecute(<span class="string">"module.exports = { hello: function() { alert('Hello World!'); }};"</span>, <span class="string">"a/b/c.js"</span>).then(<span class="function"><span class="keyword">function</span><span class="params">(myModuleExports)</span>{</span>
+contextInstance.jsModuleExecute(<span class="string">"module.exports = { hello: function() { alert('Hello World!'); }};"</span>, <span class="string">"a/b/c.js"</span>).then(<span class="function"><span class="keyword">function</span><span class="params">(myModuleExports)</span></span>{
     myModuleExports.hello();
-});</code></pre></div>
+});
+</code></pre></div>
 <p><strong>contextInstance.execModuleCall(modulePath: String) : Promise</strong></p>
 <p>Preloads and executes the module at the given path. The path is resolved from the root module.
 The fulfillment value of the returned promise is the <code>exports</code> object of the module.</p>
@@ -587,7 +632,8 @@ contextInstance.expose(<span class="string">"myModule.js"</span>, myObject);
 
 <span class="comment">// We can also have:</span>
 <span class="comment">// myObject === myModule</span>
-<span class="comment">// but only if myModule.js was not loaded before the call to the expose method.</span></code></pre></div>
+<span class="comment">// but only if myModule.js was not loaded before the call to the expose method.</span>
+</code></pre></div>
 <p>Note that there is a static version of this method which exposes the given object at the given path for all
 contexts (both already created and created later).
 If both the static and the instance versions of this method are called for the same path, the object passed to the
@@ -616,13 +662,15 @@ The value is the corresponding module object.</p>
 
 <span class="comment">// is equivalent to:</span>
 
-<span class="keyword">var</span> myRootModule = Context.createContext(myConfig);</code></pre></div>
+<span class="keyword">var</span> myRootModule = Context.createContext(myConfig);
+</code></pre></div>
 <p><strong>Context.expose(name, exports)</strong></p>
 <p>Exposes the given object at the given path for all contexts (both already created and created later).
 See <code>contextInstance.expose</code> for more information.</p>
 <h2 id="asynccall">asyncCall</h2>
 <p>noder-js exposes an <code>asyncCall</code> module with some utility functions to call functions asynchronously or synchronously.</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncCall = <span class="built_in">require</span>(<span class="string">"noder-js/asyncCall"</span>);</code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncCall = <span class="built_in">require</span>(<span class="string">"noder-js/asyncCall"</span>);
+</code></pre></div>
 <p><strong>asyncCall.nextTick(f : function())</strong></p>
 <p>Registers a function to be executed asynchronously.
 The function is called with no scope and no argument.
@@ -633,20 +681,21 @@ Calling <code>async.nextTick</code> from a function called with <code>asyncCall.
 without any call to <code>setTimeout</code>, and the function is executed at the end of the same event loop turn.</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncCall = <span class="built_in">require</span>(<span class="string">"noder-js/asyncCall"</span>);
 <span class="keyword">var</span> myCounter = <span class="number">0</span>;
-asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>{
   myCounter++;
-  console.log(<span class="string">"First function: "</span> + myCounter);
+  <span class="built_in">console</span>.log(<span class="string">"First function: "</span> + myCounter);
 });
-asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>{
   myCounter++;
-  console.log(<span class="string">"Second function: "</span> + myCounter);
+  <span class="built_in">console</span>.log(<span class="string">"Second function: "</span> + myCounter);
 });
-console.log(<span class="string">"Main: "</span> + myCounter);
+<span class="built_in">console</span>.log(<span class="string">"Main: "</span> + myCounter);
 
 <span class="comment">// The console will have the following output:</span>
 <span class="comment">// Main: 0</span>
 <span class="comment">// First function: 1</span>
-<span class="comment">// Second function: 2</span></code></pre></div>
+<span class="comment">// Second function: 2</span>
+</code></pre></div>
 <p><strong>asyncCall.syncCall(f : function())</strong></p>
 <p>Executes the given function synchronously. In case an error happens in the callback, it is thrown again asynchronously, so that the caller
 of <code>asyncCall.syncCall</code> is not affected.</p>
@@ -667,15 +716,17 @@ Note that this method should <strong>never</strong> be called from application c
 However, it can be useful to use it from tests to execute asynchronous code synchronously and improve performance for tests execution.</p>
 <div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> asyncCall = <span class="built_in">require</span>(<span class="string">"noder-js/asyncCall"</span>);
 <span class="keyword">var</span> methodCalled = <span class="literal">false</span>;
-asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+asyncCall.nextTick(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>{
    methodCalled = <span class="literal">true</span>;
 });
 <span class="comment">// here, methodCalled = false</span>
 asyncCall.syncTick(); <span class="comment">// this calls ALL the functions previously registered with asyncCall.nextTick and not yet executed</span>
-<span class="comment">// here, methodCalled = true</span></code></pre></div>
+<span class="comment">// here, methodCalled = true</span>
+</code></pre></div>
 <h2 id="findrequires-parser">findRequires parser</h2>
 <p>noderJS includes a small parser for JavaScript code which extracts calls to the <code>require</code> method. It is exposed as <code>noder-js/findRequires</code>:</p>
-<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> findRequires = <span class="built_in">require</span>(<span class="string">"noder-js/findRequires"</span>);</code></pre></div>
+<div class='snippet'><pre><code class="lang-js"><span class="keyword">var</span> findRequires = <span class="built_in">require</span>(<span class="string">"noder-js/findRequires"</span>);
+</code></pre></div>
 <p><strong>findRequires(jsCode : String, detectLoaderPlugins : Boolean)</strong></p>
 <ul>
 <li><code>jsCode</code>: JavaScript code to be parsed.</li>
@@ -706,9 +757,10 @@ findRequires(<span class="string">"require('$loaderPlugin').myMethod('arg1', mod
 findRequires(<span class="string">"require('$loaderPlugin').myMethod('arg1', module)"</span>, <span class="literal">true</span>);
 <span class="comment">// The previous line returns:</span>
 [ <span class="string">'$loaderPlugin'</span>,
-  { module: <span class="string">'$loaderPlugin'</span>,
+  { <span class="built_in">module</span>: <span class="string">'$loaderPlugin'</span>,
     method: <span class="string">'myMethod'</span>,
-    args: [ <span class="string">'arg1'</span>, [<span class="string">"module"</span>] ] } ]</code></pre></div>
+    args: [ <span class="string">'arg1'</span>, [<span class="string">"module"</span>] ] } ]
+</code></pre></div>
 </article>
 					</div>
 				</div>

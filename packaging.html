@@ -56,21 +56,22 @@
         <span class="tag">&lt;<span class="title">title</span>&gt;</span>My museum<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
     <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
     <span class="tag">&lt;<span class="title">body</span>&gt;</span>
-        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js"</span>&gt;</span><span class="javascript">{
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.2/noder.min.js"</span>&gt;</span><span class="javascript">{
             main : <span class="string">"information/exhibitions"</span>,
-            onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
-                console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
+            onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> </span>{
+                <span class="built_in">console</span>.log(<span class="string">"Current exhibitions"</span>, exhib.current());
             }
         }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
         <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"application/x-noder"</span>&gt;</span><span class="javascript">
             <span class="keyword">var</span> paintings = <span class="built_in">require</span>(<span class="string">'paintings/catalogue'</span>).getAll();
-            console.log(<span class="string">"paintings"</span>, paintings);
+            <span class="built_in">console</span>.log(<span class="string">"paintings"</span>, paintings);
         </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
     <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
-<span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre></div>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span>
+</code></pre></div>
 <p>We are basically loading noderJS from an external source, instructing it to load the main module <code>&quot;information/exhibitions&quot;</code>. In the script of type <code>&quot;noder&quot;</code>, the <code>require</code> method leads to the fetch and execution of module <code>&quot;paintings/catalogue&quot;</code>. When targeting this page, the following files are downloaded from the server:</p>
 <ul>
-<li><code>http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js</code></li>
+<li><code>http://noder-js.ariatemplates.com/dist/v1.6.2/noder.min.js</code></li>
 <li><code>information/exhibitions.js</code></li>
 <li><code>paintings/catalogue.js</code></li>
 <li><code>paintings/painting.js</code></li>
@@ -86,11 +87,12 @@
     "<span class="attribute">version</span>" : <span class="value"><span class="string">"1.0.0"</span></span>,
     "<span class="attribute">devDependencies</span>" : <span class="value">{
         "<span class="attribute">atpackager</span>" : <span class="value"><span class="string">"0.2.4"</span></span>,
-        "<span class="attribute">noder-js</span>" : <span class="value"><span class="string">"1.6.1"</span>
+        "<span class="attribute">noder-js</span>" : <span class="value"><span class="string">"1.6.2"</span>
     </span>}
-</span>}</code></pre></div>
+</span>}
+</code></pre></div>
 <p>We can now configure our grunt build. The <code>gruntfile.js</code> that we put at the root of our project looks like this:</p>
-<div class='snippet'><pre><code class="lang-javascript">module.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> {</span>
+<div class='snippet'><pre><code class="lang-javascript"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> </span>{
 
     grunt.initConfig({
         pkg : <span class="built_in">require</span>(<span class="string">"./package.json"</span>),
@@ -130,7 +132,8 @@
     <span class="built_in">require</span>(<span class="string">"atpackager"</span>).loadNpmPlugin(<span class="string">"noder-js"</span>);
 
     grunt.registerTask(<span class="string">"default"</span>, [<span class="string">"atpackager:packaging"</span>]);
-};</code></pre></div>
+};
+</code></pre></div>
 <p>Apart from the basic configuration for <a href="http://atpackager.ariatemplates.com/"><code>atpackager</code></a>, in which we specify the source files, the source directory, and the output directory, there is</p>
 <ul>
 <li>a list of packages</li>
@@ -145,28 +148,29 @@ This is what the <code>index.html</code> becomes.</p>
         <span class="tag">&lt;<span class="title">title</span>&gt;</span>My museum<span class="tag">&lt;/<span class="title">title</span>&gt;</span>
     <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
     <span class="tag">&lt;<span class="title">body</span>&gt;</span>
-        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js"</span>&gt;</span><span class="javascript">{
+        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"http://noder-js.ariatemplates.com/dist/v1.6.2/noder.min.js"</span>&gt;</span><span class="javascript">{
             main : <span class="string">"information/exhibitions"</span>,
-            onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
-                console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
+            onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> </span>{
+                <span class="built_in">console</span>.log(<span class="string">"Current exhibitions"</span>, exhib.current());
             }
         }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
         <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"museum-management-1.0.0-map.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
 
         <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"application/x-noder"</span>&gt;</span><span class="javascript">
             <span class="keyword">var</span> paintings = <span class="built_in">require</span>(<span class="string">'paintings/catalogue'</span>).getAll();
-            console.log(<span class="string">"paintings"</span>, paintings);
+            <span class="built_in">console</span>.log(<span class="string">"paintings"</span>, paintings);
         </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
     <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
-<span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre></div>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span>
+</code></pre></div>
 <p>We also used the <code>JSMinify</code> visitor to minify both noderJS and our sources, as well as the <code>CopyUnpackaged</code> visitor to copy all unpackaged resources to the <code>build</code> directory.</p>
 <p>We can now run</p>
-<div class='snippet'><pre><code>npm install &amp;&amp; grunt</code></pre></div>
-<p>The <code>build</code> folder of our project now looks like this</p>
+<div class='snippet'><pre><code>npm install &amp;&amp; grunt
+</code></pre></div><p>The <code>build</code> folder of our project now looks like this</p>
 <p><img src="images/file_structure_after_first_build.png" alt="structure of the build folder" title="Build folder"></p>
 <p>If we target the <code>index.html</code> file of the <code>build</code> folder, the following resources are downloaded from the server:</p>
 <ul>
-<li><code>http://noder-js.ariatemplates.com/dist/v1.6.1/noder.min.js</code></li>
+<li><code>http://noder-js.ariatemplates.com/dist/v1.6.2/noder.min.js</code></li>
 <li><code>museum-management-1.0.0-map.js</code></li>
 <li><code>information/exhibitions.js</code></li>
 <li><code>paintings-manager.js</code></li>
@@ -178,8 +182,8 @@ This is what the <code>index.html</code> becomes.</p>
 </ul>
 <p>This builder inherits from the <code>JSConcat</code> default builder of atpackager. More configuration properties (like <code>header</code>, <code>footer</code> and so on) are available and documented <a href="http://atpackager.ariatemplates.com/">here</a>.
 In particular, an interesting inherited property is <code>outputFileWrapper</code>. It allows to build packages that can directly be included as sources for script tags. Indeed,</p>
-<div class='snippet'><pre><code>outputFileWrapper : &quot;(function(define){$CONTENT$;})(noder.define);&quot;</code></pre></div>
-<p>will wrap all modules definition in a function that is directly called providing as argument the <code>define</code> method defined on the <code>noder</code> global variable.</p>
+<div class='snippet'><pre><code>outputFileWrapper : &quot;(function(define){$CONTENT$;})(noder.define);&quot;
+</code></pre></div><p>will wrap all modules definition in a function that is directly called providing as argument the <code>define</code> method defined on the <code>noder</code> global variable.</p>
 <p>We encourage you to inspect the result of the build in order to gain more insight on the process.</p>
 <p><strong>Takeaway:</strong> <em>it is possible to create different packages by using the <strong><code>NoderPackage</code></strong> builder for atpackager. It has to be used along with the <code>NoderMap</code> visitor in order to update the packages map that noderJS will use to retrieve resources.</em></p>
 <h2 id="creating-a-bootstrap-script-the-noderbootstrappackage-builder">Creating a bootstrap script - the <code>NoderBootstrapPackage</code> builder</h2>
@@ -189,7 +193,7 @@ In particular, an interesting inherited property is <code>outputFileWrapper</cod
 <li>embeds a noderJS distribution.</li>
 </ul>
 <p>Let&#39;s now configure a grunt build so that atpackager can be correctly run to generate a bootstrap file. The <code>gruntfile.js</code> now looks like this:</p>
-<div class='snippet'><pre><code class="lang-javascript">module.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> {</span>
+<div class='snippet'><pre><code class="lang-javascript"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> </span>{
 
     grunt.initConfig({
         pkg : <span class="built_in">require</span>(<span class="string">"./package.json"</span>),
@@ -227,15 +231,17 @@ In particular, an interesting inherited property is <code>outputFileWrapper</cod
     <span class="built_in">require</span>(<span class="string">"atpackager"</span>).loadNpmPlugin(<span class="string">"noder-js"</span>);
 
     grunt.registerTask(<span class="string">"default"</span>, [<span class="string">"atpackager:packaging"</span>]);
-};</code></pre></div>
+};
+</code></pre></div>
 <p>You can notice that in <code>atpackager.packaging.options.packages</code> we only have one bundle that is built using <strong><code>NoderBootstrapPackage</code></strong> builder and has to include all the <code>.js</code> files in the <code>src</code> directory.</p>
 <p>This builder can receive different configuration properties. The most relevant one for us is the <code>noderConfigOptions</code> which allows us to configure the way we want noderJS to run. Its different properties are detailed <a href="configuration.html">here</a>. In this example we only declared the main module to load (we won&#39;t need to declare it in the <code>index.html</code> page any longer).</p>
 <p>Thus the <code>&lt;script&gt;</code> tag including noderJS as an external resource in the html page shown above now becomes</p>
 <div class='snippet'><pre><code class="lang-html">    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"museum-management-1.0.0.js"</span>&gt;</span><span class="javascript">{
-        onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> {</span>
-            console.log(<span class="string">"Current exhibitions"</span>, exhib.current());
+        onstart : <span class="function"><span class="keyword">function</span> <span class="params">(exhib)</span> </span>{
+            <span class="built_in">console</span>.log(<span class="string">"Current exhibitions"</span>, exhib.current());
         }
-    }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre></div>
+    }</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+</code></pre></div>
 <p>We also used the <code>JSMinify</code> visitor to minify both noderJS and our sources, as well as the <code>CopyUnpackaged</code> visitor to copy all unpackaged resources (in this case only the <code>index.html</code> file) to the <code>build</code> directory.</p>
 <p>When we target the <code>build</code> directory with the browser, the only resource that is downloaded now is the newly built <code>museum-management-1.0.0.js</code> file.</p>
 <h3 id="configuration-properties">Configuration properties</h3>
@@ -260,7 +266,7 @@ In particular, an interesting inherited property is <code>outputFileWrapper</cod
 <p><strong>Takeaway:</strong> <em>When packaging your noderJS based application, you can use <strong><code>NoderBootstrapPackage</code></strong> builder for atpackager to generate a bootstrap file. This file will contain noderJS and all the resources that you might want to include in it.</em></p>
 <h3 id="creating-several-packages-along-with-the-bootstrap">Creating several packages along with the bootstrap</h3>
 <p>We don&#39;t necessarily want to include all of our sources in the bootstrap file. For example, in our application, we might want to keep module <code>&quot;information/exhibitions&quot;</code> inside the bootstrap file (it&#39;s the main module), but we want to keep all modules in <code>paintings</code> and <code>sculptures</code> folders in separate packages. This is the grunt file that allows us to achieve this result:</p>
-<div class='snippet'><pre><code class="lang-javascript">module.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> {</span>
+<div class='snippet'><pre><code class="lang-javascript"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> </span>{
 
     grunt.initConfig({
         pkg : <span class="built_in">require</span>(<span class="string">"./package.json"</span>),
@@ -306,7 +312,8 @@ In particular, an interesting inherited property is <code>outputFileWrapper</cod
     <span class="built_in">require</span>(<span class="string">"atpackager"</span>).loadNpmPlugin(<span class="string">"noder-js"</span>);
 
     grunt.registerTask(<span class="string">"default"</span>, [<span class="string">"atpackager:packaging"</span>]);
-};</code></pre></div>
+};
+</code></pre></div>
 <p>You can notice that two more entries are present in the list of packages. The <code>builder</code> property of both of them is set to <strong><code>NoderPackage</code></strong>, that was introduced earlier in this article.
 We have already stressed that when you package your modules you need to use the <code>NoderMap</code> visitor in order to notify noderJS about the map of packages. When you use the <code>NoderBootstrapPackage</code> builder to create a new bootstrap file that contains noderJS, you don&#39;t need to provide a file path (<code>toFile</code> property) for the map update, as the <code>NoderMap</code> visitor will automatically embed the required information in the boostrap.</p>
 <p>The <code>build</code> folder of our project now looks like this</p>
@@ -345,7 +352,7 @@ We have already stressed that when you package your modules you need to use the 
 <p>This visitor allows to automatically add to a package all the dependencies of the modules that are explicitly added to it. This can be useful if you want to specify only the main file of a bundle without worrying about all the possible dependencies that it might have.</p>
 <p>In our example, we can configure package <code>paintings-manager.js</code> to explicitly include only module <code>&quot;paintings/catalogue&quot;</code>, which is providing us with the main features that we intend to use. The other files in the same folders (from which it depends) will be automatically included.
 Let&#39;s take a look at the grunt file that allows to achieve this result.</p>
-<div class='snippet'><pre><code class="lang-javascript">module.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> {</span>
+<div class='snippet'><pre><code class="lang-javascript"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span> <span class="params">(grunt)</span> </span>{
 
     grunt.initConfig({
         pkg : <span class="built_in">require</span>(<span class="string">"./package.json"</span>),
@@ -402,7 +409,8 @@ Let&#39;s take a look at the grunt file that allows to achieve this result.</p>
     <span class="built_in">require</span>(<span class="string">"atpackager"</span>).loadNpmPlugin(<span class="string">"noder-js"</span>);
 
     grunt.registerTask(<span class="string">"default"</span>, [<span class="string">"atpackager:packaging"</span>]);
-};</code></pre></div>
+};
+</code></pre></div>
 <p><strong>Remark</strong>
 This visitor <strong>must</strong> be used in conjunction with the <code>CheckDependencies</code> standard visitor provided by atpackager (it is often a good idea to configure it so that circular dependencies or the wrong package order do not give rise to build errors).</p>
 <h4 id="configuration-properties">Configuration properties</h4>
@@ -432,20 +440,22 @@ This visitor <strong>must</strong> be used in conjunction with the <code>CheckDe
 <p>This visitor automatically adds to the <code>exports</code> property of your module all variables that are globally defined in its scope. For example the following module</p>
 <div class='snippet'><pre><code class="lang-javascript"><span class="keyword">var</span> myDep = <span class="built_in">require</span>(<span class="string">"../anotherModule"</span>);
 
-<span class="keyword">var</span> myMethod = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+<span class="keyword">var</span> myMethod = <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>{
     <span class="keyword">var</span> localToTheMethod = <span class="string">"just a string"</span>;
     <span class="comment">//...</span>
-};</code></pre></div>
+};
+</code></pre></div>
 <p>would be automatically converted into</p>
 <div class='snippet'><pre><code class="lang-javascript"><span class="keyword">var</span> myDep = <span class="built_in">require</span>(<span class="string">"../anotherModule"</span>);
 
-<span class="keyword">var</span> myMethod = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+<span class="keyword">var</span> myMethod = <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>{
     <span class="keyword">var</span> localToTheMethod = <span class="string">"just a string"</span>;
     <span class="comment">//...</span>
 };
 
 exports.myDep = myDep;
-exports.myMethod = myMethod;</code></pre></div>
+exports.myMethod = myMethod;
+</code></pre></div>
 <h4 id="configuration-properties">Configuration properties</h4>
 <p>The only possible configuration property is the list of files to process (which defaults to <code>[&quot;**/*.js&quot;]</code>).</p>
 <div class='snippet'><pre><code class="lang-json">{
@@ -453,7 +463,8 @@ exports.myMethod = myMethod;</code></pre></div>
     cfg : {
         files : [&quot;paintings/*.js&quot;, &quot;!paintings/image.js&quot;]
     }
-}</code></pre></div>
+}
+</code></pre></div>
 <h3 id="noderrequiresgenerator">NoderRequiresGenerator</h3>
 <p>This visitor allows to create a file in the output directory of your project in which some modules are <code>require</code>d.</p>
 <h4 id="configuration-propeties">Configuration propeties</h4>
@@ -467,9 +478,11 @@ For example<div class='snippet'><pre><code class="lang-json">{
       requires : [&quot;my/other/dep&quot;, &quot;b&quot;],
       targetLogicalPath : &quot;deps.js&quot;
   }
-}</code></pre></div>
+}
+</code></pre></div>
 yields as result file <code>build/deps.js</code>:<div class='snippet'><pre><code class="lang-javascript"><span class="built_in">require</span>(<span class="string">"my/other/dep"</span>);
-<span class="built_in">require</span>(<span class="string">"b"</span>);</code></pre></div>
+<span class="built_in">require</span>(<span class="string">"b"</span>);
+</code></pre></div>
 </li>
 </ul>
 <p><strong>Advanced</strong></p>
@@ -487,7 +500,8 @@ yields as result file <code>build/deps.js</code>:<div class='snippet'><pre><code
     cfg : {
         files : [&quot;paintings/*&quot;, &quot;sculptures/*&quot;]
     }
-}</code></pre></div>
+}
+</code></pre></div>
 <p>The visitor will understand that <code>paintings</code> and <code>sculptures</code> are directories, and declare them.</p>
 <p><strong>Advanced</strong></p>
 <ul>
