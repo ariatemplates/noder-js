@@ -24,6 +24,9 @@
         "grunt-karma": "0.10.1",
         "grunt-markdown": "0.7.0",
         "gzip-js": "0.3.2",
+        "highlight.js": "8.4.0",
+        "js-beautify": "1.5.4",
+        "js-yaml": "3.2.5",
         "karma": "0.12.31",
         "karma-expect": "1.1.0",
         "karma-firefox-launcher": "0.1.4",
@@ -32,9 +35,7 @@
         "karma-sauce-launcher": "0.2.10",
         "load-grunt-tasks": "3.0.0",
         "mocha": "2.1.0",
-        "promises-aplus-tests": "2.1.0",
-        "highlight.js": "8.4.0",
-        "js-yaml": "3.2.5"
+        "promises-aplus-tests": "2.1.0"
     },
     "scripts": {
         "prepublish": "grunt build",
