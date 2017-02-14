@@ -15,7 +15,7 @@
 
 // grunt-contrib-compress has compression level issues. That's why we use gzip-js here.
 module.exports = function(grunt) {
-    var gzip = require('gzip-js');
+    var zopfli = require('node-zopfli');
 
     grunt.registerMultiTask('gzip', 'Gzips files.', function() {
         var options = this.options();
@@ -27,9 +27,9 @@ module.exports = function(grunt) {
                 return;
             }
             src = src[0];
-            var srcContent = grunt.file.read(src);
+            var srcContent = new Buffer(grunt.file.read(src));
             var sizeBefore = srcContent.length;
-            var output = gzip.zip(srcContent, options);
+            var output = zopfli.gzipSync(srcContent, options);
             var sizeAfter = output.length;
             var compressionRate = Math.floor(100 * (sizeBefore - sizeAfter) / sizeBefore);
             grunt.log.writeln("Before gzip " + src.cyan + " : " + ("" + sizeBefore).yellow + " bytes");

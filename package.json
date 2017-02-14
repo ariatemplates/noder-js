@@ -4,7 +4,9 @@
     "description": "JavaScript CommonJS loader",
     "version": "1.6.2",
     "homepage": "http://github.com/ariatemplates/noder-js",
-    "keywords": ["promises-aplus"],
+    "keywords": [
+        "promises-aplus"
+    ],
     "repository": {
         "type": "git",
         "url": "git://github.com/ariatemplates/noder-js.git"
@@ -35,6 +37,7 @@
         "karma-sauce-launcher": "0.2.10",
         "load-grunt-tasks": "3.0.0",
         "mocha": "2.1.0",
+        "node-zopfli": "2.0.2",
         "promises-aplus-tests": "2.1.0"
     },
     "scripts": {
