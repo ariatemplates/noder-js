@@ -188,8 +188,8 @@ module.exports = function(grunt) {
                 browsers: ['Firefox', 'PhantomJS'],
                 // global config for SauceLabs
                 sauceLabs: {
-                    username: 'ariatemplates',
-                    accessKey: '620e638e-90d2-48e1-b66c-f9505dcb888b',
+                    username: process.env.SAUCE_USERNAME,
+                    accessKey: process.env.SAUCE_ACCESS_KEY,
                     testName: 'noder runtime tests'
                 },
                 customLaunchers: {
@@ -197,19 +197,13 @@ module.exports = function(grunt) {
                         base: 'SauceLabs',
                         browserName: 'chrome',
                         platform: 'Windows 7',
-                        version: ''
-                    },
-                    'SL_Chrome_Beta': {
-                        base: 'SauceLabs',
-                        browserName: 'chrome',
-                        platform: 'Linux',
-                        version: 'beta'
+                        version: 'latest'
                     },
                     'SL_Firefox': {
                         base: 'SauceLabs',
                         browserName: 'firefox',
-                        platform: 'Linux',
-                        version: ''
+                        platform: 'Windows 7',
+                        version: 'latest'
                     },
                     'SL_Safari_7': {
                         base: 'SauceLabs',
@@ -253,41 +247,47 @@ module.exports = function(grunt) {
                         platform: 'Windows 8.1',
                         version: '11'
                     },
-                    'SL_iOS_8': {
+                    'SL_Edge': {
                         base: 'SauceLabs',
-                        browserName: 'iphone',
-                        platform: 'OS X 10.10',
-                        version: '8.1'
+                        browserName: 'MicrosoftEdge',
+                        platform: 'Windows 10',
+                        version: 'latest'
                     },
-                    'SL_Android_4.0': {
+                    'SL_iOS': {
                         base: 'SauceLabs',
-                        browserName: 'ANDROID',
-                        platform: 'Linux',
-                        version: '4.0'
-                    },
-                    'SL_Android_4.1': {
-                        base: 'SauceLabs',
-                        browserName: 'ANDROID',
-                        platform: 'Linux',
-                        version: '4.1'
-                    },
-                    'SL_Android_4.2': {
-                        base: 'SauceLabs',
-                        browserName: 'ANDROID',
-                        platform: 'Linux',
-                        version: '4.2'
-                    },
-                    'SL_Android_4.3': {
-                        base: 'SauceLabs',
-                        browserName: 'ANDROID',
-                        platform: 'Linux',
-                        version: '4.3'
+                        browserName: 'Safari',
+                        appiumVersion: '1.6.3',
+                        deviceName: 'iPhone Simulator',
+                        deviceOrientation: 'portrait',
+                        platformVersion: '10.0',
+                        platformName: 'iOS'
                     },
                     'SL_Android_4.4': {
                         base: 'SauceLabs',
-                        browserName: 'ANDROID',
-                        platform: 'Linux',
-                        version: '4.4'
+                        browserName: 'Browser',
+                        appiumVersion: '1.5.3',
+                        deviceName: 'Android Emulator',
+                        deviceOrientation: 'portrait',
+                        platformVersion: '4.4',
+                        platformName: 'Android'
+                    },
+                    'SL_Android_5.0': {
+                        base: 'SauceLabs',
+                        browserName: 'Browser',
+                        appiumVersion: '1.5.3',
+                        deviceName: 'Android Emulator',
+                        deviceOrientation: 'portrait',
+                        platformVersion: '5.0',
+                        platformName: 'Android'
+                    },
+                    'SL_Android_5.1': {
+                        base: 'SauceLabs',
+                        browserName: 'Browser',
+                        appiumVersion: '1.5.3',
+                        deviceName: 'Android Emulator',
+                        deviceOrientation: 'portrait',
+                        platformVersion: '5.1',
+                        platformName: 'Android'
                     }
                 }
             },
@@ -312,7 +312,7 @@ module.exports = function(grunt) {
                         timeout: 60000
                     }
                 },
-                browsers: ['PhantomJS', 'SL_Chrome', 'SL_Firefox', 'SL_Safari_8', 'SL_IE_11', 'SL_Android_4.4'],
+                browsers: ['PhantomJS', 'SL_Chrome', 'SL_Firefox', 'SL_Safari_8', 'SL_Edge', 'SL_Android_5.1'],
                 reporters: ['dots', 'saucelabs']
             },
             ci2: {
@@ -329,7 +329,7 @@ module.exports = function(grunt) {
                         timeout: 60000
                     }
                 },
-                browsers: ['SL_Android_4.0', 'SL_Android_4.1', 'SL_Android_4.2', 'SL_Android_4.3', 'SL_Safari_7'],
+                browsers: ['SL_Android_4.4', 'SL_Android_5.0', 'SL_IE_11', 'SL_iOS', 'SL_Safari_7'],
                 reporters: ['dots', 'saucelabs']
             },
             ci3: {
@@ -346,24 +346,7 @@ module.exports = function(grunt) {
                         timeout: 60000
                     }
                 },
-                browsers: ['SL_iOS_8', 'SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10'],
-                reporters: ['dots', 'saucelabs']
-            },
-            ci4: {
-                sauceLabs: {
-                    startConnect: false,
-                    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
-                },
-                transports: ['xhr-polling'],
-                singleRun: true,
-                captureTimeout: 0,
-                browserNoActivityTimeout: 0,
-                client: {
-                    mocha: {
-                        timeout: 60000
-                    }
-                },
-                browsers: ['SL_Chrome_Beta'],
+                browsers: ['SL_IE_7', 'SL_IE_8', 'SL_IE_9', 'SL_IE_10'],
                 reporters: ['dots', 'saucelabs']
             }
         },
@@ -430,7 +413,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('build', ['clean', 'atpackager', 'uglify', 'gzip', 'compress', 'doc']);
     grunt.registerTask('test', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:unit']);
-    grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci1', 'karma:ci2', 'karma:ci3', 'karma:ci4']);
+    grunt.registerTask('ci', ['jsbeautifier:check', 'jshint', 'mocha', 'karma:ci1', 'karma:ci2', 'karma:ci3']);
     grunt.registerTask('doc', ['copy:docData', 'copy:docHtml', 'markdown:doc']);
     grunt.registerTask('beautify', ['jsbeautifier:update']);
     grunt.registerTask('dev', ['beautify', 'build', 'jshint']);
