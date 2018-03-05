@@ -12,12 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var location = global.location;
+var SourceURL = require("../sourceURL.js");
 
 module.exports = function(code, fileName) {
     var res = {};
     // Using the 'arguments[1].res = ...' trick because IE does not let eval return a function
     if (fileName) {
-        code = ['/*\n * File: ', fileName, '\n */\narguments[1].res=', code, '\n//# sourceURL=', fileName].join('');
+        code = ['/*\n * File: ', fileName, '\n */\narguments[1].res=', code, '\n//# sourceURL=', SourceURL.generateSourceURL(location, fileName)].join('');
     } else {
         code = 'arguments[1].res=' + code;
     }
