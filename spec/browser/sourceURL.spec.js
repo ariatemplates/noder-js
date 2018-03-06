@@ -1,7 +1,22 @@
-var SourceURL = require('../../src/browser-modules/sourceURL.js');
 var expect = global.expect ? global.expect : require("expect.js");
+var noder = global.noder || require('../../dist/node/noder.js');
 
 describe("SourceURL", function() {
+    var SourceURL;
+    if (global.noder) {
+        var newRootModule = noder.createContext({
+            packaging: {
+                requestConfig: {
+                    sync: true
+                },
+                baseUrl: "/base/src/browser-modules/"
+            }
+        });
+        SourceURL = newRootModule.require('sourceURL.js');
+    } else {
+        SourceURL = require('../../src/browser-modules/sourceURL.js');
+    }
+
     it('should generate sourceURL Basic', function() {
         var src = "util/json";
         var location = {
