@@ -178,6 +178,9 @@ module.exports = function(grunt) {
                     'spec/browser/json2.js',
                     'spec/browser/injectNoder.js',
                     'spec/browser/**/*.spec.js', {
+                        pattern: 'src/browser-modules/**',
+                        included: false
+                    }, {
                         pattern: 'dist/browser/**',
                         included: false
                     }, {
