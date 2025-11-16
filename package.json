@@ -28,7 +28,7 @@
         "gzip-js": "0.3.2",
         "highlight.js": "8.4.0",
         "js-beautify": "1.5.4",
-        "js-yaml": "3.2.5",
+        "js-yaml": "4.1.1",
         "karma": "0.12.31",
         "karma-expect": "1.1.0",
         "karma-firefox-launcher": "0.1.4",
